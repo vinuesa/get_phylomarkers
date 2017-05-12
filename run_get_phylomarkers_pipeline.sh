@@ -59,7 +59,7 @@ bindir="$HOME/bin/get_phylomarkers_pipeline"
 
 function check_dependencies()
 {
-    for prog in add_nos2fasta_header.pl pal2nal.pl clustalo pexec run_pexec_cmmds.sh Phi FastTree run_kdetrees.R consense compute_suppValStas_and_RF-dist.R rename concat_alns_local.pl add_labels2tree.pl convert_aln_format_batch_bp.pl popGen_summStats.pl paup convert_aln_format_batch_bp.pl run_parallel_molecClock_test_with_paup.sh
+    for prog in add_nos3fasta_header.pl pal2nal.pl clustalo pexec run_pexec_cmmds.sh Phi FastTree run_kdetrees.R consense compute_suppValStas_and_RF-dist.R rename concat_alns_local.pl add_labels2tree.pl convert_aln_format_batch_bp.pl popGen_summStats.pl paup convert_aln_format_batch_bp.pl run_parallel_molecClock_test_with_paup.sh remove_uninformative_sites_from_aln.pl
     do
        #if which $prog >/dev/null; then <== avoid which
        # see: http://stackoverflow.com/questions/592620/check-if-a-program-exists-from-a-bash-script
