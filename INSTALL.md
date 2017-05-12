@@ -3,6 +3,8 @@ This file lists the software components of the get_phylomarkers pipeline and bri
 
 ## Scripts distributed through GitHub
 ### Bash scripts
+
+* run_get_phylomarkers_pipeline.sh (the main script to run the pipeline)
 * run_pexec_cmmds.sh 
 * run_parallel_molecClock_test_with_paup.sh
 
