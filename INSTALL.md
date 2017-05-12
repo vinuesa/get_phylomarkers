@@ -2,6 +2,8 @@
 
 This file lists the software components of the get_phylomarkers pipeline and briefly describes how to install them.
 
+The pipeline runs on Linux/UNIX-like environments and assumes that Bash, Perl and R are installed.
+
 Version: May 12th, 2017
 
 ## Scripts distributed through GitHub
@@ -47,7 +49,7 @@ install.packages("ape", "kdetrees", "stingr", "vioplot", "ggplot2", "gplots", "p
 NOTE: the corresponding binaries, after installation, shoud be found in the list of directories hold in the $PATH variable.
 
 
-* [clustal omega](http://www.clustal.org/omega/). Multiple sequence alignmet software. [Sievers et al. 2011](http://msb.embopress.org/content/7/1/539.long). On Ubuntu try: 'sudo apt-get install clustalo'
+* [clustal omega](http://www.clustal.org/omega/). Multiple sequence alignment software. [Sievers et al. 2011](http://msb.embopress.org/content/7/1/539.long). On Ubuntu try: 'sudo apt-get install clustalo'
 * [pexec](https://www.gnu.org/software/pexec/). Execute processes in parallel on multicore machines. On Ubuntu try: 'sudo apt-get install pexec'
 * [Phi test](https://www.maths.otago.ac.nz/~dbryant/software/PhiPack.tar.gz). Recombination test software. [Bruen et al. 2006](http://www.genetics.org/content/172/4/2665.long)
 * [FastTree](http://microbesonline.org/fasttree/). Fast maximum-likelihood tree searching program. [Price et al. 2010](http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0009490). On Ubuntu try: 'sudo apt-get install fasttree'
