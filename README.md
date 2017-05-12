@@ -5,6 +5,10 @@ The code is developed and maintained by [Pablo Vinuesa](http://www.ccg.unam.mx/~
 at [CCG-UNAM, Mexico](http://www.ccg.unam.mx/) and 
 [Bruno Contreras-Moreira](http://161.111.227.80/compbio/staff/bruno_contreras_moreira.html) 
  at [EEAD-CSIC, Spain](http://www.eead.csic.es/).
+ 
+[For installation instrictions see INSTALL.md](INSTALL.md)
+
+Version May 12th, 2017.
 
 ## Aim
 The pipeline selects markers with optimal phylogenetic attributes from the homologous gene 
