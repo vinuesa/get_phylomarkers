@@ -1,6 +1,10 @@
 # get_phylomarkers
-This project hosts the code for the get_phylomarkers pipeline. This file describes the
-aim and basic usage notes of the pipeline. See INSTALL.md for installation instructions.
+This project hosts the code for the get_phylomarkers pipeline. This file describes its
+aim and basic usage notes. See INSTALL.md for installation instructions.
+The code is developed and maintained by [Pablo Vinuesa](http://www.ccg.unam.mx/~vinuesa/) 
+at [CCG-UNAM, Mexico](http://www.ccg.unam.mx/) and 
+[Bruno Contreras-Moreira](http://161.111.227.80/compbio/staff/bruno_contreras_moreira.html) 
+ at [EEAD-CSIC, Spain](http://www.eead.csic.es/).
 
 ## Aim
 The pipeline selects markers with optimal phylogenetic attributes from the homologous gene 
@@ -8,8 +12,8 @@ culsters produced by [get_homologues at GitHub](https://github.com/eead-csic-com
 described in the following publications: 
 [Contreras-Moreira and Vinuesa, AEM 2013](https://www.ncbi.nlm.nih.gov/pubmed/24096415) and
 [Vinuesa and Contreras-Moreira, 2015](https://www.ncbi.nlm.nih.gov/pubmed/25343868).
-The selected homologous gene/protein clusters are optimally suited for genome phylogenies. T
-he pipeline is primarily tailored to select ideal markers to infer DNA-level phylogenies 
+The selected homologous gene/protein clusters are optimally suited for genome phylogenies. 
+The pipeline is primarily tailored to select ideal markers to infer DNA-level phylogenies 
 of different species of the same genus or family. It can also select optimal markers for 
 population genetics, when the source genomes belong to the same species.
 
