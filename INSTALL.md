@@ -1,19 +1,28 @@
-# Install notes for get_phylomarkers
+# Installation and execution notes for the get_phylomarkers pipeline
 
 This file lists the software components of the get_phylomarkers pipeline and briefly describes how to install them.
 
-The pipeline runs on Linux and Mac OS X environments, and assumes that Bash, Perl and R are installed.
+The pipeline runs on Linux and Mac OS X environments, although it has not been extensively tested in the latter.
+
+It assumes that recent versions of Bash, Perl and R are installed on a multicore (64bit) machine, ideally a server running Linux.
+The pipeline is designed to take advantage of modern multiprocessor machines to parallelize all repetitive tasks that have to be performed on each entry sequence, like generating multiple sequence alignments, deriving codon alignments, inferring maximum likelihood gene phylogenies and computing their clock-likeness. Therefore, if your intention is to select optimal genome markers to infer genome phylogenies, you should run the pipeline on a multiprocessor/multicore server to speed up computations. 
 
 Version: May 13th, 2017
 
 ## Scripts distributed through GitHub
 
-Note: the main script run_get_phylomarkers_pipeline.sh will automatically check where the 
-get_phylomarkers package was downloaded. It will also check if the host machine has a 
+NOTES: 
+
+1. The main script run_get_phylomarkers_pipeline.sh will automatically identify the directory
+on the local machine where the get_phylomarkers package was downloaded. It will also check if the host machine has a 
 \$HOME/bin dir included in \$PATH. If so, the main script will automatically generate 
 symlinks in \$HOME/bin to the package scripts, so that they become visible system-wide.
-Otherwise, it will append the distribution directory holding the scripts to the local host 
-\$PATH variable.
+Otherwise, it will append the distribution directory holding the scripts to the \$PATH variable.
+
+2. The auxiliary scripts are called sequentially by the main script run_get_phylomarkers_pipeline.sh 
+according to predefined runmodes and on DNA or protein sequences. However, the auxiliary scripts all have
+their own user interface and may be useful to perform specific computations without having to run the pipeline.
+All scripts display usage instructions and describe their aims.
 
 ### Bash scripts
 
@@ -56,12 +65,15 @@ install.packages( c("ape", "kdetrees", "stingr", "vioplot", "ggplot2", "gplots",
 
 NOTES: 
 
-1. the corresponding binaries, after installation, shoud be found in the list of directories hold in the $PATH variable, typically in /usr/local/bin. If the required binaries are not found in \$PATH, the main script will use the ones provided in the distribution
-under bin/linux or bin/darwin, as required for the local environment.
+1. the corresponding binaries, after installation, shoud be found in on one of the directories listed in the $PATH variable.  On Linux machines this is typically /usr/local/bin (if you have superuser privileges) or \$HOME/bin if not. 
+
+2. If the required binaries are not found in \$PATH, the main script will automatically try to use the ones packaged in the distribution under bin/linux or bin/darwin directories, as required for the local environment. 
+
+3. It is strongly recommended, howerver, that the user downloads the latest versions of the binaries from the links provided below. This is particularly important for [paup*](https://people.sc.fsu.edu/~dswofford/paup_test/), since the current version is a test version that automatically expires every 6 months!!! 
 
 
 * [clustal omega](http://www.clustal.org/omega/). Multiple sequence alignment software. [Sievers et al. 2011](http://msb.embopress.org/content/7/1/539.long). On Ubuntu try: 'sudo apt-get install clustalo'
 * [pexec](https://www.gnu.org/software/pexec/). Execute processes in parallel on multicore machines. On Ubuntu try: 'sudo apt-get install pexec'
 * [Phi test](https://www.maths.otago.ac.nz/~dbryant/software/PhiPack.tar.gz). Recombination test software. [Bruen et al. 2006](http://www.genetics.org/content/172/4/2665.long)
 * [FastTree](http://microbesonline.org/fasttree/). Fast maximum-likelihood tree searching program. [Price et al. 2010](http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0009490). On Ubuntu try: 'sudo apt-get install fasttree'
-* [paup*](https://people.sc.fsu.edu/~dswofford/paup_test/). Multipurpose phylogenetics software developed by David Swofford and colleagues. 
+* [paup*](https://people.sc.fsu.edu/~dswofford/paup_test/). Multipurpose phylogenetics software package developed by David Swofford and colleagues. NOTE: This is a test version that expires every 6 months! So please update regularly.
