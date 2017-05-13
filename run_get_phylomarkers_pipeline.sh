@@ -799,7 +799,7 @@ then
 fi
 
 
-if [ $base_mod" != "GTR" -a $base_mod" != "TrN" -a $base_mod" != "HKY" -a $base_mod" != "K2P" -a $base_mod" != "F81" ]
+if [ "$base_mod" != "GTR" -a "$base_mod" != "TrN" -a "$base_mod" != "HKY" -a "$base_mod" != "K2P" -a "$base_mod" != "F81" ]
 then
      printf "\n${RED}ERROR: -M must be one of: GTR|TrN|HKY|K2P|F81${NC}\n"
      print_help
