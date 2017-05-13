@@ -13,7 +13,11 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.0_11May17' #v1.0_11May17; git commited; first version on GitHub: https://github.com/vinuesa/get_phylomarkers
+VERSION='1.1_13May17' #v1.1_13May17; Major update to facilitate installation by users: added set_pipeline_environment(), check_homebinpath(), set_bindirs(), 
+                      #              which ckeck and setup the ENVIRONMENT for the pipeline. Added new bin/ and pop_gen_tables/ dirs for consistency. 
+		      #              The bin/linux dir contains the 2cnd party binaries compiled for 64bit linux machines. Need to compile for darwin
+		      
+                      #v1.0_11May17; git commited; first version on GitHub: https://github.com/vinuesa/get_phylomarkers
                       # v0.9_10May17 important speed improvement due to running pal2nal.pl and run_parallel_molecClock_test_with_paup.sh
                       #               in parallel with run_pexec_cmmds.sh 
                      # v0.8_9May17, added -R 1|2, for Phylo|popGen, based on popGen_summStats.pl and pre-computed Tajima's D and Fu-Li crit value tables
@@ -25,7 +29,9 @@ VERSION='1.0_11May17' #v1.0_11May17; git commited; first version on GitHub: http
                      # v0.5_29April17 Added -t PROT
                      # v0.4_27April17 Added print_usage_notes() and make_labels_4_trees()
 # GLOBALS
-wkdir=$(pwd)
+
+
+wkdir=$(pwd) #echo "# working in $wkdir"
 
 DATEFORMAT_SHORT="%d%b%y"
 TIMESTAMP_SHORT=$(date +${DATEFORMAT_SHORT})
@@ -51,34 +57,131 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color => end color
 #printf "I ${RED}like${NC} ${GREEN}Stack Overflow${NC}\n"
 
-bindir="$HOME/bin/get_phylomarkers_pipeline"
 
 #---------------------------------------------------------------------------------#
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>> FUNCTION DEFINITIONS <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<#
 #---------------------------------------------------------------------------------#
 
-function check_dependencies()
+function set_pipeline_environment()
 {
-    for prog in add_nos3fasta_header.pl pal2nal.pl clustalo pexec run_pexec_cmmds.sh Phi FastTree run_kdetrees.R consense compute_suppValStas_and_RF-dist.R rename concat_alns_local.pl add_labels2tree.pl convert_aln_format_batch_bp.pl popGen_summStats.pl paup convert_aln_format_batch_bp.pl run_parallel_molecClock_test_with_paup.sh remove_uninformative_sites_from_aln.pl
-    do
-       #if which $prog >/dev/null; then <== avoid which
-       # see: http://stackoverflow.com/questions/592620/check-if-a-program-exists-from-a-bash-script
+    if [[ "$OSTYPE" == "linux-gnu" ]]
+    then
+         scriptdir=$(readlink -f ${BASH_SOURCE[0]})
+    	 distrodir=$(dirname $scriptdir) #echo "scriptdir: $scriptdir|basedir:$distrodir|OSTYPE:$OSTYPE"
+    	 bindir=$distrodir/bin/linux
+	 OS='linux'
+    elif [[ "$OSTYPE" == "darwin"* ]]
+    then
+        scriptdir=$(greadlink -f ${BASH_SOURCE[0]})
+	distrodir=$(dirname $scriptdir) #echo "scriptdir: $scriptdir|basedir:$distrodir|OSTYPE:$OSTYPE"
+        bindir=$distrodir/bin/MacOSX
+	OS='darwin'
+    fi
+    echo "$distrodir $bindir $OS"
+}
+#----------------------------------------------------------------------------------------- 
 
+function set_bindirs()
+{  
+    # $bindir $homebinflag $homebinpathflag
+    bindir=$1
+    homebinflag=$2
+    homebinpathflag=$3
+    
+    setbindir_flag=0
+    bins=( clustalo FastTree pexec Phi paup consense )
+
+    for prog in "${bins[@]}" 
+    do
        bin=$(type -P $prog)
        if [ -z $bin ]; then
           echo
-          printf "${RED}# ERROR: $prog not in place!${NC}\n"
-          echo "# ... you will need to install \"$prog\" first or include it in \$PATH"
-          echo "# ... exiting"
-          exit 1
+          printf "${RED}# $prog not found in \$PATH, will add  $prog in $bindir to \$PATH ${NC}\n"
+	  if [ $homebinpathflag -eq 1 ] 
+	  then
+	        ln -s $bindir/$prog $HOME/bin 
+	  else
+                printf "${CYAN} will append $bindir/$prog to the \$PATH variable"
+                PATH=$PATH:$bindir/$prog # append $HOME/bin to $PATH 
+	  fi    
        fi
     done
-
-    echo
-    echo '# Run check_dependencies() ... looks good: all required binaries and scripts are in place.'
-    echo
 }
 #----------------------------------------------------------------------------------------- 
+
+function check_homebinpath()
+{
+   distrodir=$1
+   
+   homebinflag=
+   homebinpathflag=
+   
+   if [ -d $HOME/bin ]
+   then
+       homebinflag=1
+   else
+      printf "${RED} No $HOME/bin directory found, will append $distrodir to the \$PATH variable${NC}"
+      PATH=$PATH:$HOME/$distrodir # append $HOME/bin to $PATH 
+   fi
+   
+   if [ -d $(echo $PATH | sed 's/:/\n/g' | grep "$HOME/bin") ] 
+   then
+        homebinpathflag=1
+	
+	printf "${CYAN} Will generate symlinks in $HOME/bin to Bash, Perl and R scripts in $distrodir ...${NC}"
+        ln -s $distrodir/*.sh $HOME/bin &> /dev/null
+	ln -s $distrodir/*.R $HOME/bin &> /dev/null
+	ln -s $distrodir/*.pl $HOME/bin &> /dev/null
+   fi
+   echo "$homebinflag $homebinpathflag"
+}
+#----------------------------------------------------------------------------------------- 
+
+function check_scripts_in_path()
+{
+    distrodir=$1
+    
+    #bins=( clustalo FastTree pexec Phi paup consense )
+    bash_scripts=( run_pexec_cmmds.sh run_parallel_molecClock_test_with_paup.sh )
+    perl_scripts=( add_nos2fasta_header.pl pal2nal.pl rename concat_alignments.pl add_labels2tree.pl convert_aln_format_batch_bp.pl popGen_summStats.pl convert_aln_format_batch_bp.pl )
+    R_scripts=( run_kdetrees.R compute_suppValStas_and_RF-dist.R )
+    
+    for prog in "${bash_scripts[@]}" "${perl_scripts[@]}" "${R_scripts[@]}"
+    do
+       bin=$(type -P $prog)
+       if [ -z $bin ]; then
+          echo
+          printf "${RED}# WARNING: script $prog is not in \$PATH!${NC}\n"
+	  printf "${CYAN}  >>>  Will add it to \$PATH ${NC}\n"
+	  homebinpath_flags=$(check_homebinpath $distrodir)
+       fi
+    done
+    echo "$homebinpath_flags"
+}
+#----------------------------------------------------------------------------------------- 
+
+function check_binaries_in_path()
+{
+    distrodir=$1
+    
+    bins=( clustalo FastTree pexec Phi paup consense )
+    
+    for prog in "${bins[@]}"
+    do
+       bin=$(type -P $prog)
+       if [ -z $bin ]; then
+          echo
+          printf "${RED}# WARNING: binary $prog is not in \$PATH!\n${NC}"
+	  # Will add it to \$PATH ${NC}\n"
+	  #check_homebinpath $distrodir
+          #echo "# ... you will need to install \"$prog\" first or include it in \$PATH"
+          #echo "# ... exiting"
+#          exit 1
+       fi
+    done
+}
+#----------------------------------------------------------------------------------------- 
+
 
 #run_pexec_cmmds()
 #{
@@ -96,7 +199,7 @@ function check_dependencies()
 #   if [ -z $no_of_cores ]
 #   then
 #       # use all available cores
-#       pexec -r *.$ext -e file -c -o - -- "$command; [ $VERBOSITY -eq 1 ] && echo \$file \=\=\> processed!; done" > 
+#       pexec -r *.$ext -e file -c -o - -- "$command; [ $VERBOSITY -eq 1 ] && echo \$file \=\=\> processed!; done"  
 #   else
 #       # use defined cores
 #       pexec -n $no_of_cores -r *.$ext -e file -c -o - -- "$command; [ $VERBOSITY -eq 1 ] && echo \$file \=\=\> processed!; done"
@@ -319,7 +422,6 @@ function count_tree_branches()
    sink()
 RCMD
 
-
 check_output $outfile
 }
 #----------------------------------------------------------------------------------------- 
@@ -336,13 +438,12 @@ function concat_alns()
         concat_file="concat_cdnAlns.fna"
     fi
 
-
     if [ "$mol_type" == "PROT" ]
     then
         concat_file="concat_protAlns.faa"
     fi
     
-    concat_alns_local.pl list2concat > $concat_file
+    concat_alignments.pl list2concat > $concat_file
     check_output $concat_file $parent_PID
     perl -ne 'if (/^#|^$/){ next }else{print}' $concat_file > ed && mv ed $concat_file
     check_output $concat_file $parent_PID 
@@ -376,8 +477,8 @@ function make_labels_4_trees()
 function get_critical_TajD_values()
 {
    no_seq=$1
-   TajD_low=$(awk -v n=$no_seq '$1 == n' ${bindir}/TajD_predicted_CIs.tsv | cut -d' ' -f2)
-   TajD_up=$(awk -v n=$no_seq '$1 == n' ${bindir}/TajD_predicted_CIs.tsv | cut -d' ' -f3)
+   TajD_low=$(awk -v n=$no_seq '$1 == n' ${distrodir}/pop_gen_tables/TajD_predicted_CIs.tsv | cut -d' ' -f2)
+   TajD_up=$(awk -v n=$no_seq '$1 == n' ${distrodir}/pop_gen_tables/TajD_predicted_CIs.tsv | cut -d' ' -f3)
    echo "$TajD_low $TajD_up"
 }
 #----------------------------------------------------------------------------------------- 
@@ -385,8 +486,8 @@ function get_critical_TajD_values()
 function get_critical_FuLi_values()
 {
    no_seq=$1
-   FuLi_low=$(awk -v n=$no_seq 'BEGIN{FS="\t"}$1 == n' ${bindir}/Fu_Li_predicted_CIs.tsv | cut -f2)
-   FuLi_up=$(awk -v n=$no_seq 'BEGIN{FS="\t"}$1 == n'  ${bindir}/Fu_Li_predicted_CIs.tsv | cut -f3)
+   FuLi_low=$(awk -v n=$no_seq 'BEGIN{FS="\t"}$1 == n' ${distrodir}/pop_gen_tables/Fu_Li_predicted_CIs.tsv | cut -f2)
+   FuLi_up=$(awk -v n=$no_seq 'BEGIN{FS="\t"}$1 == n'  ${distrodir}/pop_gen_tables/Fu_Li_predicted_CIs.tsv | cut -f3)
    echo "$FuLi_low $FuLi_up"
 }
 #----------------------------------------------------------------------------------------- 
@@ -424,7 +525,7 @@ function check_output()
         echo
 	printf "${RED} >>> ERROR! The expected output file $outfile was not produced, will exit now!${NC}\n"
         echo
-	kill $parent_PID
+	kill -9 $parent_PID
     fi
 }
 #----------------------------------------------------------------------------------------- 
@@ -438,21 +539,21 @@ function print_development_notes()
     I. CRITICAL/Important:
     
     0. Need to make sure that the concatenated tree gets concat prefix in file name for compute_suuValStats_and_RF-dist.R to work!
-       Rename the final *ed.ph to *ed.tre to avoid problems with compute_suuValStats_and_RF-dist.R to work
+       Rename the final *ed.ph to *ed.tre to avoid problems with compute_suppValStats_and_RF-dist.R to work
        
        The logic of BOTH is now working yet
     
-    1. run_kdetrees.R and compute_suppValStas_and_RF-dist.R run_molecClock_test_jmodeltest2_paup.sh may be refactored into functions run from within $progname
+    1. run_kdetrees.R and compute_suppValStas_and_RF-dist.R run_molecClock_test_with_paup.sh may be refactored into functions run from within $progname
     1.1 verify if kdetrees or RF-dist require haplotyes and/or rooted trees! 
     1.2 rationalize names of output files (*out) and improve graphics; think of using ggplot2 graphics-
     1.3 verify the output generated by runmodes 1 and 2 of compute_suppValStas_and_RF-dist.R; we are calling it with runmode 2 in both occasions
-    1.4 hold dependencies lists in arrays for scripts, binaries and modules/packages and write install_get_phylomarkers.sh script
+    1.4 add array dependencies lists for perl modules/packages and write install_get_phylomarkers.sh script
         to make install as easy as possible for users; incude required R and Perl libs.
     1.5 Write documentation/Manual    
     1.6. refactor -t PROT and -t DNA codes into subs using appropriate suffixes; make_labels_4_trees() calibrated for DNA!!!
          Make also sure that we use a concat_prefix in the concatenated tree file name, because this is expected by 
 	 compute_suuValStats_and_RF-dist.R
-    1.7 Need to check the check_output function	and related code
+    1.7 Need to check the check_output function	and related checking code; add more checking code
     1.8 Need to think of most suitable install procedure, including directory structure
   
 
@@ -461,9 +562,7 @@ function print_development_notes()
     2.2 Think if implementing here the pop_genetics or in a separte script; remove -R if not used! A reasonable place would be
        to run the evaluation pipeline in the non_recomb_cdn_aln/ dir, and run it after the kdetrees test. 
     2.3 finish/test the run_pexec_cmmds() function to run from within the script (minimize the usage of external scripts)
-    2.4 Think of a strategy to pass a precomputed command string, containing multiple interpolated variables,
-         to run_pexec_cmmds.sh, in order to accelerate pal2nal and run_molecClock_test_jmodeltest2_paup.sh
-    2.5 Add the functionality of get_TajD_critical_values() and get_FuLi_critical_values() to popGen_summStats.pl	 
+    2.4 Add the functionality of get_TajD_critical_values() and get_FuLi_critical_values() to popGen_summStats.pl	 
 
     III: CODE CLEANUP
     3.1 Cleanup all companion scripts
@@ -473,12 +572,15 @@ function print_development_notes()
     NOTES:
       1. read the descriptions of code blocks with: grep -A 300 BLOCK $progname | egrep '^#|^[[:space:]]+#'
       
+      
+    VERSION HISTORY:
+      
+      
 DEV
 
 exit 0
 }
 #----------------------------------------------------------------------------------------- 
-
 
 function print_help()
 {
@@ -489,12 +591,15 @@ function print_help()
     -R <integer> RUNMODE
           1 select optimal markers for phylogenetics/phylogenomics (genomes form different species).
 	  2 select optimal markers for population genetics (genomes form the same species).
-    -t <string> type of input sequences: DNA|PROT|BOTH
+    -t <string> type of input sequences: DNA|PROT
     
    OPTIONAL:
-     -h Flag to print this help notes
+     -h flag to print this short help notes
+     -H flag to print additional usage Notes
      -c <integer> NCBI codontable number (1-23) for pal2nal.pl to generate codon alignment;        [default:$codontable] 
-     -C <flag> print codontables
+     -C flag to print codontables
+     -d flag to print debugging messages                                                          [default: $DEBUG]
+     -D flag to print development notes and TODOs                                            
      -e <integer> select gene trees with at least (min. = 4) external branches                     [default: $min_no_ext_branches]
      -k <real> kde stringency (0.7-1.6 are reasonable values; less is more stringent)              [default: $kde_stringency]
      -K <integer> run molecular clock test on codon alignments                                     [default: $eval_clock]
@@ -505,11 +610,8 @@ function print_help()
      -q <real> quantile (0.95|0.99) of Chi-square distribution for computing molec. clock p-value  [default: $q]
      -r <string> root method (midpoint|outgroup)                                                   [default: $root_method]
      -s <integer> number of spr rounds (4-20 are reasonable values) for FastTree tree searching    [default: $spr]
-     -d  Flag to print debugging messages                                                          [default: $DEBUG]
-     -D  Flag to print development notes and TODOs                                            
      -T <string> tree search Thoroughness: high|medium|low|lowest                                  [default: $search_thoroughness]
-     -V <integer> Verbosity level (how much rubish sent to STDOUT)                                 [default: $VERBOSITY] # <<< NOT USED
-     -N  Flag to print important usage Notes
+     -V <integer> Verbosity level (how much rubish sent to STDOUT)                                 [default: $VERBOSITY]
      
    Invocation examples:
      1. Default: $progname -R 1 -t DNA
@@ -524,8 +626,6 @@ function print_help()
      
 EOF
 
-   check_dependencies
-   
    exit 2  
 }
 #----------------------------------------------------------------------------------------- 
@@ -545,7 +645,7 @@ kde_stringency=1.5
 min_supp_val=0.75
 min_no_ext_branches=4
 VERBOSITY=0
-DEBUG=0
+DEBUG=
 spr_length=8
 spr=4
 codontable=11 # bacterial by default
@@ -557,7 +657,7 @@ q=0.99
 
 
 # See bash cookbook 13.1 and 13.2
-while getopts ':c:e:k:K:l:m:M:p:q:r:s:t:T:R:V:hdCDN?:' OPTIONS
+while getopts ':c:e:k:K:l:m:M:p:q:r:s:t:T:R:V:hHdCD?:' OPTIONS
 do
    case $OPTIONS in
    h)   print_help
@@ -568,6 +668,8 @@ do
         ;;
    C)	print_codontables
 	;;
+   d)   DEBUG=1
+        ;;
    D)	print_development_notes
         ;;
    e)   min_no_ext_branches=$OPTARG
@@ -594,11 +696,9 @@ do
         ;;
    R)   runmode=$OPTARG
         ;;
-   N)   print_usage_notes
+   H)   print_usage_notes
         ;;
    V)   VERBOSITY=$OPTARG
-        ;;
-   d)   DEBUG=1
         ;;
    \:)   printf "argument missing from -%s option\n" $OPTARG
    	 print_help
@@ -619,6 +719,37 @@ done
 shift $(($OPTIND - 1))
 
 
+#----------------------------------------------#
+# >>> SET THE ENVIRONMENT FOR THE PIPELINE <<< #
+#----------------------------------------------#
+
+# 0. Set the distribution base directory and OS-specific (linux|darwin) bindirs
+env_vars=$(set_pipeline_environment) # returns $distrodir $bindir $OS
+distrodir=$(echo $env_vars | awk '{print $1}')
+bindir=$(echo $env_vars | awk '{print $2}')
+OS=$(echo $env_vars | awk '{print $3}')
+bindir="$distrodir/bin/$OS"
+
+[ $DEBUG ] && echo "distrodir:$distrodir"
+[ $DEBUG ] && echo "bindir:$bindir"
+
+# 0.1 Determine if pipeline scripts are in $PATH; if not, add them
+
+# returns $homebinflag $homebinpathflag; if $homebinpathflag add symlinks to scripts
+homebinpath_flags=$(check_scripts_in_path $distrodir) 
+homebinflag=$(echo $homebinpath_flags | awk '{print $1}')
+homebinpathflag=$(echo $homebinpath_flags | awk '{print $2}')
+[ $DEBUG ] && echo "homebinpath_flags:$homebinpath_flags"
+
+# if second-party binaries are not in $PATH, $setbindir_flag -eq 1 
+# and will use the binaries provided in $bindir
+setbindir_flag=$(set_bindirs $bindir $homebinflag $homebinpathflag)
+[ $DEBUG ] && echo "setbindir_flag:$setbindir_flag"
+
+#----------------------------#
+# >>> CHECK USER OPTIONS <<< #
+#----------------------------#
+
 if [ -z $runmode ]
 then
        echo "# ERROR: no runmode defined!"
@@ -630,42 +761,36 @@ if [ $min_no_ext_branches -lt 4 ]
 then
     printf "${RED}>>> ERROR: -e has to be >= 4\n\n${NC}"
     print_help
-    exit 2
+    exit 1
 fi
 
-if [ -z $DEBUG ]
-then
-     DEBUG=0 
-fi
-
-if [ "$mol_type" != "DNA" -a "$mol_type" != "PROT" -a "$mol_type" != "BOTH" ] 
+if [ "$mol_type" != "DNA" -a "$mol_type" != "PROT" ] 
 then
      printf "\n${RED}ERROR: -t must be DNA or PROT${NC}\n"
      print_help
-     exit 3
+     exit 1
 fi
-
 
 if [ "$search_thoroughness" != "high" -a "$search_thoroughness" != "medium" -a "$search_thoroughness" != "low" -a "$search_thoroughness" != "lowest" ]
 then
      printf "\n${RED}ERROR: -T must be lowest|low|medium|high${NC}\n"
      print_help
-     exit 2
+     exit 1
 fi
-
 
 if [ $eval_clock -gt 0 -a "$mol_type" != "DNA" ]
 then
      printf "\n${RED}ERROR: -K 1 (evaluate clock) must be run on codon alignments with -t DNA${NC}\n"
      print_help
-     exit 3
-
+     exit 1
 fi
 
-###>>> Exported variables
-#declare -x skip_seqs_gt=$skip_seqs_gt perl # export only2perl!!! $ENV{skip_seqs_gt}
+#---------------------#
+# >>>> MAIN CODE <<<< #
+#---------------------#
 
 parent_PID=$(get_script_PID $progname)
+[ $DEBUG -eq 1 ] && echo "parent_PID:$parent_PID"
 
 logdir=$(pwd)
 
@@ -674,23 +799,11 @@ dir_suffix=t${mol_type}_k${kde_stringency}_m${min_supp_val}_s${spr}_l${spr_lengt
 printf "
  ${CYAN}>>> $(basename $0) vers. $VERSION run with the following parameters:${NC}
  ${YELLOW}wkdir=$wkdir
- bindir=$bindir
+ setbindir_flag=$setbindir_flag|bindir=$bindir
  runmode=$runmode|mol_type=$mol_type|tree_prefix=$tree_prefix|eval_clock=$eval_clock|root_method=$root_method|base_model=$base_mod|ChiSq_quantile=$q
  kde_stringency=$kde_stringency|min_supp_val=$min_supp_val|spr=$spr|spr_length=$spr_length|search_thoroughness=$search_thoroughness${NC}
 
 " | tee ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log 
-
-
-
-#---------------------#
-# >>>> MAIN CODE <<<< #
-#---------------------#
-
-#if [ $runmode -eq 1 ]
-#then
-#    echo "# XXX"
-#
-#fi
 
 #----------------------------------------------------------------------------------------------------------------
 #>>>BLOCK 1. make a new subdirectory within the one holding core genome clusters generated by compare_clusters.pl
@@ -771,9 +884,9 @@ tar -czf numbered_fna_files.tgz *fnaedno
 tar -czf numbered_faa_files.tgz *faaedno
 rm *aedno
 
-#-----------------------------------------------------------------------------------------------------
-#>>>BLOCK 3. run_PhiPacky to identify recombinant codon alignments on all *_cdnAln.fasta source files
-#-----------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------------#
+#>>> BLOCK 3. run Phi-test to identify recombinant codon alignments on all *_cdnAln.fasta source files <<< #
+#----------------------------------------------------------------------------------------------------------#
 # 3.1 make a new PhiPack subdirectory to work in. generate symlinks to ../*fasta files
 #     Mark dir as phipack_dir
 mkdir PhiPack && cd PhiPack
@@ -969,7 +1082,7 @@ then
     
         if [ "$search_thoroughness" == "high" ]
         then
-        FastTree -quiet -nt -gtr -bionj -slownni -gamma -mlacc 3 -spr $spr -sprlength $spr_length < concat_cdnAlns.fnainf > ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
+            FastTree -quiet -nt -gtr -bionj -slownni -gamma -mlacc 3 -spr $spr -sprlength $spr_length < concat_cdnAlns.fnainf > ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
         fi
 
         if [ "$search_thoroughness" == "medium" ]
@@ -1006,7 +1119,7 @@ then
         tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
         compute_suppValStas_and_RF-dist.R $top_markers_dir 2 fasta ph 1 &> /dev/null
     
-        # NOTE: this is the slowest process in the pipeline; re-write run_molecClock_test_jmodeltest2_paup.sh to parallelize with run_pexec_cmmds.sh
+        # NOTE: after v0.9 this process is prallelized with run_pexec_cmmds.sh
 	if [ $eval_clock -gt 0 ]
         then 
  	     # 1. convert fasta2nexus
@@ -1026,7 +1139,7 @@ then
             echo -e "#nexfile\tlnL_unconstr\tlnL_clock\tLRT\tX2_crit_val\tdf\tp-val\tmol_clock" > $results_table
 	    
 	     cmd="run_pexec_cmmds.sh nex 'run_parallel_molecClock_test_with_paup.sh -R 1 -f \$file -M $base_mod -t ph -b global_mol_clock -q $q'"
-	     [ $DEBUG -eq 1 ] && echo "run_parallel_molecClock.cmd: $cmd"
+	     [ $DEBUG ] && echo "run_parallel_molecClock.cmd: $cmd"
 	     echo $cmd | bash &> /dev/null
 	     
 	     mol_clock_tab=$(ls *_ClockTest.tab)
@@ -1054,11 +1167,10 @@ then
            
 	       printf "${GREEN} >>> Top markers and associated stats are found in:\n$top_markers_dir ...${NC}\n\n" | \
 	       tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-	     
-
-             else
+            else
 	          printf "${RED} >>> ${mol_clock_tab} not found"
-	     fi
+	    fi
+
 	 # 4. cleanup
          tar -czf molClock_PAUP_files.tgz *_paup.block *.nex  *_clockTest.log *tre *clock.scores
          [ -s molClock_PAUP_files.tgz ] && rm *_paup.block *.nex  *_clockTest.log *tre *clock.scores
@@ -1068,40 +1180,40 @@ then
     
     if [ $runmode -eq 2 ]
     then
-          mkdir popGen && cd popGen
-          popGen_dir=$(pwd)
+        mkdir popGen && cd popGen
+        popGen_dir=$(pwd)
 
-	  ln -s ../*fasta .
-	  no_top_markers=$(ls *fasta | wc -l)
-	  tmpf=$(ls -1 *fasta | head -1)
-	  no_seqs=$(grep -c '>' $tmpf)
-	  [ $DEBUG -eq 1 ] && echo "no_seqs:$no_seqs"
+	ln -s ../*fasta .
+	no_top_markers=$(ls *fasta | wc -l)
+	tmpf=$(ls -1 *fasta | head -1)
+	no_seqs=$(grep -c '>' $tmpf)
+	[ $DEBUG -eq 1 ] && echo "no_seqs:$no_seqs"
 
-          printf "${BLUE}# Will run descriptive DNA polymorphism statistics for $no_top_markers top markers. This will take some time ...${NC}\n" | \
-       	  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-	  
-	  TajD_crit_vals=$(get_critical_TajD_values $no_seqs)
-	  TajD_l=$(echo $TajD_crit_vals | awk '{print $1}')
-	  TajD_u=$(echo $TajD_crit_vals | awk '{print $2}')
+        printf "${BLUE}# Will run descriptive DNA polymorphism statistics for $no_top_markers top markers. This will take some time ...${NC}\n" | \
+       	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	
+	TajD_crit_vals=$(get_critical_TajD_values $no_seqs)
+	TajD_l=$(echo $TajD_crit_vals | awk '{print $1}')
+	TajD_u=$(echo $TajD_crit_vals | awk '{print $2}')
 
-	  FuLi_crit_vals=$(get_critical_FuLi_values $no_seqs)
-	  FuLi_l=$(echo "$FuLi_crit_vals" | awk '{print $1}')
-	  FuLi_u=$(echo "$FuLi_crit_vals" | awk '{print $2}')
+	FuLi_crit_vals=$(get_critical_FuLi_values $no_seqs)
+	FuLi_l=$(echo "$FuLi_crit_vals" | awk '{print $1}')
+	FuLi_u=$(echo "$FuLi_crit_vals" | awk '{print $2}')
+	
+	[ $DEBUG -eq 1 ] && echo "TajD_crit_vals:$TajD_crit_vals | TajD_l:$TajD_l | TajD_u:$TajD_u | FuLi_crit_vals:$FuLi_crit_vals | FuLi_l:$FuLi_l | FuLi_u:$FuLi_u"
+	
+        printf "${BLUE}# converting $no_top_markers fasta files to nexus format ...${NC}\n" | \
+       	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null 
 	  
-	  [ $DEBUG -eq 1 ] && echo "TajD_crit_vals:$TajD_crit_vals | TajD_l:$TajD_l | TajD_u:$TajD_u | FuLi_crit_vals:$FuLi_crit_vals | FuLi_l:$FuLi_l | FuLi_u:$FuLi_u"
-	  
-          printf "${BLUE}# converting $no_top_markers fasta files to nexus format ...${NC}\n" | \
-       	  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-	  convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null 
-	    
-          printf "${BLUE}# Running popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u &> popGen_summStats_hs100.log ...${NC}\n" | \
-       	  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-	  popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u &> popGen_summStats_hs100.log
-	  
-	  check_output polymorphism_descript_stats.tab
-	  
-	  printf "${GREEN} >>> descriptive DNA polymorphism stats are found in:\n$popGen_dir ...${NC}\n\n" | \
-	  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+        printf "${BLUE}# Running popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u &> popGen_summStats_hs100.log ...${NC}\n" | \
+       	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u &> popGen_summStats_hs100.log
+	
+	check_output polymorphism_descript_stats.tab
+	
+	printf "${GREEN} >>> descriptive DNA polymorphism stats are found in:\n$popGen_dir ...${NC}\n\n" | \
+	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
     fi
 fi # if [ "$mol_type" == "DNA"    
 
@@ -1114,18 +1226,6 @@ fi # if [ "$mol_type" == "DNA"
 
 if [ "$mol_type" == "PROT" -o "$mol_type" == "BOTH" ]
 then
-
-    #  IMPORTANT NOTE: the sequences should be collapsed to haplotypes
-    #  but beware that the R code below complains when the tree labels 
-    #  contain '#' symbols, as introduced by collapse2haplotypes.pl
-    #  so use a line like the following to change # by - in the collapsed faalns (or on the trees)
-
-    #printf "${BLUE}# collapsing faalns to haplotypes ...${NC}\n"
-    #for file in *faaln; do collapse2haplotypes.pl $file | awk '{print $1, $2}' | perl -pe 'if(/^>/){ s/\h\#\d+// }' > ${file}UNIQ; done &> /dev/null
-
-    #printf "${BLUE}# running FastTree on faalns collapsed to haplotypes ...${NC}\n"
-    #run_pexec_cmmds.sh faalnUNIQ 'FastTree -quiet -lg -gamma -bionj -slownni -mlacc 3 -spr 8 -sprlength 8 < $file > ${file%.*}_haploFTlgG.ph' &> /dev/null
-
     printf "${BLUE}# estimating $no_non_recomb_alns_perm_test gene trees from non-recombinant sequences ...${NC}\n" | \
     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
     run_pexec_cmmds.sh faaln 'FastTree -quiet -lg -gamma -bionj -slownni -mlacc 3 -spr 8 -sprlength 8 < $file > ${file%.*}_allFTlgG.ph' &> /dev/null
@@ -1156,7 +1256,6 @@ then
     check_output kde_dfr_file_all_FTlgG_trees.tre.tab $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
     # 5.3 mv outliers to kde_outliers
-    
     no_kde_outliers=$(grep -c outlier kde_dfr_file_all_FTlgG_trees.tre.tab)
     no_kde_ok=$(grep -vc outlier kde_dfr_file_all_FTlgG_trees.tre.tab)
 
@@ -1172,7 +1271,6 @@ then
 
     if [ $no_kde_ok -gt 0 ]
     then
-
         printf "${BLUE}# making dir kde_ok/ and linking $no_kde_ok selected files into it ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
         mkdir kde_ok
         cd kde_ok
@@ -1201,11 +1299,6 @@ then
     #  4.5 concatenated prefix required by run compute_suppValStas_and_RF-dist.R
     #  ln -s outtree concatenated.ph 
 
-    
-    #>>>THINK<<< May be better to compute only average support values 
-    #            and compute the RF-distances of informative trees to the 
-    #            supermatrix tree
-    
     # 5.6 compute average bipartition support values for each gene tree
     #     and their RF-fistance to the consensus tree computed with consense
     wkdir=$(pwd) 
@@ -1230,7 +1323,6 @@ then
     mkdir $top_markers_dir && cd $top_markers_dir
     ln -s ../$top_markers_tab .
     for base in $(awk '{print $1}' $top_markers_tab | grep -v loci | sed 's/"//g'); do ln -s ../${base}* .; done
-
 
     # 5.7 generate supermatrix (concatenated alignment) 
     printf "${BLUE}# concatenating $no_top_markers top markers into supermatrix ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
