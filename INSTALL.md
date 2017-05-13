@@ -2,11 +2,17 @@
 
 This file lists the software components of the get_phylomarkers pipeline and briefly describes how to install them.
 
-The pipeline runs on Linux/UNIX-like environments and assumes that Bash, Perl and R are installed.
+The pipeline runs on Linux and Mac OS X environments, and assumes that Bash, Perl and R are installed.
 
-Version: May 12th, 2017
+Version: May 13th, 2017
 
 ## Scripts distributed through GitHub
+
+Note: the main script run_get_phylomarkers_pipeline.sh will check where the 
+get_phylomarkers package was installed and will either generate symlinks to them from the
+\$HOME/bin dir, if this directory is included in the \$PATH variable, or it will export 
+the path to the distribution directory holding the scripts to the local host \$PATH.
+
 ### Bash scripts
 
 * run_get_phylomarkers_pipeline.sh (the main script to run the pipeline)
@@ -32,7 +38,7 @@ Version: May 12th, 2017
 
 On an Ubuntu machine BioPerl can be easily installed with: 'sudo apt-get install libbio-perl-perl'
 
-For more information see [bioperl.org INSTALL](http://bioperl.org/INSTALL.html)
+For more information and alternative installation options see [bioperl.org INSTALL](http://bioperl.org/INSTALL.html)
 
 ### R scripts
 * compute_suppValStas_and_RF-dist.R
@@ -42,11 +48,14 @@ For more information see [bioperl.org INSTALL](http://bioperl.org/INSTALL.html)
 The dependencies can be easily installed from within R. If you want the packages to be installed on a system-wide basis,
 call R with superuser privileges. From within R execute the following command: 
 
-install.packages("ape", "kdetrees", "stingr", "vioplot", "ggplot2", "gplots", "plyr", "seqinr", dep=T)
+install.packages( c("ape", "kdetrees", "stingr", "vioplot", "ggplot2", "gplots", "plyr", "seqinr"), dep=T)
 
 ## External dependencies: second party binaries to be installed by the user. 
 
-NOTE: the corresponding binaries, after installation, shoud be found in the list of directories hold in the $PATH variable.
+NOTES: 
+
+1. the corresponding binaries, after installation, shoud be found in the list of directories hold in the $PATH variable, typically in /usr/local/bin. If the required binaries are not found in \$PATH, the main script will use the ones provided in the distribution
+under bin/linux or bin/darwin, as required for the local environment.
 
 
 * [clustal omega](http://www.clustal.org/omega/). Multiple sequence alignment software. [Sievers et al. 2011](http://msb.embopress.org/content/7/1/539.long). On Ubuntu try: 'sudo apt-get install clustalo'
