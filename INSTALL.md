@@ -24,7 +24,7 @@ Otherwise, it will append the distribution directory holding the scripts to the 
 ### Perl scripts
 * add_labels2tree.pl 
 * add_nos2fasta_header.pl 
-* concat_alns_local.pl 
+* concat_alignments.pl 
 * convert_aln_format_batch_bp.pl
 * pal2nal.pl 
 * popGen_summStats.pl
