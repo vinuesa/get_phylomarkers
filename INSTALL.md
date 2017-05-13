@@ -8,10 +8,12 @@ Version: May 13th, 2017
 
 ## Scripts distributed through GitHub
 
-Note: the main script run_get_phylomarkers_pipeline.sh will check where the 
-get_phylomarkers package was installed and will either generate symlinks to them from the
-\$HOME/bin dir, if this directory is included in the \$PATH variable, or it will export 
-the path to the distribution directory holding the scripts to the local host \$PATH.
+Note: the main script run_get_phylomarkers_pipeline.sh will automatically check where the 
+get_phylomarkers package was downloaded. It will also check if the host machine has a 
+\$HOME/bin dir included in \$PATH. If so, the main script will automatically generate 
+symlinks in \$HOME/bin to the package scripts, so that they become visible system-wide.
+Otherwise, it will append the distribution directory holding the scripts to the local host 
+\$PATH variable.
 
 ### Bash scripts
 
