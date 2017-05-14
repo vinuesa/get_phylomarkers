@@ -1,6 +1,6 @@
 # get_phylomarkers
 This project hosts the code for the *get_phylomarkers pipeline*. This file describes its
-aim and basic usage notes. See INSTALL.md for installation instructions.
+aim and basic usage notes. See [INSTALL.md](INSTALL.md) for installation instructions.
 The code is developed and maintained by [Pablo Vinuesa](http://www.ccg.unam.mx/~vinuesa/) 
 at [CCG-UNAM, Mexico](http://www.ccg.unam.mx/) and 
 [Bruno Contreras-Moreira](http://161.111.227.80/compbio/staff/bruno_contreras_moreira.html) 
@@ -137,7 +137,7 @@ using the [FastTree](http://microbesonline.org/fasttree/) program [Price et al. 
       low:    -nt -gtr -bionj -slownni -gamma -spr 4 -sprlength 8 
       lowest: -nt -gtr -gamma -mlnni 4
       
-      where -s \$spr and -l \$spr_length can be set by the user. 
+      where -s $spr and -l $spr_length can be set by the user. 
       The lines above show their default values.
       
       For protein alignments, the search parameters are the same, only the model changes to lg
@@ -146,3 +146,20 @@ using the [FastTree](http://microbesonline.org/fasttree/) program [Price et al. 
       ...
       
       Please refer to the FastTree manual for the details.
+      
+## Citation.
+
+We are preparing a publication describing the implementation get_phylomarkers pipeline and its use in genomic taxonomy and population genomics of *Stenotrophomonas* bacteria, which will be submitted to the Research Topic of 
+[Frontiers in Microbiology: Microbial Taxonomy, Phylogeny and Biodiversity](http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity).
+
+Meanwhile, if you find the code useful for your academic work, please use the following citation:
+Pablo Vinuesa and Bruno Contreras-Moreira 2017. Get_PhyloMarkers, a pipeline to select optimal markers for microbial phylogenomics, systematics and genomic taxomy. Available at https://github.com/vinuesa/get_phylomarkers.
+
+## Acknowledgements
+
+### Personal
+We  thank  Romualdo  Zayas,  Víctor  del  Moral,  and  Alfredo  J.  
+Hernández at CCG-UNAM for technical support.
+
+### Funding
+We gratefully acknowledge the funding provided by [DGAPA-PAPIIT/UNAM](http://dgapa.unam.mx/index.php/impulso-a-la-investigacion/papiit) grants IN201806-2 and IN211814, [CONACyT-Mexico](http://www.conacyt.mx/) grants P1-60071 and 179133 to [Pablo Vinuesa](http://www.ccg.unam.mx/~vinuesa/), as well as the Fundación ARAID, and Consejo  Superior  de Investigaciones Científicas (grant 200720I038) to [Bruno Conteras-Moreira]().
