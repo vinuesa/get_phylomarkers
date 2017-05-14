@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 #
 #    pal2nal.pl  (v14)                                      Mikita Suyama
 #
