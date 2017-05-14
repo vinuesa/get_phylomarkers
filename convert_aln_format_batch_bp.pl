@@ -1,12 +1,14 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 # Use BioPerl's Bio::AlignIO to convert between multiple sequence alignment formats
 # Pablo Vinuesa July 2007. vinuesa@ccg.unam.mx
 
 use strict;
+use warnings;
+use File::Basename;
 
-chomp(my $HOSTNAME = `hostname`);
-if ($HOSTNAME =~ /kayab/){use lib '/state/partition1/space12/PIG/vinuesa/marfil/CVS_code/BioPerl-1.6.1'};
+my $progname = basename($0);
+my $VERSION = 0.2;  # May 14th, 2017. Added portable shebang; some cleanup
 
 use Bio::AlignIO;           
 
@@ -14,7 +16,7 @@ use Bio::AlignIO;
 
 if ($#ARGV < 3)
 {
-	print "Usage: $0 inputformat infile_ext outputformat outputfile_ext\n
+	print "Usage: $progname inputformat infile_ext outputformat outputfile_ext\n
 	          Supported formats include:
 
               bl2seq      Bl2seq Blast output
@@ -56,6 +58,5 @@ foreach my $infile ( @infiles )
 		    $out->write_aln($aln);
 	}
 	$counter++;
-
 }
 print "\n\t# I'm done: $counter $inputformat input files with $infile_ext extension were converted to $outputformat format with $outputfile_ext extension\n\n";
