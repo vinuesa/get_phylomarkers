@@ -1,4 +1,4 @@
-#!/usr/bin/perl 
+#!/usr/bin/env perl 
 
 # Pablo Vinuesa
 # Centro de Ciencias Genomicas, UNAM, Mexico
