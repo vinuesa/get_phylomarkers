@@ -4,7 +4,7 @@ aim and basic usage notes. See [INSTALL.md](INSTALL.md) for installation instruc
 The code is developed and maintained by [Pablo Vinuesa](http://www.ccg.unam.mx/~vinuesa/) 
 at [CCG-UNAM, Mexico](http://www.ccg.unam.mx/) and 
 [Bruno Contreras-Moreira](http://161.111.227.80/compbio/staff/bruno_contreras_moreira.html) 
- at [EEAD-CSIC, Spain](http://www.eead.csic.es/).
+ at [EEAD-CSIC, Spain](http://www.eead.csic.es/). It is released to the public domain under the GNU GPLv3 license.
  
 [For installation instrictions see INSTALL.md](INSTALL.md)
 
@@ -152,7 +152,7 @@ using the [FastTree](http://microbesonline.org/fasttree/) program [Price et al. 
 We are preparing a publication describing the implementation get_phylomarkers pipeline and its use in genomic taxonomy and population genomics of *Stenotrophomonas* bacteria, which will be submitted to the [Research Topic of Frontiers in Microbiology: Microbial Taxonomy, Phylogeny and Biodiversity](http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity).
 
 Meanwhile, if you find the code useful for your academic work, please use the following citation:
-Pablo Vinuesa and Bruno Contreras-Moreira 2017. Get_PhyloMarkers, a pipeline to select optimal markers for microbial phylogenomics, systematics and genomic taxomy. Available at https://github.com/vinuesa/get_phylomarkers.
+Pablo Vinuesa and Bruno Contreras-Moreira 2017. Get_PhyloMarkers, a pipeline to select optimal markers for microbial phylogenomics, systematics and genomic taxomy. Available at https://github.com/vinuesa/get_phylomarkers and released under the GNU GPLv3 license.
 
 ## Acknowledgements
 
