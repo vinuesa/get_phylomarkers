@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 # Author: Pablo Vinuesa, CCG-UNAM, Cuernavaca, Mexico. http://www.ccg.unam.mx/~vinuesa/
 # popGen_summStats.pl, project started on April 16th, 2010.
@@ -47,7 +47,8 @@
 #------------------------------------------------------------------------------------------------#
 
 # Code development history: April 16th 2010 -> 
-our $VERSION = 1.2; # v1.2 Aug 9st, 2011: included an important test 'unless ($paup_data[2]){}' # i.e. next if the alignment has no variable sites! 
+my $VERSION = 1.3;  # v1.3 May 14th, 2017. Added portable shebang line for get_phylomarkers
+                    # v1.2 Aug 9st, 2011: included an important test 'unless ($paup_data[2]){}' # i.e. next if the alignment has no variable sites! 
                     #    the alignment won't be processed by get_pop_summary_stats() if it has no variable sites; otherwise it will die (see comments in the unless block)
                     # v1.1 Jul 21st, 2011: simply changed method no_sequences by num_sequences, since the former is deprecated in BioPerl > 1.5
                     # v1.0 Nov. 10th, 2010; just corrected the order of table headers pi_gene pi_site ... printed to the *tab output file
@@ -71,11 +72,9 @@ our $VERSION = 1.2; # v1.2 Aug 9st, 2011: included an important test 'unless ($p
                     ## v0.5, May 1st 2010 ==> major debugging and code cleanup; apparently no bugs left; tested in all runmodes
 
 use strict;
+use warnings;
 use File::Basename;
 use Getopt::Std;
-
-chomp (my $HOSTNAME = `hostname`);
-if ($HOSTNAME =~ /kayab/i){ use lib '/export/internal_use/marfil/CVS_code/marfil/bioperl-1.5.2_102/';}
 
 use Bio::AlignIO;
 use Bio::PopGen::IO;
@@ -858,7 +857,7 @@ print STDOUT <<EOF;
 11	-2.30	-2.30	-1.86	1.27 1.37 1.47
 12	-2.39	-2.39	-1.87	1.26 1.36 1.47
 13	-2.49	-2.49	-1.91	1.29 1.37 1.47
-I4	-2.54	-2.54	-1.92	1.28 1.36 1.47
+14	-2.54	-2.54	-1.92	1.28 1.36 1.47
 15	-2.61	-2.61	-1.93	1.27 1.36 1.47
 16	-2.68	-2.68	-1.96	1.27 1.35 1.48
 17	-2.75	-2.75	-1.98	1.26 1.35 1.47
