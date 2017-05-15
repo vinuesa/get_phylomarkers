@@ -722,7 +722,7 @@ q=0.99
 
 
 # See bash cookbook 13.1 and 13.2
-while getopts ':c:e:k:K:l:m:M:p:q:r:s:t:T:R:V:hHdCD?:' OPTIONS
+while getopts ':c:e:k:K:l:m:M:p:q:r:s:t:T:R:V:hHdCD:' OPTIONS
 do
    case $OPTIONS in
    h)   print_help
@@ -811,7 +811,6 @@ check_scripts_in_path $distrodir
 # then $bindir will be added to $PATH
 set_bindirs $bindir
 
-[ $DEBUG ] && echo "path contains: "; echo $PATH | sed 's/:/\n/g' 
 
 #-------------------------------------#
 # >>>BLOCK 0.2 CHECK USER OPTIONS <<< #
@@ -874,6 +873,8 @@ fi
 # >>>> MAIN CODE <<<< #
 #---------------------#
 
+[ $DEBUG ] && echo "running on $OSTYPE"; echo "path contains: "; echo $PATH | sed 's/:/\n/g' 
+
 start_time=$(date +%s)
 
 parent_PID=$(get_script_PID $progname)
@@ -885,7 +886,7 @@ dir_suffix=t${mol_type}_k${kde_stringency}_m${min_supp_val}_s${spr}_l${spr_lengt
 
 printf "
  ${CYAN}>>> $(basename $0) vers. $VERSION run with the following parameters:${NC}
- ${YELLOW}Run start:$TIMESTAMP_SHORT_HMS
+ ${YELLOW}Run start:$TIMESTAMP_SHORT_HMS on $HOSTNAME under $OSTYPE
  wkdir=$wkdir
  distrodir=$distrodir
  bindir=$bindir
