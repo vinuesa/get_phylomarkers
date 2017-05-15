@@ -127,7 +127,8 @@ function check_scripts_in_path()
     then
        if [ ! -d $HOME/bin ]
        then
-            printf "${CYAN} updating PATH=$PATH:$distrodir ${NC}\n"
+            printf "${CYAN} found no $HOME/bin direcotry for $USER ...${NC}\n"
+	    printf "${CYAN} ... will update PATH=$PATH:$distrodir ${NC}\n"
             #export PATH=$PATH:$distrodir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)
 	    # we do not export, so that this PATH update lasts only for the run of the script, 
 	    # avoiding a longer alteration of $ENV; by appending to the end of PATH, no user-preferences should be altered  
@@ -140,7 +141,8 @@ function check_scripts_in_path()
        then
              homebinpathflag=1
 
-             printf "${CYAN} Will generate symlinks in $HOME/bin to Bash, Perl and R scripts in $distrodir ...${NC}"
+             printf "${CYAN} Found the $HOME/bin for $USER in \$PATH ...${NC}\n"
+             printf "${CYAN} ... will generate symlinks in $HOME/bin to all scripts in $distrodir ...${NC}"
              ln -s $distrodir/*.sh $HOME/bin &> /dev/null
              ln -s $distrodir/*.R $HOME/bin &> /dev/null
              ln -s $distrodir/*.pl $HOME/bin &> /dev/null
@@ -149,6 +151,7 @@ function check_scripts_in_path()
       
        if [ ! -d $(echo $PATH | sed 's/:/\n/g' | grep "$HOME/bin$") ] # be specific: should end in bin, excluding subdirs
        then
+           printf "${CYAN} Found the $HOME/bin for $USER, but it is NOT in \$PATH ...${NC}\n"
            printf "${CYAN} updating PATH=$PATH:$distrodir ${NC}\n"
            #export PATH=$PATH:$distrodir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)
 	    # we do not export, so that this PATH update lasts only for the run of the script, 
@@ -710,7 +713,7 @@ min_no_ext_branches=4
 VERBOSITY=0
 spr_length=8
 spr=4
-codontable=11 # bacterial by default
+codontable=11 # bacterial by default, sorry for the bias ;)
 base_mod=GTR
 eval_clock=0
 root_method=midpoint
@@ -791,15 +794,13 @@ env_vars=$(set_pipeline_environment) # returns: $distrodir $bindir $OS
 distrodir=$(echo $env_vars | awk '{print $1}')
 bindir=$(echo $env_vars | awk '{print $2}')
 OS=$(echo $env_vars | awk '{print $3}')
-bindir="$distrodir/bin/$OS"
+#bindir="$distrodir/bin/$OS"
 
 [ $DEBUG -eq 1 ] && echo "distrodir:$distrodir"
 [ $DEBUG -eq 1 ] && echo "bindir:$bindir"
 
 # 0.1 Determine if pipeline scripts are in $PATH; 
 # if not, add them
-
-# returns $homebinflag $homebinpathflag; if $homebinpathflag add symlinks to scripts
 check_scripts_in_path $distrodir
 
 # 0.2  Determine if second-party binaries are in $PATH; 
@@ -886,7 +887,8 @@ printf "
  ${CYAN}>>> $(basename $0) vers. $VERSION run with the following parameters:${NC}
  ${YELLOW}Run start:$TIMESTAMP_SHORT_HMS
  wkdir=$wkdir
- setbindir_flag=$setbindir_flag|bindir=$bindir
+ distrodir=$distrodir
+ bindir=$bindir
  runmode=$runmode|mol_type=$mol_type|eval_clock=$eval_clock|root_method=$root_method|base_model=$base_mod|ChiSq_quantile=$q
  kde_stringency=$kde_stringency|min_supp_val=$min_supp_val|spr=$spr|spr_length=$spr_length|search_thoroughness=$search_thoroughness${NC}
 
