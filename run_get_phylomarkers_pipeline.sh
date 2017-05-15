@@ -114,12 +114,11 @@ function set_bindirs()
 	  if [ $homebinpathflag -eq 1 -a $setbindir_flag -eq 0 ] 
 	  then
           printf " >>> ${CYAB}# will generate a softlink in $HOME/bin to $prog ${NC}\n"
-	        ln -s $bindir/$prog $HOME/bin 
+	        ln -s $bindir/$prog $HOME/bin
 	  else
                 printf " >>> ${CYAN} will append $bindir to the \$PATH variable${NC}\n"
-                PATH="$PATH:$bindir"  # append $bindir to $PATH 
+                export PATH=$PATH:$bindir:  # append $bindir to $PATH and export
 		setbindir_flag=1      # to avoid appending multiple times $bindir to $PATH
-		export $PATH          # export $PATH
 	  fi    
        fi
     done
