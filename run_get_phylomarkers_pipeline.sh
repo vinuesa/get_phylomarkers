@@ -118,8 +118,8 @@ function set_bindirs()
 	        ln -s $bindir/$prog $HOME/bin
 	  else
                 printf " >>> ${CYAN} will append $bindir to the \$PATH variable${NC}\n"
-		#PATH=$PATH:$bindir:
-                export PATH=$PATH:$bindir   # append $bindir to $PATH and export
+		PATH=$PATH:$bindir:
+                #export PATH=$PATH:$bindir   # append $bindir to $PATH and export
 		#source $0                   # and now source in the scripta again, to read the new ${ENV}
 		setbindir_flag=1            # to avoid appending multiple times $bindir to $PATH
 	  fi    
