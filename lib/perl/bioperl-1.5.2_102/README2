@@ -1,0 +1,2 @@
+This is a subset of the bioperl set of modules including only those required by get_phylomarkers.
+The motivation of including these was to ease installation.
