@@ -13,7 +13,8 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.2_13May17' #v1.2_13May17 refined the logic of set_bindirs(); added get_start_time(); improved error checking code, including get_script_PID()
+VERSION='1.3_13May17' #v1.3 further refinement in set_bindirs() and check_homebinpath(); minor code cleanup
+                      #v1.2_13May17 refined the logic of set_bindirs(); added get_start_time(); improved error checking code, including get_script_PID()
                       # fixed a bug in -t PROT 
                       
 		      #v1.1_13May17; Major update to facilitate installation by users: added set_pipeline_environment(), check_homebinpath(), set_bindirs(), 
@@ -96,7 +97,7 @@ function set_pipeline_environment()
 
 function set_bindirs()
 {  
-    # $bindir $homebinflag $homebinpathflag
+    # receives: $bindir $homebinpathflag
     bindir=$1
     homebinpathflag=$2
     
@@ -106,16 +107,19 @@ function set_bindirs()
     for prog in "${bins[@]}" 
     do
        bin=$(type -P $prog)
-       if [ -z $bin ]; then
+       if [ -z $bin ]
+       then
           echo
           printf "${RED}# $prog not found in \$PATH ... ${NC}\n"
-	  if [ $homebinpathflag -eq 1 ] 
+	  if [ $homebinpathflag -eq 1 -a $setbindir_flag -eq 0 ] 
 	  then
           printf " >>> ${CYAB}# will generate a softlink in $HOME/bin to $prog ${NC}\n"
 	        ln -s $bindir/$prog $HOME/bin 
 	  else
                 printf " >>> ${CYAN} will append $bindir to the \$PATH variable${NC}\n"
-                PATH=$PATH:$bindir/$prog # append $HOME/bin to $PATH 
+                PATH="$PATH:$bindir"  # append $bindir to $PATH 
+		setbindir_flag=1      # to avoid appending multiple times $bindir to $PATH
+		export $PATH          # export $PATH
 	  fi    
        fi
     done
@@ -137,7 +141,7 @@ function check_homebinpath()
       PATH=$PATH:$HOME/$distrodir # append $HOME/bin to $PATH 
    fi
    
-   if [ -d $(echo $PATH | sed 's/:/\n/g' | grep "$HOME/bin") ] 
+   if [ -d $(echo $PATH | sed 's/:/\n/g' | grep "$HOME/bin$") ] # be specific: should end in bin, excluding subdirs
    then
         homebinpathflag=1
 	
@@ -556,11 +560,8 @@ function print_development_notes()
  
    TODO: (last review: May 14th, 2017)
     I. CRITICAL/Important:
-    
-    0. Need to make sure that the concatenated tree gets concat prefix in file name for compute_suuValStats_and_RF-dist.R to work!
-       Rename the final *ed.ph to *ed.tre to avoid problems with compute_suppValStats_and_RF-dist.R to work
-       
-    0.1 Compile external binaries on Mac OS X (64 bits) to incude in $distrodir/bin/darwin 
+          
+    0.1 Compile external binaries on Mac OS X (64 bits) to incude in $distrodir/bin/darwin or write an install script or fetch them directly
     
     1. run_kdetrees.R and compute_suppValStas_and_RF-dist.R run_molecClock_test_with_paup.sh may be refactored into functions run from within $progname
     1.1 verify if kdetrees or RF-dist require haplotyes and/or rooted trees! 
@@ -740,7 +741,8 @@ shift $(($OPTIND - 1))
 #-------------------------------------------------------#
 
 # 0. Set the distribution base directory and OS-specific (linux|darwin) bindirs
-env_vars=$(set_pipeline_environment) # returns $distrodir $bindir $OS
+env_vars=$(set_pipeline_environment) # returns: $distrodir $bindir $OS
+[ $DEGUG ] && echo "env_vars:$env_vars"
 distrodir=$(echo $env_vars | awk '{print $1}')
 bindir=$(echo $env_vars | awk '{print $2}')
 OS=$(echo $env_vars | awk '{print $3}')
@@ -823,7 +825,6 @@ then
 fi
 
 
-
 #---------------------#
 # >>>> MAIN CODE <<<< #
 #---------------------#
@@ -839,7 +840,7 @@ dir_suffix=t${mol_type}_k${kde_stringency}_m${min_supp_val}_s${spr}_l${spr_lengt
 
 printf "
  ${CYAN}>>> $(basename $0) vers. $VERSION run with the following parameters:${NC}
- ${YELLOW}Run time stamp:$TIMESTAMP_SHORT_HMS
+ ${YELLOW}Run start:$TIMESTAMP_SHORT_HMS
  wkdir=$wkdir
  setbindir_flag=$setbindir_flag|bindir=$bindir
  runmode=$runmode|mol_type=$mol_type|eval_clock=$eval_clock|root_method=$root_method|base_model=$base_mod|ChiSq_quantile=$q
@@ -1078,8 +1079,8 @@ then
 	 tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	 exit 5
     fi
-       
 
+#---------- RUNMODES --------------
     if [ $runmode -eq 1 ]
     then
         # 4.6 compute average bipartition support values for each gene tree
