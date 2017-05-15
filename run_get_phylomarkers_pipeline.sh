@@ -13,8 +13,9 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.3_14May17' #v1.3 further refinement in set_bindirs() and check_homebinpath(), validated on yaxche; minor code cleanup
-                      #v1.2_13May17 refined the logic of set_bindirs(); added get_start_time(); improved error checking code, including get_script_PID()
+VERSION='1.4_15May17' # v1.4 fixed set_bindirs: added source $0 after appending 
+                      # v1.3 further refinement in set_bindirs() and check_homebinpath(), validated on yaxche; minor code cleanup
+                      # v1.2_13May17 refined the logic of set_bindirs(); added get_start_time(); improved error checking code, including get_script_PID()
                       # fixed a bug in -t PROT 
                       
 		      #v1.1_13May17; Major update to facilitate installation by users: added set_pipeline_environment(), check_homebinpath(), set_bindirs(), 
@@ -114,12 +115,13 @@ function set_bindirs()
 	  if [ $homebinpathflag -eq 1 -a $setbindir_flag -eq 0 ] 
 	  then
           printf " >>> ${CYAB}# will generate a softlink in $HOME/bin to $prog ${NC}\n"
-	        ln -s $bindir/$prog $HOME/bin 
+	        ln -s $bindir/$prog $HOME/bin
 	  else
                 printf " >>> ${CYAN} will append $bindir to the \$PATH variable${NC}\n"
-                PATH="$PATH:$bindir"  # append $bindir to $PATH 
-		setbindir_flag=1      # to avoid appending multiple times $bindir to $PATH
-		export $PATH          # export $PATH
+		#PATH=$PATH:$bindir:
+                export PATH=$PATH:$bindir:  # append $bindir to $PATH and export
+		source $0                   # and now source in the scripta again, to read the new ${ENV}
+		setbindir_flag=1            # to avoid appending multiple times $bindir to $PATH
 	  fi    
        fi
     done
@@ -138,7 +140,9 @@ function check_homebinpath()
        homebinflag=1
    else
       printf "${RED} No $HOME/bin directory found, will append $distrodir to the \$PATH variable${NC}"
-      PATH=$PATH:$HOME/$distrodir # append $HOME/bin to $PATH 
+      #PATH=$PATH:$HOME/$distrodir:
+      export PATH=$PATH:$HOME/$distrodir: # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)  
+      source $0                           # 
    fi
    
    if [ -d $(echo $PATH | sed 's/:/\n/g' | grep "$HOME/bin$") ] # be specific: should end in bin, excluding subdirs
