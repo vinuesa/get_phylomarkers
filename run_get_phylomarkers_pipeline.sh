@@ -120,7 +120,7 @@ function set_bindirs()
                 printf " >>> ${CYAN} will append $bindir to the \$PATH variable${NC}\n"
 		#PATH=$PATH:$bindir:
                 export PATH=$PATH:$bindir:  # append $bindir to $PATH and export
-		source $0                   # and now source in the scripta again, to read the new ${ENV}
+		#source $0                   # and now source in the scripta again, to read the new ${ENV}
 		setbindir_flag=1            # to avoid appending multiple times $bindir to $PATH
 	  fi    
        fi
@@ -142,7 +142,7 @@ function check_homebinpath()
       printf "${RED} No $HOME/bin directory found, will append $distrodir to the \$PATH variable${NC}"
       #PATH=$PATH:$HOME/$distrodir:
       export PATH=$PATH:$HOME/$distrodir: # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)  
-      source $0                           # 
+      #source $0                           # 
    fi
    
    if [ -d $(echo $PATH | sed 's/:/\n/g' | grep "$HOME/bin$") ] # be specific: should end in bin, excluding subdirs
