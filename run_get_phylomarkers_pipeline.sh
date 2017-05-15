@@ -886,7 +886,7 @@ dir_suffix=t${mol_type}_k${kde_stringency}_m${min_supp_val}_s${spr}_l${spr_lengt
 
 printf "
  ${CYAN}>>> $(basename $0) vers. $VERSION run with the following parameters:${NC}
- ${YELLOW}Run start:$TIMESTAMP_SHORT_HMS on $HOSTNAME under $OSTYPE
+ ${YELLOW}Run started on $TIMESTAMP_SHORT_HMS under $OSTYPE on $HOSTNAME
  wkdir=$wkdir
  distrodir=$distrodir
  bindir=$bindir
