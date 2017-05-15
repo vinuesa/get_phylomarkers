@@ -13,7 +13,7 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.4_15May17' # v1.4 fixed set_bindirs: added source $0 after appending 
+VERSION='1.5_15May17' # v1.5 fixed set_bindirs and check_homebinpath(), to export to PATH
                       # v1.3 further refinement in set_bindirs() and check_homebinpath(), validated on yaxche; minor code cleanup
                       # v1.2_13May17 refined the logic of set_bindirs(); added get_start_time(); improved error checking code, including get_script_PID()
                       # fixed a bug in -t PROT 
@@ -114,59 +114,66 @@ function set_bindirs()
           printf "${RED}# $prog not found in \$PATH ... ${NC}\n"
 	  if [ $homebinpathflag -eq 1 -a $setbindir_flag -eq 0 ] 
 	  then
-          printf " >>> ${CYAB}# will generate a softlink in $HOME/bin to $prog ${NC}\n"
+                  printf " >>> ${CYAB}# will generate a softlink in $HOME/bin to $prog ${NC}\n"
 	        ln -s $bindir/$prog $HOME/bin
-	  else
+	  elif [ $homebinpathflag -eq 0 -a $setbindir_flag -eq 0 ]
+	  then 
                 printf " >>> ${CYAN} will append $bindir to the \$PATH variable${NC}\n"
-		PATH=$PATH:$bindir:
-                #export PATH=$PATH:$bindir   # append $bindir to $PATH and export
+		#PATH="$PATH:$bindir:"
+                export PATH=$PATH:$bindir  # append $bindir to $PATH and export
 		#source $0                   # and now source in the scripta again, to read the new ${ENV}
 		setbindir_flag=1            # to avoid appending multiple times $bindir to $PATH
 	  fi    
        fi
     done
+    echo $setbindir_flag
 }
 #----------------------------------------------------------------------------------------- 
 
-function check_homebinpath()
-{
-   distrodir=$1
-   
-   homebinflag=
-   homebinpathflag=
-   
-   if [ -d $HOME/bin ]
-   then
-       homebinflag=1
-   else
-      printf "${RED} No $HOME/bin directory found, will append $distrodir to the \$PATH variable${NC}"
-      PATH=$PATH:$HOME/$distrodir
-      #export PATH=$PATH:$HOME/$distrodir: # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)  
-      #source $0                           # 
-   fi
-   
-   if [ -d $(echo $PATH | sed 's/:/\n/g' | grep "$HOME/bin$") ] # be specific: should end in bin, excluding subdirs
-   then
-        homebinpathflag=1
-	
-	printf "${CYAN} Will generate symlinks in $HOME/bin to Bash, Perl and R scripts in $distrodir ...${NC}"
-        ln -s $distrodir/*.sh $HOME/bin &> /dev/null
-	ln -s $distrodir/*.R $HOME/bin &> /dev/null
-	ln -s $distrodir/*.pl $HOME/bin &> /dev/null
-   fi
-   echo "$homebinflag $homebinpathflag"
-}
-#----------------------------------------------------------------------------------------- 
+#function check_homebinpath()
+#{
+#   distrodir=$1
+#   
+#   homebinflag=0
+#   homebinpathflag=0
+#   
+#   if [ ! -d $HOME/bin ]
+#   then
+#      export PATH=$PATH:$distrodir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)  
+#   else
+#       homebinflag=1
+#    fi
+#    
+#   if [ -d $(echo $PATH | sed 's/:/\n/g' | grep "$HOME/bin$") ] # be specific: should end in bin, excluding subdirs
+#   then
+#        homebinpathflag=1
+#	
+#	printf "${CYAN} Will generate symlinks in $HOME/bin to Bash, Perl and R scripts in $distrodir ...${NC}"
+#        ln -s $distrodir/*.sh $HOME/bin &> /dev/null
+#	ln -s $distrodir/*.R $HOME/bin &> /dev/null
+#	ln -s $distrodir/*.pl $HOME/bin &> /dev/null
+#   else
+#        export PATH=$PATH:$distrodir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)
+#   fi
+#   echo "$homebinflag $homebinpathflag"
+#}
+##----------------------------------------------------------------------------------------- 
 
 function check_scripts_in_path()
 {
     distrodir=$1
     
-    #bins=( clustalo FastTree pexec Phi paup consense )
+    not_in_path=0
+    homebinflag=0
+    homebinpathflag=0
+
+    [ $DEGUB ] && echo "check_scripts_in_path() distrodir:$distrodir"
+    
     bash_scripts=( run_pexec_cmmds.sh run_parallel_molecClock_test_with_paup.sh )
     perl_scripts=( add_nos2fasta_header.pl pal2nal.pl rename concat_alignments.pl add_labels2tree.pl convert_aln_format_batch_bp.pl popGen_summStats.pl convert_aln_format_batch_bp.pl )
     R_scripts=( run_kdetrees.R compute_suppValStas_and_RF-dist.R )
     
+    # check if scripts are in path; if not, set flag
     for prog in "${bash_scripts[@]}" "${perl_scripts[@]}" "${R_scripts[@]}"
     do
        bin=$(type -P $prog)
@@ -174,10 +181,38 @@ function check_scripts_in_path()
           echo
           printf "${RED}# WARNING: script $prog is not in \$PATH!${NC}\n"
 	  printf "${CYAN}  >>>  Will generate a symlink from $HOME/bin or add it to \$PATH ${NC}\n"
-	  homebinpath_flags=$(check_homebinpath $distrodir)
+	  not_in_path=1
        fi
-    done
-    echo "$homebinpath_flags"
+    done	  
+    
+    # if flag $not_in_path -eq 1, then either generate symlinks into $HOME/bin (if in $PATH) or export $distrodir to PATH
+    if [ $not_in_path -eq 1 ]
+    then
+       if [ ! -d $HOME/bin ]
+       then
+            printf "${CYAN} Will export PATH=$PATH:$distrodir ${NC}"
+            export PATH=$PATH:$distrodir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)  
+       else
+           homebinflag=1
+       fi
+    
+       if [ -d $(echo $PATH | sed 's/:/\n/g' | grep "$HOME/bin$") ] # be specific: should end in bin, excluding subdirs
+       then
+             homebinpathflag=1
+
+             printf "${CYAN} Will generate symlinks in $HOME/bin to Bash, Perl and R scripts in $distrodir ...${NC}"
+             ln -s $distrodir/*.sh $HOME/bin &> /dev/null
+             ln -s $distrodir/*.R $HOME/bin &> /dev/null
+             ln -s $distrodir/*.pl $HOME/bin &> /dev/null
+       fi
+      
+       if [ ! -d $(echo $PATH | sed 's/:/\n/g' | grep "$HOME/bin$") ] # be specific: should end in bin, excluding subdirs
+       then
+           printf "${CYAN} Will export PATH=$PATH:$distrodir ${NC}"
+           export PATH=$PATH:$distrodir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)
+       fi
+    fi
+    echo "$homebinflag $homebinpathflag"
 }
 #----------------------------------------------------------------------------------------- 
 
@@ -750,7 +785,7 @@ env_vars=$(set_pipeline_environment) # returns: $distrodir $bindir $OS
 distrodir=$(echo $env_vars | awk '{print $1}')
 bindir=$(echo $env_vars | awk '{print $2}')
 OS=$(echo $env_vars | awk '{print $3}')
-bindir="$distrodir/bin/$OS"
+#bindir="$distrodir/bin/$OS"
 
 [ $DEBUG ] && echo "distrodir:$distrodir"
 [ $DEBUG ] && echo "bindir:$bindir"
@@ -759,10 +794,10 @@ bindir="$distrodir/bin/$OS"
 # if not, add them
 
 # returns $homebinflag $homebinpathflag; if $homebinpathflag add symlinks to scripts
-homebinpath_flags=$(check_scripts_in_path $distrodir) 
-homebinflag=$(echo $homebinpath_flags | awk '{print $1}')
-homebinpathflag=$(echo $homebinpath_flags | awk '{print $2}')
-[ $DEBUG ] && echo "homebinpath_flags:$homebinpath_flags"
+scripts_in_path_flags=$(check_scripts_in_path $distrodir) 
+homebinpathflag=$(echo $scripts_in_path_flags | awk '{print $2}')
+
+[ $DEBUG ] && echo "scripts_in_path:$scripts_in_path homebinpathflag: $homebinpathflag" 
 
 # 0.2  Determine if second-party binaries are in $PATH; 
 #  if they are not in $PATH then:
@@ -770,7 +805,9 @@ homebinpathflag=$(echo $homebinpath_flags | awk '{print $2}')
 # to the binaries provided in $bindir.
 # ii) If no $HOME/bin exists, or it is not in $PATH,
 # then $bindir will be added to $PATH
-  set_bindirs $bindir $homebinpathflag
+set_bindirs $bindir $homebinpathflag
+
+  [ $DEBUG ] && echo "path contains: "; echo $PATH | sed 's/:/\n/g' 
 
 #-------------------------------------#
 # >>>BLOCK 0.2 CHECK USER OPTIONS <<< #
