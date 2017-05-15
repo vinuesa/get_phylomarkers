@@ -13,7 +13,7 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.3_13May17' #v1.3 further refinement in set_bindirs() and check_homebinpath(); minor code cleanup
+VERSION='1.3_14May17' #v1.3 further refinement in set_bindirs() and check_homebinpath(); minor code cleanup
                       #v1.2_13May17 refined the logic of set_bindirs(); added get_start_time(); improved error checking code, including get_script_PID()
                       # fixed a bug in -t PROT 
                       
