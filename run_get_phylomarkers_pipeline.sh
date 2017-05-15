@@ -127,8 +127,11 @@ function check_scripts_in_path()
     then
        if [ ! -d $HOME/bin ]
        then
-            printf "${CYAN} Will export PATH=$PATH:$distrodir ${NC}\n"
-            export PATH=$PATH:$distrodir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)  
+            printf "${CYAN} updating PATH=$PATH:$distrodir ${NC}\n"
+            #export PATH=$PATH:$distrodir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)
+	    # we do not export, so that this PATH update lasts only for the run of the script, 
+	    # avoiding a longer alteration of $ENV; by appending to the end of PATH, no user-preferences should be altered  
+	    PATH=$PATH:$distrodir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)
        else
            homebinflag=1
        fi
@@ -141,15 +144,19 @@ function check_scripts_in_path()
              ln -s $distrodir/*.sh $HOME/bin &> /dev/null
              ln -s $distrodir/*.R $HOME/bin &> /dev/null
              ln -s $distrodir/*.pl $HOME/bin &> /dev/null
+             ln -s $distrodir/rename $HOME/bin &> /dev/null
        fi
       
        if [ ! -d $(echo $PATH | sed 's/:/\n/g' | grep "$HOME/bin$") ] # be specific: should end in bin, excluding subdirs
        then
-           printf "${CYAN} Will export PATH=$PATH:$distrodir ${NC}\n"
-           export PATH=$PATH:$distrodir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)
+           printf "${CYAN} updating PATH=$PATH:$distrodir ${NC}\n"
+           #export PATH=$PATH:$distrodir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)
+	    # we do not export, so that this PATH update lasts only for the run of the script, 
+	    # avoiding a longer alteration of $ENV; by appending to the end of PATH, no user-preferences should be altered  
+	   PATH=$PATH:$distrodir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)
        fi
     fi
-    echo "$homebinflag $homebinpathflag"
+    #echo "$homebinflag $homebinpathflag"
 }
 #----------------------------------------------------------------------------------------- 
 
@@ -159,7 +166,6 @@ function set_bindirs()
     bindir=$1
 
     not_in_path=0
-    setbindir_flag=0
 
     bins=( clustalo FastTree pexec Phi paup consense )
 
@@ -174,33 +180,15 @@ function set_bindirs()
        fi	  
    done	  
  
-    if [ $not_in_path -eq 1 ]
-    then
-       if [ ! -d $HOME/bin ]
-       then
-            printf "${CYAN} Will export PATH=$PATH:$bindir ${NC}\n"
-            export PATH=$PATH:$bindir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)  
-       else
-           homebinflag=1
-       fi
-    
-       if [ -d $(echo $PATH | sed 's/:/\n/g' | grep "$HOME/bin$") ] # be specific: should end in bin, excluding subdirs
-       then
-             homebinpathflag=1
-
-             printf "${CYAN} Will generate symlinks in $HOME/bin to Bash, Perl and R scripts in $bindir ...${NC}\n"
-             ln -s $bindir/*.sh $HOME/bin &> /dev/null
-             ln -s $bindir/*.R $HOME/bin &> /dev/null
-             ln -s $bindir/*.pl $HOME/bin &> /dev/null
-       fi
-      
-       if [ ! -d $(echo $PATH | sed 's/:/\n/g' | grep "$HOME/bin$") ] # be specific: should end in bin, excluding subdirs
-       then
-           printf "${CYAN} Will export PATH=$PATH:$bindir ${NC}\n"
-           export PATH=$PATH:$bindir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)
-       fi
-    fi
-   echo $setbindir_flag
+   if [ $not_in_path -eq 1 ]
+   then
+   	   printf "${CYAN} updating PATH=$PATH:$bindir ${NC}\n"
+   	   #export PATH=$PATH:$bindir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)  
+	    # we do not export, so that this PATH update lasts only for the run of the script, 
+	    # avoiding a longer alteration of $ENV; by appending to the end of PATH, no user-preferences should be altered 
+	   PATH=$PATH:$bindir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)
+   fi
+   #echo $setbindir_flag
 }
 #----------------------------------------------------------------------------------------- 
 
@@ -813,9 +801,6 @@ bindir="$distrodir/bin/$OS"
 
 # returns $homebinflag $homebinpathflag; if $homebinpathflag add symlinks to scripts
 check_scripts_in_path $distrodir
-#homebinpathflag=$(echo $scripts_in_path_flags | awk '{print $2}')
-
-[ $DEBUG -eq 1 ] && echo "scripts_in_path:$scripts_in_path homebinpathflag: $homebinpathflag" 
 
 # 0.2  Determine if second-party binaries are in $PATH; 
 #  if they are not in $PATH then:
@@ -1064,17 +1049,6 @@ if [ "$mol_type" == "DNA" ]
 then
     cd non_recomb_cdn_alns
 
-    #  IMPORTANT NOTE: the sequences should be collapsed to haplotypes
-    #  but beware that the R code below complains when the tree labels 
-    #  contain '#' symbols, as introduced by collapse2haplotypes.pl
-    #  so use a line like the following to change # by - in the collapsed fastas (or on the trees)
-
-    #printf "${BLUE}# collapsing fastas to haplotypes ...${NC}\n"
-    #for file in *fasta; do collapse2haplotypes.pl $file | awk '{print $1, $2}' | perl -pe 'if(/^>/){ s/\h\#\d+// }' > ${file}UNIQ; done &> /dev/null
-
-    #printf "${BLUE}# running FastTree on fastas collapsed to haplotypes ...${NC}\n"
-    #run_pexec_cmmds.sh fastaUNIQ 'FastTree -quiet -nt -gtr -gamma -bionj -slownni -mlacc 3 -spr 8 -sprlength 8 < $file > ${file%.*}_haploFTGTRG.ph' &> /dev/null
-
     print_start_time && printf "${BLUE}# estimating $no_non_recomb_alns_perm_test gene trees from non-recombinant sequences ...${NC}\n" | \
     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
     run_pexec_cmmds.sh fasta 'FastTree -quiet -nt -gtr -gamma -bionj -slownni -mlacc 3 -spr 8 -sprlength 8 < $file > ${file%.*}_allFTGTRG.ph' &> /dev/null
@@ -1146,7 +1120,7 @@ then
         wkdir=$(pwd) 
         
         print_start_time && printf "${BLUE}# computing tree support values ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-        ~/R_code/scripts/compute_suppValStas_and_RF-dist.R $wkdir 1 fasta ph 1 &> /dev/null
+        compute_suppValStas_and_RF-dist.R $wkdir 1 fasta ph 1 &> /dev/null
     
         print_start_time && printf "${BLUE}# writing summary tables ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
         min_supp_val_perc=${min_supp_val#0.}
@@ -1410,7 +1384,7 @@ then
     wkdir=$(pwd) 
         
     print_start_time && printf "${BLUE}# computing tree support values ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-    ~/R_code/scripts/compute_suppValStas_and_RF-dist.R $wkdir 1 faaln ph 1 &> /dev/null
+    compute_suppValStas_and_RF-dist.R $wkdir 1 faaln ph 1 &> /dev/null
     
     print_start_time && printf "${BLUE}# writing summary tables ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
     min_supp_val_perc=${min_supp_val#0.}
