@@ -616,7 +616,7 @@ function print_help()
      -H flag to print additional usage Notes
      -c <integer> NCBI codontable number (1-23) for pal2nal.pl to generate codon alignment;        [default:$codontable] 
      -C flag to print codontables
-     -d flag to print debugging messages                                                          [default: $DEBUG]
+     -d flag to print debugging messages                                                           [default: $DEBUG]
      -D flag to print development notes and TODOs                                            
      -e <integer> select gene trees with at least (min. = 4) external branches                     [default: $min_no_ext_branches]
      -k <real> kde stringency (0.7-1.6 are reasonable values; less is more stringent)              [default: $kde_stringency]
@@ -633,7 +633,7 @@ function print_help()
    Invocation examples:
      1. Default: $progname -R 1 -t DNA
      2. thorough searching and molecular clock analysis on DNA sequences:
-          $progname -R 1 -t DNA -k 1.3 -m 0.8 -spr 8 -l 10 -p my_Xgenomes -T high -K 1 -M HKY -q 0.95
+          $progname -R 1 -t DNA -k 1.3 -m 0.8 -s 8 -l 10 -T high -K 1 -M HKY -q 0.95
      3. fastest searching on a huge protein dataset
           $progname -R 1 -t PROT -m 0.7 -k 1.0 -T lowest
      
