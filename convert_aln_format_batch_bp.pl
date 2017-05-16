@@ -10,6 +10,9 @@ use File::Basename;
 my $progname = basename($0);
 my $VERSION = 0.2;  # May 14th, 2017. Added portable shebang; some cleanup
 
+use FindBin '$Bin'; # added by Bruno May2017
+use lib "$Bin/lib";
+use lib "$Bin/lib/perl/bioperl-1.5.2_102/";
 use Bio::AlignIO;           
 
 # 1) Declare variable, get input arguments from the command line and print help if needed
