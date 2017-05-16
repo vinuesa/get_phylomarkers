@@ -91,7 +91,7 @@ function set_pipeline_environment()
     then
         scriptdir=$(greadlink -f ${BASH_SOURCE[0]})
 	distrodir=$(dirname $scriptdir) #echo "scriptdir: $scriptdir|basedir:$distrodir|OSTYPE:$OSTYPE"
-        bindir=$distrodir/bin/MacOSX
+        bindir=$distrodir/bin/macosx-intel
 	OS='darwin'
     fi
    echo "$distrodir $bindir $OS"
