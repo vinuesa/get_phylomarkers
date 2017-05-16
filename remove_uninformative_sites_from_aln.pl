@@ -8,6 +8,11 @@ use strict;
 use warnings;
 use Data::Dumper;
 use Getopt::Long;
+
+use FindBin '$Bin'; # added by Bruno May2017
+use lib "$Bin/lib";
+use lib "$Bin/lib/perl/bioperl-1.5.2_102/";
+
 use Bio::SeqIO;
 
 sub logmsg{$|++;print STDERR "@_\n"; $|--;}
