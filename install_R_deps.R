@@ -1,6 +1,7 @@
 #!/usr/bin/Rscript
 
-# checks installed R packages and installs only the missing ones 
+# check installed R packages and install only the missing ones 
+# Bruno Contreras, Pablo Vinuesa, May2017
 
 # Instructions to update R on Ubuntu systems, Xenial in the example:
 
@@ -10,14 +11,22 @@
 # $ sudo apt-get update
 # $ sudo apt-get install r-base r-base-dev
 
-# Instructions in case some of the extant packages are not up-to-date:
+# Instructions in case some of the extant packages, such as Rcpp or ape, are not up-to-date:
 
 # $ R
 # > remove.packages("Rcpp")
 # > install.packages("Rcpp",dependencies=TRUE, lib="lib/R", repos="https://cloud.r-project.org")
 
-repository = 'https://cloud.r-project.org'; #'http://cran.rstudio.com/';
-
+repository = 'https://cloud.r-project.org'; #'http://cran.rstudio.com';
 required_packages = c("ape", "kdetrees", "stringr", "vioplot", "ggplot2", "gplots", "plyr", "seqinr")
-new.packages = required_packages[!(required_packages %in% installed.packages()[,"Package"])]
-if(length(new.packages)) install.packages(new.packages, dependencies=TRUE, lib="lib/R", repos=repository)
+local_lib = "./lib/R"
+
+.libPaths( c( .libPaths(), local_lib) )
+
+for (package in required_packages) {
+  if (!require(package, character.only=T, quietly=T)) {
+    sprintf("# cannot load %s, will get if from %s and install it in %s",package,repository,local_lib)
+    install.packages(package, dependencies=TRUE, lib=local_lib, repos=repository)
+  }
+}
+
