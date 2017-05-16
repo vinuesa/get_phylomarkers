@@ -1,0 +1,3 @@
+get_phylomarkers_run_*
+# Except this file
+!.gitignore
