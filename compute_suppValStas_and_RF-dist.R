@@ -1,11 +1,18 @@
 #!/usr/bin/env Rscript
 
-# 19Ene16
 # compute_suppValStas_and_RF-dist_of_geneTrees2concat_tree_automatically.R
 
-VERSION <- 'Version: 0.7 - Nov. 28th, 2016' # improved graphical summary of SH-supp vals and RF-distances 2 concat tree
-AUTHOR <- "Author: Pablo Vinuesa, CCG-UNAM"
-REPOS <- "https://cloud.r-project.org" # Bruno May2017
+VERSION <- 'Version: 0.8 - May 16, 2017' # improved graphical summary of SH-supp vals and RF-distances 2 concat tree
+AUTHOR <- "Authors: Pablo Vinuesa [CCG-UNAM], Bruno Contreras Moreira [EEAD-CSIC]; "
+REPOS <- "https://cloud.r-project.org" 
+
+# find script path 
+cmd.args <- commandArgs()
+m <- regexpr("(?<=^--file=).+", cmd.args, perl=TRUE)
+script.dir <- dirname(regmatches(cmd.args, m))
+
+LOCAL_LIB = paste(script.dir,"/lib/R",sep = "")
+.libPaths( c( .libPaths(), LOCAL_LIB) )
 
 # load/download required packages
 # see require() vs. library() discussions in:
@@ -15,7 +22,7 @@ REPOS <- "https://cloud.r-project.org" # Bruno May2017
 for (package in c('ape', 'stringr', 'ggplot2', 'gplots', 'plyr', 'seqinr')) {
   if (!require(package, character.only=T, quietly=T)) {
     sprintf("unable to locate %s, will install it for you from %s", package, REPOS)
-    install.packages(package, repos=REPOS)
+    install.packages(package, repos=REPOS, lib=LOCAL_LIB)
     # library(package, character.only=T)
   }
   #else{ library(package, character.only=T, quietly=T) ) } # don't load all packages to avoid namespace pollution/collision
