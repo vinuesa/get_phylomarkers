@@ -1500,3 +1500,35 @@ secs=$(($end_time-$start_time))
 printf "\n${LBLUE} >>> Total runtime of $progname: ${NC}" 
 printf '%dh:%dm:%ds\n' $(($secs/3600)) $(($secs%3600/60)) $(($secs%60))
 echo
+
+cat <<REF
+
+* PROVISIONAL CITATION: 
+
+If you find the code useful for your academic work, please use the following citation: 
+Pablo Vinuesa and Bruno Contreras-Moreira 2017. Get_PhyloMarkers, a pipeline to select 
+optimal markers for microbial phylogenomics, population genetics and genomic taxomy (In prep.). 
+Available at https://github.com/vinuesa/get_phylomarkers 
+
+* NOTES: 
+  1. The links to the the corresponding manuscript will be provided here 
+      as soon as it is available at BioRxiv, and latter, to the paper.
+
+  2. If you encounter problems or bugs while trying to run the pipeline
+      please report them through the issues page at
+      https://github.com/vinuesa/get_phylomarkers/issues
+      
+      Alternatively, see our contact details at:
+      http://www.ccg.unam.mx/~vinuesa/
+      http://161.111.227.80/compbio/staff/bruno_contreras_moreira.html
+      
+      Please run the script with the -d flag added at the end of the 
+      command line and send us the output, so that we can better diagnose 
+      the problem.
+      
+      Thanks!
+
+REF
+
+
+
