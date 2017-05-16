@@ -7,7 +7,7 @@ The pipeline runs on Linux and Mac OS X environments, although it has not been e
 It assumes that recent versions of Bash, Perl and R are installed on a multicore (64bit) machine, ideally a server running Linux.
 The pipeline is designed to take advantage of modern multiprocessor machines to parallelize all repetitive tasks that have to be performed on each entry sequence, like generating multiple sequence alignments, deriving codon alignments, inferring maximum likelihood gene phylogenies and computing their clock-likeness. Therefore, if your intention is to select optimal genome markers to infer genome phylogenies, you should run the pipeline on a multiprocessor/multicore server to speed up computations. 
 
-Version: May 13th, 2017
+Version: May 16th, 2017
 
 ## Scripts distributed through GitHub
 
@@ -47,19 +47,24 @@ All scripts display usage instructions and describe their aims.
   Bio::PopGen::Statistics;
   Bio::SeqIO;
 
-On an Ubuntu machine BioPerl can be easily installed with: 'sudo apt-get install libbio-perl-perl'
-
-For more information and alternative installation options see [bioperl.org INSTALL](http://bioperl.org/INSTALL.html)
+These are bundled with the software and should work out-of-the-box. Should this fail, 
+they can be easily installed in Ubuntu with: 'sudo apt-get install libbio-perl-perl'
+For alternative installation options see [bioperl.org INSTALL](http://bioperl.org/INSTALL.html)
 
 ### R scripts
 * compute_suppValStas_and_RF-dist.R
 * run_kdetrees.R consense 
 
 #### R packages
-The dependencies can be easily installed from within R. If you want the packages to be installed on a system-wide basis,
-call R with superuser privileges. From within R execute the following command: 
+The dependencies can be easily installed in local folder lib/R by calling script *./install_R_deps.R* .
+Instead, if you wish these packages to be installed on a system-wide basis, then you should call R with 
+superuser privileges and within it execute the following command: 
 
 install.packages( c("ape", "kdetrees", "stingr", "vioplot", "ggplot2", "gplots", "plyr", "seqinr"), dep=T)
+
+Please see examples in the source code of *./install_R_deps.R* to solve problems that might arise when
+old versions of the, particularly *Rcpp*, are already in the system.
+
 
 ## External dependencies: second party binaries to be installed by the user. 
 
@@ -67,13 +72,14 @@ NOTES:
 
 1. the corresponding binaries, after installation, shoud be found in on one of the directories listed in the $PATH variable.  On Linux machines this is typically /usr/local/bin (if you have superuser privileges) or \$HOME/bin if not. 
 
-2. If the required binaries are not found in \$PATH, the main script will automatically try to use the ones packaged in the distribution under bin/linux or bin/darwin directories, as required for the local environment. 
+2. If the required binaries are not found in \$PATH, the main script will automatically try to use the ones packaged in the distribution under bin/linux or bin/macosx-intel directories, as required for the local environment. 
 
-3. It is strongly recommended, howerver, that the user downloads the latest versions of the binaries from the links provided below. This is particularly important for [paup*](https://people.sc.fsu.edu/~dswofford/paup_test/), since the current version is a test version that automatically expires every 6 months!!! 
-
+3. It is strongly recommended, howerver, that the user downloads the latest versions of the binaries from the links provided below. This is particularly important for [paup*](https://people.sc.fsu.edu/~dswofford/paup_test/), since the current version is a test version that automatically expires every 6 months:
 
 * [clustal omega](http://www.clustal.org/omega/). Multiple sequence alignment software. [Sievers et al. 2011](http://msb.embopress.org/content/7/1/539.long). On Ubuntu try: 'sudo apt-get install clustalo'
 * [pexec](https://www.gnu.org/software/pexec/). Execute processes in parallel on multicore machines. On Ubuntu try: 'sudo apt-get install pexec'
 * [Phi test](https://www.maths.otago.ac.nz/~dbryant/software/PhiPack.tar.gz). Recombination test software. [Bruen et al. 2006](http://www.genetics.org/content/172/4/2665.long)
 * [FastTree](http://microbesonline.org/fasttree/). Fast maximum-likelihood tree searching program. [Price et al. 2010](http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0009490). On Ubuntu try: 'sudo apt-get install fasttree'
 * [paup*](https://people.sc.fsu.edu/~dswofford/paup_test/). Multipurpose phylogenetics software package developed by David Swofford and colleagues. NOTE: This is a test version that expires every 6 months! So please update regularly.
+
+4. Source code and manual compilation instructions are also provided.

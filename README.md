@@ -3,12 +3,12 @@ This project hosts the code for the *get_phylomarkers pipeline*. This file descr
 aim and basic usage notes. See [INSTALL.md](INSTALL.md) for installation instructions.
 The code is developed and maintained by [Pablo Vinuesa](http://www.ccg.unam.mx/~vinuesa/) 
 at [CCG-UNAM, Mexico](http://www.ccg.unam.mx/) and 
-[Bruno Contreras-Moreira](http://161.111.227.80/compbio/staff/bruno_contreras_moreira.html) 
+[Bruno Contreras-Moreira](https://digital.csic.es/cris/rp/rp02661/) 
  at [EEAD-CSIC, Spain](http://www.eead.csic.es/). It is released to the public domain under the GNU GPLv3 license.
  
 [For installation instructions see INSTALL.md](INSTALL.md)
 
-Version May 13th, 2017.
+Version May 16th, 2017.
 
 ## Aim
 The pipeline selects markers with optimal phylogenetic attributes from the homologous gene 
@@ -18,7 +18,7 @@ described in the following publications:
 [Contreras-Moreira and Vinuesa, AEM 2013](https://www.ncbi.nlm.nih.gov/pubmed/24096415) and 
 [Vinuesa and Contreras-Moreira, 2015](https://www.ncbi.nlm.nih.gov/pubmed/25343868). More recently
 we have developed [GET_HOMOLOGUES-EST](https://github.com/eead-csic-compbio/get_homologues), 
-which can be used to cluster eukaryotic transcriptomes, as described in [Contreras-Moreira et al., 2017](http://journal.frontiersin.org/article/10.3389/fpls.2017.00184/full).
+which can be used to cluster eukaryotic genes and transcripts, as described in [Contreras-Moreira et al., 2017](http://journal.frontiersin.org/article/10.3389/fpls.2017.00184/full).
 
 The homologous gene/protein clusters selected by the *get_phylomarkers pipeline* are optimally 
 suited for genome phylogenies. The pipeline is primarily tailored towards selecting 
