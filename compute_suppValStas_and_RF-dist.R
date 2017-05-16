@@ -5,7 +5,7 @@
 
 VERSION <- 'Version: 0.7 - Nov. 28th, 2016' # improved graphical summary of SH-supp vals and RF-distances 2 concat tree
 AUTHOR <- "Author: Pablo Vinuesa, CCG-UNAM"
-REPOS <- "https://cran.itam.mx/"
+REPOS <- "https://cloud.r-project.org" # Bruno May2017
 
 # load/download required packages
 # see require() vs. library() discussions in:
