@@ -1520,7 +1520,7 @@ Available at https://github.com/vinuesa/get_phylomarkers
       
       Alternatively, see our contact details at:
       http://www.ccg.unam.mx/~vinuesa/
-      http://161.111.227.80/compbio/staff/bruno_contreras_moreira.html
+      https://digital.csic.es/cris/rp/rp02661/
       
       Please run the script with the -d flag added at the end of the 
       command line and send us the output, so that we can better diagnose 
