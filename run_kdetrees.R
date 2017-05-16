@@ -1,11 +1,20 @@
 #!/usr/bin/env Rscript
 
-# 7Feb16
 # run_kdetrees.R
 
-VERSION <- 'Version: 0.1 - 7Feb16' # runs kdetrees(all.trees.raw, distance = "dissimilarity", topo.only = TRUE &  topo.only = FALSE)
-AUTHOR <- "Author: Pablo Vinuesa, CCG-UNAM"
-REPOS <- "https://cran.itam.mx/"
+VERSION <- 'Version: 0.2 - 16May2017' # runs kdetrees(all.trees.raw, distance = "dissimilarity", topo.only = TRUE &  topo.only = FALSE)
+AUTHOR <- "Authors: Pablo Vinuesa [CCG-UNAM], Bruno Contreras Moreira [EEAD-CSIC]; "
+REPOS <- "https://cloud.r-project.org"
+
+# find script path 
+cmd.args <- commandArgs()
+m <- regexpr("(?<=^--file=).+", cmd.args, perl=TRUE)
+script.dir <- dirname(regmatches(cmd.args, m))
+
+LOCAL_LIB = paste(script.dir,"/lib/R",sep = "")
+.libPaths( c( .libPaths(), LOCAL_LIB) )
+
+
 
 # Note: development made on Tenerife@/home/vinuesa/Projects/marfil/PHYLOMARK/Enterobacter_MLSA_primers_Jan16/F2P_primers/dna_amps
 
