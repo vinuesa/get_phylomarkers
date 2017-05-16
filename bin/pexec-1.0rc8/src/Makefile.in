@@ -1,0 +1,55 @@
+SHELL = /bin/sh
+
+CC=@CC@
+
+TARGETS=pexec
+
+CFLAGS=@CFLAGS@
+
+XLIBS=@XLIBS@
+
+all: $(TARGETS) 
+
+MOD_PEXEC=\
+	tokenize.o \
+	iof.o \
+	numhash.o \
+	fifo.o \
+	format.o \
+	str.o \
+	longhelp.o \
+	linebuffer.o 
+
+.PHONY: all clean
+
+tokenize.o: tokenize.c tokenize.h
+	$(CC) $(CFLAGS) -c tokenize.c
+
+iof.o: iof.c iof.h
+	$(CC) $(CFLAGS) -c iof.c
+
+numhash.o: numhash.c numhash.h
+	$(CC) $(CFLAGS) -c numhash.c
+
+fifo.o: fifo.c fifo.h
+	$(CC) $(CFLAGS) -c fifo.c
+
+format.o: format.c format.h
+	$(CC) $(CFLAGS) -c format.c
+
+str.o: str.c str.h
+	$(CC) $(CFLAGS) -c str.c
+
+linebuffer.o: linebuffer.c linebuffer.h
+	$(CC) $(CFLAGS) -c linebuffer.c
+
+longhelp.o: longhelp.c longhelp.h
+	$(CC) $(CFLAGS) -c longhelp.c
+
+pexec: pexec.c $(MOD_PEXEC)
+	$(CC) $(CFLAGS) -o pexec pexec.c $(MOD_PEXEC) $(XLIBS)
+
+clean:
+	rm -f $(TARGETS) *.o
+
+                  

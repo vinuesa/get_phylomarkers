@@ -1,0 +1,17 @@
+Package: pexec
+Version: 1.0rc8
+Section: utils
+Priority: optional
+Architecture: __ARCH__
+Depends: libc6 (>= 2.3.2)
+Installed-Size: __INSTALLED_SIZE__
+Maintainer: Andras Pal <apal@szofi.elte.hu>
+Source: pexec
+Description: pexec - simple utility for parallel shell command execution
+ The program `pexec` executes parallely the given command or shell script 
+ on the local host or on remote hosts, while some of the execution parameters, 
+ namely the redirected standard input, output or error and environmental 
+ variables can be varied. `pexec` features some additional functionality
+ for implementing mutual exclusions and atomic command executions, as well
+ as the program is also capable to run in hypervisor mode to control 
+ system resources for concurrent tasks run in parallel.

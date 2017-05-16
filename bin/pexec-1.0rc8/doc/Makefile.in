@@ -1,0 +1,41 @@
+SHELL = /bin/sh
+
+ROFF=@ROFF@
+
+PAPERSIZE = @PAPERSIZE@
+PAPER_WIDTH  = @PAPER_WIDTH@
+PAPER_HEIGHT = @PAPER_HEIGHT@
+
+.PHONY: all clean postscript ps pdf dvi html info
+
+ps: postscript
+
+dvi: pexec.dvi
+
+postscript: pexec.ps
+
+pdf: pexec.pdf
+
+info: pexec.info
+
+html: pexec.html
+
+pexec.dvi: pexec.texi
+	texi2dvi pexec.texi
+
+pexec.ps: pexec.dvi
+	dvips pexec.dvi -o
+
+pexec.pdf: pexec.dvi
+	dvipdf pexec.dvi pexec.pdf
+
+pexec.info: pexec.texi
+	makeinfo pexec.texi
+
+pexec.html: pexec.texi
+	makeinfo --html --no-split --output pexec.html pexec.texi
+
+clean:
+	rm -f pexec.html pexec.ps pexec.info pexec.dvi pexec.pdf pexec.1
+	rm -f *.cp *.aux *.log *.fn *.ky *.tp *.pg *.toc *.vr *.cps
+

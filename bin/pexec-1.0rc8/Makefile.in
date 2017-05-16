@@ -1,0 +1,157 @@
+SHELL = /bin/sh
+
+.PHONY:	all \
+        src info html pdf ps dvi man \
+        install install-strip \
+        install-info install-html install-dvi install-pdf install-ps \
+        uninstall \
+        clean distclean mostlyclean maintainter-clean TAGS \
+        deb deb-pexec 
+
+
+DEB_VERSION = @DEB_VERSION@
+DEB_ARCH = @DEB_ARCH@
+DPKG_DEB = @DPKG_DEB@
+HELP2MAN = @HELP2MAN@
+
+datarootdir = @datarootdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+mandir = @mandir@
+bindir = @bindir@
+
+PACKAGE_NAME    = @PACKAGE_NAME@
+PACKAGE_TARNAME = @PACKAGE_TARNAME@
+
+infodir = @infodir@
+docdir  = @docdir@
+htmldir = @htmldir@
+dvidir  = @dvidir@
+pdfdir  = @pdfdir@
+psdir   = @psdir@
+
+all: src
+
+src:
+	make -C src
+
+html:
+	make -C doc html
+
+dvi:
+	make -C doc dvi
+
+ps:
+	make -C doc ps
+
+pdf:
+	make -C doc pdf
+
+info:
+	make -C doc info
+
+man: src
+	test -f ./doc/pexec.1 || $(HELP2MAN) -h --long-help ./src/pexec > ./doc/pexec.1  
+
+install: src info man
+	install -d ${bindir} 
+	install -m 0755 ./src/pexec ${bindir}
+	install -d ${mandir}/man1
+	test -s ./doc/pexec.1 && install -m 0644 ./doc/pexec.1 ${mandir}/man1 || true
+	install -d ${infodir} 
+	install -m 0644 ./doc/pexec.info ${infodir}
+
+install-strip: install
+	strip	${bindir}/pexec
+
+install-dvi: dvi
+	install -d ${dvidir}
+	install -m 0644 ./doc/pexec.dvi ${dvidir}
+
+install-ps: ps
+	install -d ${psdir}
+	install -m 0644 ./doc/pexec.ps ${psdir}
+
+install-pdf: pdf
+	install -d ${pdfdir}
+	install -m 0644 ./doc/pexec.pdf ${pdfdir}
+
+install-html: html
+	install -d ${htmldir}
+	install -m 0644 ./doc/pexec.html ${htmldir}
+
+uninstall:
+	rm -f ${bindir}/pexec
+	rm -f ${mandir}/man1/pexec.1
+	rm -f ${infodir}/pexec.info
+
+clean:
+	make -C src clean
+	make -C doc clean
+	rm -f -r deb/pexec
+	rm -f pexec_$(DEB_VERSION)_$(DEB_ARCH).deb
+	rm -f -r pexec-$(DEB_VERSION)
+	rm -f pexec-$(DEB_VERSION).tar.gz
+
+mostlyclean: clean
+
+dist:
+	rm	-f -r pexec-$(DEB_VERSION)
+	mkdir 	pexec-$(DEB_VERSION)
+	mkdir 	pexec-$(DEB_VERSION)/deb 
+	cp 	-p deb/pexec.control deb/README pexec-$(DEB_VERSION)/deb 
+	mkdir 	pexec-$(DEB_VERSION)/doc
+	cp	-p doc/Makefile.in pexec-$(DEB_VERSION)/doc
+	cp	-p doc/pexec.texi doc/version.texi doc/gfdl.texi pexec-$(DEB_VERSION)/doc
+	test -f ./doc/pexec.1 && cp -p ./doc/pexec.1 pexec-$(DEB_VERSION)/doc || true
+	mkdir	pexec-$(DEB_VERSION)/src
+	cp	-p src/*.[ch] src/Makefile.in pexec-$(DEB_VERSION)/src
+	cp	-p AUTHORS COPYING INSTALL NEWS README TODO VERSION pexec-$(DEB_VERSION)
+	cp	-p Makefile.in ./configure configure.ac ./prepare pexec-$(DEB_VERSION)
+	tar	cvzf pexec-$(DEB_VERSION).tar.gz pexec-$(DEB_VERSION)
+	rm	-f -r pexec-$(DEB_VERSION)
+
+distclean: clean
+	rm -f -r autom4te.cache
+	rm -f ./config.status ./config.log
+	rm -f ./src/Makefile
+	rm -f ./doc/Makefile
+	rm -f ./Makefile
+
+maintainer-clean: distclean
+	rm -f ./configure
+
+TAGS:
+
+check: src
+	./src/pexec -n 2 -r 1 2 3 4 -e x -c -R -- 'echo $$x' 
+
+deb: deb-pexec
+
+deb-pexec: src info man
+	rm	-f -r deb/pexec
+	mkdir	-p deb/pexec{,/DEBIAN}
+	mkdir	-p deb/pexec{,/usr/bin,/usr/share/man/man1,/usr/share/info,/usr/share/doc/pexec}
+	cp	src/pexec deb/pexec/usr/bin/
+	cp	doc/pexec.1 deb/pexec/usr/share/man/man1/
+	gzip	deb/pexec/usr/share/man/man1/pexec.1
+	cp	doc/pexec.info deb/pexec/usr/share/info/
+	gzip	deb/pexec/usr/share/info/pexec.info
+	cp	README  deb/pexec/usr/share/doc/pexec/
+	gzip	deb/pexec/usr/share/doc/pexec/README
+	cp	AUTHORS  deb/pexec/usr/share/doc/pexec/
+	gzip	deb/pexec/usr/share/doc/pexec/AUTHORS
+	cat	deb/pexec.control | \
+	sed	-e "s/__ARCH__/$(DEB_ARCH)/" \
+		-e "s/__INSTALLED_SIZE__/`du -k -s --exclude DEBIAN deb/pexec | awk '{ print $$1; }'`/" > deb/pexec/DEBIAN/control
+	for f in `find deb/pexec` ; do \
+		o=`echo $$f | sed 's/deb\/pexec\///'` ; \
+		if [ -f "$$f" -a `dirname "$$f"` != deb/pexec/DEBIAN ] ; then \
+			m=`md5sum $$f | awk '{ print $$1; }'` ; \
+			echo $$m $$o ; \
+		fi ; \
+	done > deb/pexec/DEBIAN/md5sums
+	$(DPKG_DEB) --build deb/pexec pexec_$(DEB_VERSION)_$(DEB_ARCH).deb
+	rm	-f -r deb/pexec
+
+

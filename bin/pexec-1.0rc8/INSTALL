@@ -1,0 +1,13 @@
+
+PEXEC - Installation 
+*********************
+
+The program `pexec` can be installed using the standard 
+
+`./configure && make && make install`
+
+procedure.
+
+In order to create a debian binary package, enter `make deb` (this 
+feature requres the `dpkg-deb` utility). The created debian package can 
+be installed using `dpkg --install pexec_$(VERSION)_$(ARCH).deb`.

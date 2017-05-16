@@ -1,0 +1,3 @@
+gsi64.lo: gsi64.c /usr/include/stdc-predef.h
+
+/usr/include/stdc-predef.h:

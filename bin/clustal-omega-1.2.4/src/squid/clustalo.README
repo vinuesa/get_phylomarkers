@@ -1,0 +1,9 @@
+This is a trimmed down and patched version of Sean Eddy's squid library version 1.9
+See squid-1.9g.tar.gz for the original files.
+Downloaded from  ftp://selab.janelia.org/pub/software/squid/
+
+changes in source code are all done via #ifdef CLUSTALO, which is set via Makefile
+
+We use our own config header instead of squidconf (see squid.h)
+
+

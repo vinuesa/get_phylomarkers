@@ -1,0 +1,12 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: clustal-omega
+Description: Clustal Omega library.
+Version: 1.2.4
+Requires:
+Libs: -L${libdir} -lclustalo
+Cflags: -I${includedir}/clustalo/
+

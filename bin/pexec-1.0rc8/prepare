@@ -1,0 +1,21 @@
+#!/bin/sh
+
+if test "x$1" == "x--help" ; then
+	echo	"Usage: $0 [clean]"
+	exit	1
+fi
+
+AUTOCONF=${AUTOCONF:-autoconf}
+
+rm -r -f ./autom4te.cache ./configure 
+rm -r -f ./config.cache ./config.status ./config.log
+
+if test "x$1" == "xclean" ; then
+	exit 0
+elif ${AUTOCONF} ; then
+	rm -r -f autom4te.cache
+	exit	0
+else
+	rm -r -f autom4te.cache
+	exit	1
+fi

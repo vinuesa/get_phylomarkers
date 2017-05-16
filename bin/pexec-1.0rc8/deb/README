@@ -1,0 +1,2 @@
+This directory contains the `pexec.control` file, that is patched dynamically
+by the `./Makefile` (see __*__ tags) in order to create debian packages.

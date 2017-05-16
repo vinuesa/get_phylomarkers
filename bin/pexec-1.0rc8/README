@@ -1,0 +1,88 @@
+
+PEXEC -- execute commands or shell scripts in parallel -- Version 1.0rc8
+************************************************************************
+
+The main purpose of the program `pexec` is to execute the given command 
+or shell script (e.g. parsed by `/bin/sh`) in parallel on the local host 
+or on remote hosts, while some of the execution parameters, namely the 
+redirected standard input, output or error and environmental variables 
+can be varied. This program is therefore capable to replace the classic 
+shell loop iterators (e.g. `for ~ in ~ done`, in `bash`) by executing 
+the body of the loop in parallel. Thus, the program `pexec` implements 
+shell level data parallelism in a barely simple form. The capabilities 
+of the program is extended with additional features, such as allowing to 
+define mutual exclusions, do atomic command executions and implement 
+higher level resource and job control.
+
+The given program or script is executed as many times as how many 
+parameters are specified in the command line or read from a given 
+parameter file. Each parameter is a simple string which can be used 
+either to pass to the program/script as the value of an environmental 
+variable or it can be used in the format of the file names where the 
+standard input, output or error are optionally redirected from or to.
+
+Moreover, more than one shell command script can also be passed to 
+parallel execution, in this case there is no need for parameters or the 
+number of the parameters taken from command line (or read from a 
+parameter file) must be the same as the number of the distinct shell 
+command scripts.
+
+The program is capable to automatically swallow the standard output and 
+error (to /dev/null), or collecting them via pipes and dump to the 
+invoker's standard output or error (with optional line headers or 
+trailers which can be used to distinguish between the output of the 
+distinctive processes).
+
+The execution on remote hosts is done using a remote shell which both 
+builds a tunnel between the invoking and the remote host(s) and do the 
+authentication and ensures the security (if a secure remote shell is 
+used). Hence, there is no need to run standalone daemons on the remote 
+side: the remote shell itself executes the `pexec` program in daemon 
+mode when the standard input and output of the latter is bound to the 
+remote shell to form a (secure and authenticated) tunnel.
+
+In order to avoid unexpected I/O load or to synchronize individual 
+tasks, `pexec` supports mutual exclusions (mutexes) and atomic command 
+executions. The maximum number of simultaneous tasks can be controlled 
+by a hypervisor daemon: with such a daemon, concurrent pexec instances 
+can be launched without an unexpectedly high load.
+
+Supported systems and requirements
+----------------------------------
+
+Actually, the program has been developed under GNU/Linux (Debian, i386,
+amd64), and it works on Sun/SunOS and Mac/OSX too. 
+
+Documentation
+-------------
+
+See the contents of the directory ./doc for further documentation. With the
+Makefile found in this directroy, one can generate Postscript and HTML
+manuals too. The `pexec` project also hosted on http://sourceforge.net.
+The project website is http://shellpexec.sourceforge.net, while
+the summary page is found at http://sourceforge.net/projects/shellpexec.
+
+Copyright
+---------
+
+This software was written by Andras Pal. The core part was written 
+while working for the Hungarian-made Automated Telescope (HAT) project 
+to make the data processing more easier and therefore find many-many 
+extrasolar planets. See more information about this project: 
+http://hatnet.hu. Another internal libraries (e.g. numhash.[ch]) were 
+primarily written for other projects.
+
+The program `pexec` is a free software, available under the terms of 
+GPLv3 (see ./COPYING for a full license).  This program is free 
+software: you can redistribute it and/or modify it under the terms of 
+the GNU General Public License as published by the Free Software 
+Foundation, either version 3 of the License, or (at your option) any 
+later version.
+
+This program is distributed in the hope that it will be useful, but 
+WITHOUT ANY WARRANTY; without even the implied warranty of 
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+General Public License for more details.
+
+Bug reports, comments and ideas are welcomed, send these to 
+apal@szofi.elte.hu or apal@cfa.harvard.edu.

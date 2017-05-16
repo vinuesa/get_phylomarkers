@@ -1,0 +1,45 @@
+IMPORTANT
+---------
+
+- consensus output (sto,aln) and compatibilety with bioperl/biopython
+
+- Split Homfam refs in two. Use one part as background HMM, the other parts
+  for benchmarking
+
+- Implement meta flags:
+  accurate: --iterations 3
+  default:  --mbed --iterations 1
+  fast: --mbed
+  and for more than 10k sequences: --mbed --mbed-iter
+
+- SSE instructions for hhalign (little use in ClustalO frontend; DD)
+  /
+  Patch new code which already contains SSE instructions
+
+  also fix automake/configure then
+
+- Multi-HMMs; also for Pfam+iteration (FS)
+
+- Show degradation of alignment quality when using x reference sequences
+  added to y random/false sequences
+  (Lio Pachter)
+
+- Seed pre-alignment with M-Coffee, MSAProbs, ...
+
+- GUI/API:
+  Will have to catch/override exits from source.
+  find . -name \*.c -or -name \*.cpp -or -name \*.h | xargs grep 'exit('
+  Also best to allow for user override of
+  void Fatal(char *msg, ...);
+  void Error(char *msg, ...);
+  void Warn(char *msg, ...);
+  void Info(int level, char *msg, ...);
+
+
+- Soeding: DNA/RNA alignment incl. reading of nucleotide HMMs
+
+- Automatic HMM-selection/search/download for input
+
+- Structure input: Psipred predictions are apparently part of their
+  hhms and should therefore be ready to use (part automatic
+  HMM-selection)
