@@ -109,7 +109,7 @@ function check_scripts_in_path()
     [ $DEGUB ] && echo "check_scripts_in_path() distrodir:$distrodir"
     
     bash_scripts=( run_pexec_cmmds.sh run_parallel_molecClock_test_with_paup.sh )
-    perl_scripts=( add_nos2fasta_header.pl pal2nal.pl rename concat_alignments.pl add_labels2tree.pl convert_aln_format_batch_bp.pl popGen_summStats.pl convert_aln_format_batch_bp.pl )
+    perl_scripts=( add_nos2fasta_header.pl pal2nal.pl rename.pl concat_alignments.pl add_labels2tree.pl convert_aln_format_batch_bp.pl popGen_summStats.pl convert_aln_format_batch_bp.pl )
     R_scripts=( run_kdetrees.R compute_suppValStas_and_RF-dist.R )
     
     # check if scripts are in path; if not, set flag
@@ -148,7 +148,7 @@ function check_scripts_in_path()
              ln -s $distrodir/*.sh $HOME/bin &> /dev/null
              ln -s $distrodir/*.R $HOME/bin &> /dev/null
              ln -s $distrodir/*.pl $HOME/bin &> /dev/null
-             ln -s $distrodir/rename $HOME/bin &> /dev/null
+             ln -s $distrodir/rename.pl $HOME/bin &> /dev/null
        fi
       
        if [ ! -d $(echo $PATH | sed 's/:/\n/g' | grep "$HOME/bin$") ] # be specific: should end in bin, excluding subdirs
@@ -608,10 +608,10 @@ function print_development_notes()
    cat <<DEV
    $progname v.$VERSION usage:
  
-   TODO: (last review: May 14th, 2017)
+   TODO: (last review: May 17th, 2017)
     I. CRITICAL/Important:
           
-    0.1 Compile external binaries on Mac OS X (64 bits) to incude in $distrodir/bin/darwin or write an install script or fetch them directly
+    0.1 Compile external binaries on Mac OS X (64 bits) to include in $distrodir/bin/macos-intel, write install instruction
     
     1. run_kdetrees.R and compute_suppValStas_and_RF-dist.R run_molecClock_test_with_paup.sh may be refactored into functions run from within $progname
     1.1 verify if kdetrees or RF-dist require haplotyes and/or rooted trees! 
@@ -921,8 +921,8 @@ ln -s ../*faa .
 ln -s ../*fna .
 
 # fix fasta file names with two and three dots
-rename 's/\.\.\./\./g' *.faa
-rename 's/\.\.\./\./g' *.fna
+rename.pl 's/\.\.\./\./g' *.faa
+rename.pl 's/\.\.\./\./g' *.fna
 
 # 1.1 fix fastaheaders of the source protein and DNA fasta files
 for file in *faa; do awk 'BEGIN {FS = "|"}{print $1, $2, $3}' $file | perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > ${file}ed; done
