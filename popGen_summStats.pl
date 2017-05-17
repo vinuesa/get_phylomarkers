@@ -77,7 +77,6 @@ use File::Basename;
 use Getopt::Std;
 
 use FindBin '$Bin'; # added by Bruno May2017
-use lib "$Bin/lib";
 use lib "$Bin/lib/perl/bioperl-1.5.2_102/";
 
 use Bio::AlignIO;
