@@ -27,8 +27,11 @@ eval 'exec /usr/bin/perl -w -S $0 ${1+"$@"}'
 #
 
 use strict;
-use File::Rename ();
 use Pod::Usage;
+
+use FindBin '$Bin'; # added by Bruno May2017
+use lib "$Bin/lib/perl/";
+use File::Rename ();
 
 main() unless caller;
 
