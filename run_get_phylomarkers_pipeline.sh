@@ -89,8 +89,8 @@ function set_pipeline_environment()
 	 OS='linux'
     elif [[ "$OSTYPE" == "darwin"* ]]
     then
-	distrodir=$(cd "$(dirname "$0")"; pwd)
-        bindir=$distrodir/bin/macosx-intel
+       distrodir=$(cd "$(dirname "$0")"; pwd)
+       bindir=$distrodir/bin/macosx-intel
 	OS='darwin'
     fi
    echo "$distrodir $bindir $OS"
@@ -118,8 +118,8 @@ function check_scripts_in_path()
        if [ -z $bin ]; then
           echo
           printf "${RED}# WARNING: script $prog is not in \$PATH!${NC}\n"
-	  printf "${CYAN}  >>>  Will generate a symlink from $HOME/bin or add it to \$PATH ${NC}\n"
-	  not_in_path=1
+	        printf "${CYAN}  >>>  Will generate a symlink from $HOME/bin or add it to \$PATH ${NC}\n"
+	        not_in_path=1
        fi
     done	  
     
@@ -128,12 +128,12 @@ function check_scripts_in_path()
     then
        if [ ! -d $HOME/bin ]
        then
-            printf "${CYAN} found no $HOME/bin direcotry for $USER ...${NC}\n"
-	    printf "${CYAN} ... will update PATH=$PATH:$distrodir ${NC}\n"
+            printf "${CYAN} found no $HOME/bin directory for $USER ...${NC}\n"
+	          printf "${CYAN} ... will update PATH=$PATH:$distrodir ${NC}\n"
             #export PATH=$PATH:$distrodir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)
-	    # we do not export, so that this PATH update lasts only for the run of the script, 
-	    # avoiding a longer alteration of $ENV; by appending to the end of PATH, no user-preferences should be altered  
-	    PATH=$PATH:$distrodir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)
+	          # we do not export, so that this PATH update lasts only for the run of the script, 
+	          # avoiding a longer alteration of $ENV; by appending to the end of PATH, no user-preferences should be altered  
+	          PATH=$PATH:$distrodir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)
        else
            homebinflag=1
        fi
@@ -155,9 +155,9 @@ function check_scripts_in_path()
            printf "${CYAN} Found the $HOME/bin for $USER, but it is NOT in \$PATH ...${NC}\n"
            printf "${CYAN} updating PATH=$PATH:$distrodir ${NC}\n"
            #export PATH=$PATH:$distrodir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)
-	    # we do not export, so that this PATH update lasts only for the run of the script, 
-	    # avoiding a longer alteration of $ENV; by appending to the end of PATH, no user-preferences should be altered  
-	   PATH=$PATH:$distrodir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)
+	         # we do not export, so that this PATH update lasts only for the run of the script, 
+	         # avoiding a longer alteration of $ENV; by appending to the end of PATH, no user-preferences should be altered  
+	         PATH=$PATH:$distrodir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)
        fi
     fi
     #echo "$homebinflag $homebinpathflag"
@@ -180,7 +180,7 @@ function set_bindirs()
        then
           echo
           printf "${RED}# $prog not found in \$PATH ... ${NC}\n"
-	  not_in_path=1
+	        not_in_path=1
        fi	  
    done	  
  
@@ -188,9 +188,9 @@ function set_bindirs()
    then
    	   printf "${CYAN} updating PATH=$PATH:$bindir ${NC}\n"
    	   #export PATH=$PATH:$bindir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)  
-	    # we do not export, so that this PATH update lasts only for the run of the script, 
-	    # avoiding a longer alteration of $ENV; by appending to the end of PATH, no user-preferences should be altered 
-	   PATH=$PATH:$bindir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)
+	     # we do not export, so that this PATH update lasts only for the run of the script, 
+	     # avoiding a longer alteration of $ENV; by appending to the end of PATH, no user-preferences should be altered 
+	     PATH=$PATH:$bindir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)
    fi
    #echo $setbindir_flag
 }
