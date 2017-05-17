@@ -83,14 +83,14 @@ function set_pipeline_environment()
 {
     if [[ "$OSTYPE" == "linux-gnu" ]]
     then
-         scriptdir=$(readlink -f ${BASH_SOURCE[0]})
+       scriptdir=$(readlink -f ${BASH_SOURCE[0]})
     	 distrodir=$(dirname $scriptdir) #echo "scriptdir: $scriptdir|basedir:$distrodir|OSTYPE:$OSTYPE"
     	 bindir=$distrodir/bin/linux
 	 OS='linux'
     elif [[ "$OSTYPE" == "darwin"* ]]
     then
-        scriptdir=$(greadlink -f ${BASH_SOURCE[0]})
-	distrodir=$(dirname $scriptdir) #echo "scriptdir: $scriptdir|basedir:$distrodir|OSTYPE:$OSTYPE"
+        scriptdir=$(readlink -f ${BASH_SOURCE[0]})
+	      distrodir=$(dirname $scriptdir) #echo "scriptdir: $scriptdir|basedir:$distrodir|OSTYPE:$OSTYPE"
         bindir=$distrodir/bin/macosx-intel
 	OS='darwin'
     fi
