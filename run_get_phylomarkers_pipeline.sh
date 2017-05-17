@@ -13,7 +13,7 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.6_15May17' # v1.6_15May17 added extensive debugging messages throughout the code for easier debugging; activated the -V flag
+VERSION='1.6_17May17' # v1.6_15May17 added extensive debugging messages throughout the code for easier debugging; activated the -V flag
                       # v1.5 fixed set_bindirs and check_homebinpath(), to export to PATH; 
 		      #      fully tested on a new linux account without $HOME/bin dir using freshly cloned distro; Note that R and Perl libs were already in ENV
                       # v1.3 further refinement in set_bindirs() and check_homebinpath(), validated on yaxche; minor code cleanup
@@ -89,8 +89,7 @@ function set_pipeline_environment()
 	 OS='linux'
     elif [[ "$OSTYPE" == "darwin"* ]]
     then
-        scriptdir=$(readlink -f ${BASH_SOURCE[0]})
-	      distrodir=$(dirname $scriptdir) #echo "scriptdir: $scriptdir|basedir:$distrodir|OSTYPE:$OSTYPE"
+	distrodir=$(cd "$(dirname "$0")"; pwd)
         bindir=$distrodir/bin/macosx-intel
 	OS='darwin'
     fi
