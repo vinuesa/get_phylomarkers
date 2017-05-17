@@ -26,6 +26,12 @@ cd PhiPack/src
 make
 cd ../..
 
+# consense
+
+cd phylip-3.695/src/ 
+gcc -O3 -o consense consense.c phylip.c cons.c -lm
+cd ../..
+
 # PAUP
 
 # Please visit https://people.sc.fsu.edu/~dswofford/paup_test/ , download the appropriate version and put in bin/
