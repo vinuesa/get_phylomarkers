@@ -40,6 +40,7 @@ All scripts display usage instructions and describe their aims.
 * rename
 
 #### Perl modules
+  File::Rename
  From the BioPerl suite: 
   Bio::AlignIO;
   Bio::PopGen::IO;
