@@ -980,7 +980,8 @@ do
      then
            printf "\n${RED} >>> Warning: produced empty codon alignment $f!\n     ... Will skip this locus and move it to problematic_alignments/ ...\n\n${NC}" 
 	   [ ! -d problematic_alignments ] && mkdir problematic_alignments 
-	   locus_base=${$f%_cdnAln.fasta}
+	   locus_base=${f%_cdnAln.fasta}
+	   mv $f problematic_alignments
 	   mv ${locus_base}* problematic_alignments
      fi	   
 done
