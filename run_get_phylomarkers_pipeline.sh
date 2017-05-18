@@ -61,6 +61,7 @@ TIMESTAMP_SHORT_HMS=$(date +${DATEFORMAT_SHORT}-${DATEFORMAT_HMS})
 # Light Gray   0;37     White         1;37
 
 RED='\033[0;31m'
+LRED='\033[1;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
@@ -118,7 +119,7 @@ function check_scripts_in_path()
        bin=$(type -P $prog)
        if [ -z $bin ]; then
           echo
-          printf "${RED}# WARNING: script $prog is not in \$PATH!${NC}\n"
+          printf "${LRED}# WARNING: script $prog is not in \$PATH!${NC}\n"
 	        printf "${CYAN}  >>>  Will generate a symlink from $HOME/bin or add it to \$PATH ${NC}\n"
 	        not_in_path=1
        fi
@@ -978,7 +979,7 @@ for f in *cdnAln.fasta
 do
      if [ ! -s $f ] 
      then
-           printf "\n${RED} >>> Warning: produced empty codon alignment $f!\n     ... Will skip this locus and move it to problematic_alignments/ ...\n\n${NC}" 
+           printf "\n${LRED} >>> Warning: produced empty codon alignment $f!\n     ... Will skip this locus and move it to problematic_alignments/ ...\n\n${NC}" 
 	   [ ! -d problematic_alignments ] && mkdir problematic_alignments 
 	   locus_base=${f%_cdnAln.fasta}
 	   mv $f problematic_alignments
@@ -1005,6 +1006,7 @@ phipack_dir=$(pwd)
 ln -s ../*fasta .
 
 no_fasta_files=$(ls *.fasta | wc -l)
+
 [ $no_fasta_files -gt 1 ] && print_start_time && printf "${BLUE}# running Phi in PhiPack dir on $no_fasta_files codon alignments ...${NC}\n" | \
 tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 [ $no_fasta_files -lt 1 ] && print_start_time && printf "\n${RED} >>> ERROR: there are no codon alignments to run Phi on. Will exit now!${NC}\n\n" | \
@@ -1031,6 +1033,8 @@ total_no_cdn_alns=$(ls *_cdnAln.fasta | wc -l)
 printf "${GREEN} >>> Phi test result: there are $no_non_recomb_alns_perm_test non-recomb alignments out of $total_no_cdn_alns total alignments${NC}\n" | \
 tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
+[ $no_non_recomb_alns_perm_test -lt 1 ] && print_start_time && printf "\n${LRED} >>> Warning: All alignments seem to have recombinant sequences. will exit now!${NC}\n\n" | \
+tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && exit 3
 
 # 3.4 mv non-recombinant codon alignments and protein alignments to their own directories:
 #     non_recomb_cdn_alns/ and  non_recomb_cdn_alns/
@@ -1077,6 +1081,10 @@ then
     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
     [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > run_pexec_cmmds.sh fasta 'FastTree -quiet -nt -gtr -gamma -bionj -slownni -mlacc 3 -spr 8 -sprlength 8 < $file > ${file%.*}_allFTGTRG.ph' &> /dev/null"    
     run_pexec_cmmds.sh fasta 'FastTree -quiet -nt -gtr -gamma -bionj -slownni -mlacc 3 -spr 8 -sprlength 8 < $file > ${file%.*}_allFTGTRG.ph' &> /dev/null
+    
+    no_gene_trees=$(ls *allFTGTRG.ph | wc -l)
+    [ $no_gene_trees -lt 1 ] && print_start_time && printf "\n${LRED} >>> Warning: There are no gene tree to work on in non_recomb_cdn_alns/. will exit now!${NC}\n\n" | \
+    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && exit 3
     
     #remove trees with < 5 branches
     print_start_time && printf "${BLUE}# counting branches on $no_non_recomb_alns_perm_test gene trees ...${NC}\n" | \
@@ -1143,6 +1151,7 @@ then
     fi
 
 #---------- RUNMODES --------------
+
     if [ $runmode -eq 1 ]
     then
         # 4.6 compute average bipartition support values for each gene tree
@@ -1170,6 +1179,9 @@ then
         top_markers_dir=$(pwd)
         ln -s ../$top_markers_tab .
         for base in $(awk '{print $1}' $top_markers_tab | grep -v loci | sed 's/"//g'); do ln -s ../${base}* .; done
+   
+        [ $no_top_markers -lt 2 ] && print_start_time && printf "\n${LRED} >>> Warning: There are less than 2 top markers. Relax your filtering thresholds. will exit now!${NC}\n\n" | \
+tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && exit 3
 
 
         # 4.7 generate supermatrix (concatenated alignment) 
@@ -1184,6 +1196,9 @@ then
         [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > remove_uninformative_sites_from_aln.pl < concat_cdnAlns.fna > concat_cdnAlns.fnainf"
         remove_uninformative_sites_from_aln.pl < concat_cdnAlns.fna > concat_cdnAlns.fnainf
         check_output concat_cdnAlns.fnainf $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	
+	[ ! -s concat_cdnAlns.fnainf ] && print_start_time && printf "\n${RED} >>> ERROR: The expected file concat_cdnAlns.fnainf was not produced! will exit now!${NC}\n\n" | \
+tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && exit 3
 
         # 4.9 run FasTree under the GTR+G model 
         print_start_time && printf "${BLUE}# running FastTree on the concatenated alignment with $search_thoroughness thoroughness. This may take a while ...${NC}\n" | \
@@ -1221,7 +1236,7 @@ then
             check_output ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG_ed.sptree $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
             printf "${GREEN} >>> found in dir $top_markers_dir ...${NC}\n\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
         else
-              printf "${RED} >>> WARNING: ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG_ed.sptree could not be produced!${NC}"
+              printf "${LRED} >>> WARNING: ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG_ed.sptree could not be produced!${NC}"
         fi 
     
         print_start_time && printf "${BLUE}# computing the mean support values and RF-distances of each gene tree to the concatenated tree   ...${NC}\n" | \
@@ -1289,6 +1304,8 @@ then
         fi
     fi # if [ $runmode -eq 1 ]; then run phylo pipeline on DNA seqs
     
+
+#>>>>> RUNMODE 2: PopGen
     if [ $runmode -eq 2 ]
     then
         mkdir popGen && cd popGen
