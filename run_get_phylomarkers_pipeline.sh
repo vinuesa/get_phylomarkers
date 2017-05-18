@@ -13,7 +13,8 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.6_17May17' # v1.6_15May17 added extensive debugging messages throughout the code for easier debugging; activated the -V flag
+VERSION='1.7_17May17' # 1.7_17May17. Changed exit for Warning when pal2nal does not return a codon alignment! so that the pipeline can proceed
+                      # v1.6_15May17 added extensive debugging messages throughout the code for easier debugging; activated the -V flag
                       # v1.5 fixed set_bindirs and check_homebinpath(), to export to PATH; 
 		      #      fully tested on a new linux account without $HOME/bin dir using freshly cloned distro; Note that R and Perl libs were already in ENV
                       # v1.3 further refinement in set_bindirs() and check_homebinpath(), validated on yaxche; minor code cleanup
@@ -975,7 +976,12 @@ echo "$command" | bash &> /dev/null
 # check we got the expected *cdnAln.fasta files or die!
 for f in *cdnAln.fasta
 do
-     [ ! -s $f ] && printf "\n${RED} >>> ERROR: produced empty alignment! Check your input. Will stop now ...\n\n${NC}" && exit 5
+     if [ ! -s $f ] 
+     then
+           printf "\n${RED} >>> Warning: produced empty codon alignment $f!\n     ... Will skip this locus and move it to problematic_alignments/ ...\n\n${NC}" 
+	   [ ! -d problematic_alignments ] && mkdir problematic_alignments 
+	   locus_base=${$f%_cdnAln.fasta}
+	   mv ${locus_base}* problematic_alignments
 done
 
 # 2.3 cleanup: remove the source fnaed and faaed files; make numbered_fna_files.tgz and numbered_faa_files.tgz; rm *aedno
@@ -1506,8 +1512,11 @@ cat <<REF
 
 If you find the code useful for your academic work, please use the following citation: 
 Pablo Vinuesa and Bruno Contreras-Moreira 2017. Get_PhyloMarkers, a pipeline to select 
-optimal markers for microbial phylogenomics, population genetics and genomic taxomy (In prep.). 
+optimal markers for microbial phylogenomics, population genetics and genomic taxomy. 
 Available at https://github.com/vinuesa/get_phylomarkers 
+Publication in prep. (Abstract accepted in Frontiers in Microbiology for the Serarch topic
+on microbial taxonomy, phylogeney and biodiversity: 
+http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity
 
 * NOTES: 
   1. The links to the the corresponding manuscript will be provided here 
