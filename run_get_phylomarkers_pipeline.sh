@@ -893,8 +893,8 @@ printf "
  distrodir=$distrodir
  bindir=$bindir
  runmode=$runmode|mol_type=$mol_type|eval_clock=$eval_clock|root_method=$root_method|base_model=$base_mod|ChiSq_quantile=$q
- kde_stringency=$kde_stringency|min_supp_val=$min_supp_val|spr=$spr|spr_length=$spr_length|search_thoroughness=$search_thoroughness${NC}
- DEBUG=$DEBUG|VERBOSITY=$VERBOSITY
+ kde_stringency=$kde_stringency|min_supp_val=$min_supp_val|spr=$spr|spr_length=$spr_length|search_thoroughness=$search_thoroughness
+ DEBUG=$DEBUG|VERBOSITY=$VERBOSITY${NC}
 
 " | tee ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log 
 
@@ -982,6 +982,7 @@ do
 	   [ ! -d problematic_alignments ] && mkdir problematic_alignments 
 	   locus_base=${$f%_cdnAln.fasta}
 	   mv ${locus_base}* problematic_alignments
+     fi	   
 done
 
 # 2.3 cleanup: remove the source fnaed and faaed files; make numbered_fna_files.tgz and numbered_faa_files.tgz; rm *aedno
