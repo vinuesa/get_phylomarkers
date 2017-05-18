@@ -1533,13 +1533,14 @@ If you find the code useful for your academic work, please use the following cit
 Pablo Vinuesa and Bruno Contreras-Moreira 2017. Get_PhyloMarkers, a pipeline to select 
 optimal markers for microbial phylogenomics, population genetics and genomic taxomy. 
 Available at https://github.com/vinuesa/get_phylomarkers 
-Publication in prep. (Abstract accepted in Frontiers in Microbiology for the Serarch topic
-on microbial taxonomy, phylogeney and biodiversity: 
+
+A publication in preparation. The abstract was accepted in Frontiers in Microbiology, 
+for the Reserarch topic on "microbial taxonomy, phylogeney and biodiversity" 
 http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity
 
 * NOTES: 
   1. The links to the the corresponding manuscript will be provided here 
-      as soon as it is available at BioRxiv, and latter, to the paper.
+      as soon as it is available at bioRxiv, and latter, to the paper.
 
   2. If you encounter problems or bugs while trying to run the pipeline
       please report them through the issues page at
