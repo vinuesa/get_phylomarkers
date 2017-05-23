@@ -4,7 +4,8 @@
 # AIM: run commands in parallel to process multiple files using pexec
 
 progname=$(basename $0)
-VERSION=0.1 # Sept 23rd, 2013
+VERSION='v0.2_22May17' # removed the echo $file ... after command for better portability! $command; echo $file ...
+            # v0.1 Sept 23rd, 2013
 
 
 function check_dependencies()
@@ -65,9 +66,9 @@ total_files=$(ls *$ext | wc -l)
 
 if [ -z $no_of_cores ]
 then
-    pexec -r *.$ext -e file -c -o - -- "$command; echo \$file \=\=\> processed!; done"
+    pexec -r *.$ext -e file -c -o - -- "$command"
 else
-    pexec -n $no_of_cores -r *.$ext -e file -c -o - -- "$command; echo \$file \=\=\> processed!; done"
+    pexec -n $no_of_cores -r *.$ext -e file -c -o - -- "$command"
 fi
 
 echo 
