@@ -13,7 +13,7 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.8_23May17' #1.8_23May17. Added R code in count_tree_branches() to use local_lib if ape is not installed systemwide; 
+VERSION='1.8_23May17' #v1.8_23May17. Added R code in count_tree_branches() to use local_lib if ape is not installed systemwide; 
                       #    searches and prints the number of available cores on HOSTNAME 
                       # 1.7_17May17. Changed exit for Warning when pal2nal does not return a codon alignment! so that the pipeline can proceed
                       # v1.6_15May17 added extensive debugging messages throughout the code for easier debugging; activated the -V flag
@@ -87,7 +87,7 @@ function set_pipeline_environment()
 {
     if [[ "$OSTYPE" == "linux-gnu" ]]
     then
-       scriptdir=$(readlink -f ${BASH_SOURCE[0]})
+         scriptdir=$(readlink -f ${BASH_SOURCE[0]})
     	 distrodir=$(dirname $scriptdir) #echo "scriptdir: $scriptdir|basedir:$distrodir|OSTYPE:$OSTYPE"
     	 bindir=$distrodir/bin/linux
 	 OS='linux'
@@ -457,12 +457,13 @@ function install_Rlibs_msg()
    printf "       This may be because you have not installed the R package $Rpackage.\n"
    printf "       Run using the command 'Rscript install_R_deps.R' from within $distrodir to install them\n${NC}"  
    
-   R --no-save <<RCMD 
+   R --no-save --quiet <<RCMD 2> /dev/null
    
-       print("Your R installation currently searches for packages in :\n")
+       print("Your R installation currently searches for packages in :")
        print(.libPaths())
 RCMD
 
+exit 1
   
 }
 
@@ -474,22 +475,22 @@ function count_tree_labels()
    ext=$1
    outfile=$2
 
-   R --no-save <<RCMD &> /dev/null
+   R --no-save --quiet <<RCMD
 
-   package <- c("ape")
+   pkg <- c("ape")
    
    local_lib <- c("$distrodir/lib/R")
    distrodir <-c("$distrodir")
 
-   .libPaths( c( .libPaths(), local_lib) )
-    
+   .libPaths( c( .libPaths(), "$distrodir/lib/R") )
    
-   if (!require(package, character.only=T, quietly=T)) {
+   library("ape")
+   
+   if (!require(pkg, character.only=T, quietly=T)) {
        sprintf("# cannot load %s. Install it in %s using the command 'Rscript install_R_deps.R' from within %s",package,local_lib,distrodir)
        print("Your R installation currently searches for packages in :\n")
        print(.libPaths())
    }
-   library("ape")
 
    trees <- list.files(pattern = "$ext\$")
    sink("$outfile")
@@ -511,23 +512,24 @@ function count_tree_branches()
    ext=$1
    outfile=$2
 
-   R --no-save <<RCMD &> /dev/null
-
-   package <- c("ape")
-   
-   local_lib <- c("$distrodir/lib/R")
-   distrodir <-c("$distrodir")
-
-   .libPaths( c( .libPaths(), local_lib) )
+   [ $DEBUG -eq 1 ] && echo "# running count_tree_branches $ext $outfile"
     
+   R --no-save --quiet <<RCMD 
+  
+   local_lib <- c("$distrodir/lib/R")
+   distrodir <- c("$distrodir")
+
+   .libPaths( c(.libPaths(), local_lib) )
+   required_packages <- c("ape")
    
-   if (!require(package, character.only=T, quietly=T)) {
+   for (pkg in required_packages) { 
+     if (!require("ape", character.only=T, quietly=T)) {
        sprintf("# cannot load %s. Install it in %s using the command 'Rscript install_R_deps.R' from within %s",package,local_lib,distrodir)
        print("Your R installation currently searches for packages in :\n")
        print(.libPaths())
+     }
    }
    library("ape")
-
 
    trees <- list.files(pattern = "$ext\$")
    sink("$outfile")
@@ -562,7 +564,7 @@ function count_tree_branches()
    sink()
 RCMD
 
-check_output $outfile 
+#check_output $outfile 
 }
 #----------------------------------------------------------------------------------------- 
 
@@ -861,8 +863,6 @@ shift $(($OPTIND - 1))
 # >>>BLOCK 0.1 SET THE ENVIRONMENT FOR THE PIPELINE <<< #
 #-------------------------------------------------------#
 
-# check for bare minimum dependencies: bash R perl awk cut grep sed sort uniq Rscript
-check_dependencies
 
 # 0. Set the distribution base directory and OS-specific (linux|darwin) bindirs
 env_vars=$(set_pipeline_environment) # returns: $distrodir $bindir $OS $no_proc
@@ -886,10 +886,15 @@ check_scripts_in_path $distrodir
 # then $bindir will be added to $PATH
 set_bindirs $bindir
 
+# 0.3 append the $distrodir/lib/R to R_LIBS and export
+export R_LIBS="$R_LIBS:$distrodir/lib/R"
 
 #-------------------------------------#
 # >>>BLOCK 0.2 CHECK USER OPTIONS <<< #
 #-------------------------------------#
+
+# check for bare minimum dependencies: bash R perl awk cut grep sed sort uniq Rscript
+check_dependencies
 
 if [ -z $runmode ]
 then
@@ -926,8 +931,6 @@ then
      print_help
      exit 1
 fi
-
-
 
 if [ $eval_clock -gt 0 -a "$mol_type" != "DNA" ] # MolClock currently only with DNA
 then
@@ -994,8 +997,8 @@ ln -s ../*faa .
 ln -s ../*fna .
 
 # fix fasta file names with two and three dots
-rename.pl 's/\.\.\./\./g' *.faa
-rename.pl 's/\.\.\./\./g' *.fna
+$distrodir/rename.pl 's/\.\.\./\./g' *.faa
+$distrodir/rename.pl 's/\.\.\./\./g' *.fna
 
 # 1.1 fix fastaheaders of the source protein and DNA fasta files
 for file in *faa; do awk 'BEGIN {FS = "|"}{print $1, $2, $3}' $file | perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > ${file}ed; done
@@ -1162,10 +1165,10 @@ then
     print_start_time && printf "${BLUE}# counting branches on $no_non_recomb_alns_perm_test gene trees ...${NC}\n" | \
     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
     [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > count_tree_branches ph no_tree_branches.list &> /dev/null"
+
     count_tree_branches ph no_tree_branches.list &> /dev/null
-    
     [ ! -s no_tree_branches.list ] && install_Rlibs_msg no_tree_branches.list ape
-     
+
     check_output no_tree_branches.list $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
     
     # remove trees with < 5 external branches (leaves)
