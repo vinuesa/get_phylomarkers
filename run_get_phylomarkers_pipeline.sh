@@ -13,7 +13,7 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.8.1_24May17' # #v1.8.1_24May17 fixed problmes with @INC searching of rename.pl by prepending $distrodir/rename.pl
+VERSION='1.8.1_24May17' # v1.8.1_24May17 fixed problmes with @INC searching of rename.pl by prepending $distrodir/rename.pl
                        #v1.8_23May17. Added R code in count_tree_branches() to use local_lib if ape is not installed systemwide; 
                       #    searches and prints the number of available cores on HOSTNAME 
 		      #    exports R_LIBS="$R_LIBS:$distrodir/lib/R" to fix issues with library paths in R scripts
