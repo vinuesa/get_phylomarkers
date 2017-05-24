@@ -13,7 +13,9 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.8.1_24May17' # v1.8.1_24May17 fixed problmes with @INC searching of rename.pl by prepending $distrodir/rename.pl
+VERSION='1.9_24May17'  # v.1.9_24May17: install_Rlibs_msg now checks if there are installed packages in $distrodir/lib/R/*
+                       #                 If not, it will cd into $distrodir and run install_R_deps.R
+                       # v1.8.1_24May17 fixed problmes with @INC searching of rename.pl by prepending $distrodir/rename.pl
                        #v1.8_23May17. Added R code in count_tree_branches() to use local_lib if ape is not installed systemwide; 
                       #    searches and prints the number of available cores on HOSTNAME 
 		      #    exports R_LIBS="$R_LIBS:$distrodir/lib/R" to fix issues with library paths in R scripts
@@ -456,15 +458,30 @@ function install_Rlibs_msg()
    Rpackage=$2
 
    printf "${RED} ERROR: the expected outfile $outfile was not produced\n"  
-   printf "       This may be because you have not installed the R package $Rpackage.\n"
-   printf "       Run using the command 'Rscript install_R_deps.R' from within $distrodir to install them\n${NC}"  
-   
+
    R --no-save --quiet <<RCMD 2> /dev/null
    
        print("Your R installation currently searches for packages in :")
        print(.libPaths())
 RCMD
 
+   printf "${LBLUE} checking if you have installed $Rpackage in $distrodir/lib/R\n${NC}"
+
+   find lib/R/* -type d &> /dev/null; 
+   if [ $? -eq 0 ]
+   then
+      printf "${LBLUE} ... found package $Rpackage in $distrodir\n${NC}"
+   else
+      printf "${LBLUE} ... did not find package $Rpackage in $distrodir\n${NC}"
+      printf "${LBLUE} ... will cd into $distrodir and install R packages in $distrodir/lib/R using the command 'Rscript install_R_deps.R' \n${NC}"
+       
+      cd $distrodir && Rscript install_R_deps.R
+      
+      printf "${LBLUE} ... will cd into $distrodir and install R packages in $distrodir/lib/R using the command 'Rscript install_R_deps.R' \n${NC}"
+      printf "\n${GREEN} Finished installin R packages in $distrodir/lib/R. Please re-run${NC}\n"
+       
+   fi
+   
 exit 1
   
 }
