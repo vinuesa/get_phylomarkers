@@ -13,7 +13,9 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.7_17May17' # 1.7_17May17. Changed exit for Warning when pal2nal does not return a codon alignment! so that the pipeline can proceed
+VERSION='1.8_23May17' #1.8_23May17. Added R code in count_tree_branches() to use local_lib if ape is not installed systemwide; 
+                      #    searches and prints the number of available cores on HOSTNAME 
+                      # 1.7_17May17. Changed exit for Warning when pal2nal does not return a codon alignment! so that the pipeline can proceed
                       # v1.6_15May17 added extensive debugging messages throughout the code for easier debugging; activated the -V flag
                       # v1.5 fixed set_bindirs and check_homebinpath(), to export to PATH; 
 		      #      fully tested on a new linux account without $HOME/bin dir using freshly cloned distro; Note that R and Perl libs were already in ENV
@@ -89,14 +91,35 @@ function set_pipeline_environment()
     	 distrodir=$(dirname $scriptdir) #echo "scriptdir: $scriptdir|basedir:$distrodir|OSTYPE:$OSTYPE"
     	 bindir=$distrodir/bin/linux
 	 OS='linux'
+	 no_cores=$(awk '/^processor/{n+=1}END{print n}' /proc/cpuinfo)
     elif [[ "$OSTYPE" == "darwin"* ]]
     then
        distrodir=$(cd "$(dirname "$0")"; pwd)
        bindir=$distrodir/bin/macosx-intel
-	OS='darwin'
+       OS='darwin'
+       no_cores=$(sysctl -n hw.ncpu)
     fi
-   echo "$distrodir $bindir $OS"
+    echo "$distrodir $bindir $OS $no_cores"
 }
+#----------------------------------------------------------------------------------------- 
+
+function check_dependencies()
+{
+    
+    # check if scripts are in path; if not, set flag
+    for prog in bash R perl awk cut grep sed sort uniq Rscript
+    do
+       bin=$(type -P $prog)
+       if [ -z $bin ]; then
+          echo
+          printf "${RED}# ERROR: system binary $prog is not in \$PATH!${NC}\n"
+	  printf "${LRED}  >>>  you will need to install $prog for $progname to run on $HOSTNAME ${NC}\n"
+	  printf "${LRED}  >>>  will exit now ... ${NC}\n"
+	  exit 1
+       fi
+    done	  
+    
+}    
 #----------------------------------------------------------------------------------------- 
 
 function check_scripts_in_path()
@@ -425,14 +448,47 @@ function get_script_PID()
 }
 #----------------------------------------------------------------------------------------- 
 
+function install_Rlibs_msg()
+{
+   outfile=$1
+   Rpackage=$2
+
+   printf "${RED} ERROR: the expected outfile $outfile was not produced\n"  
+   printf "       This may be because you have not installed the R package $Rpackage.\n"
+   printf "       Run using the command 'Rscript install_R_deps.R' from within $distrodir to install them\n${NC}"  
+   
+   R --no-save <<RCMD 
+   
+       print("Your R installation currently searches for packages in :\n")
+       print(.libPaths())
+RCMD
+
+  
+}
+
+#----------------------------------------------------------------------------------------- 
+
 function count_tree_labels()
 {
    # call R pacake 'ape' to count the number of labels in a tree
    ext=$1
    outfile=$2
 
-   R --no-save <<RCMD
+   R --no-save <<RCMD &> /dev/null
 
+   package <- c("ape")
+   
+   local_lib <- c("$distrodir/lib/R")
+   distrodir <-c("$distrodir")
+
+   .libPaths( c( .libPaths(), local_lib) )
+    
+   
+   if (!require(package, character.only=T, quietly=T)) {
+       sprintf("# cannot load %s. Install it in %s using the command 'Rscript install_R_deps.R' from within %s",package,local_lib,distrodir)
+       print("Your R installation currently searches for packages in :\n")
+       print(.libPaths())
+   }
    library("ape")
 
    trees <- list.files(pattern = "$ext\$")
@@ -457,7 +513,21 @@ function count_tree_branches()
 
    R --no-save <<RCMD &> /dev/null
 
+   package <- c("ape")
+   
+   local_lib <- c("$distrodir/lib/R")
+   distrodir <-c("$distrodir")
+
+   .libPaths( c( .libPaths(), local_lib) )
+    
+   
+   if (!require(package, character.only=T, quietly=T)) {
+       sprintf("# cannot load %s. Install it in %s using the command 'Rscript install_R_deps.R' from within %s",package,local_lib,distrodir)
+       print("Your R installation currently searches for packages in :\n")
+       print(.libPaths())
+   }
    library("ape")
+
 
    trees <- list.files(pattern = "$ext\$")
    sink("$outfile")
@@ -791,16 +861,18 @@ shift $(($OPTIND - 1))
 # >>>BLOCK 0.1 SET THE ENVIRONMENT FOR THE PIPELINE <<< #
 #-------------------------------------------------------#
 
+# check for bare minimum dependencies: bash R perl awk cut grep sed sort uniq Rscript
+check_dependencies
+
 # 0. Set the distribution base directory and OS-specific (linux|darwin) bindirs
-env_vars=$(set_pipeline_environment) # returns: $distrodir $bindir $OS
+env_vars=$(set_pipeline_environment) # returns: $distrodir $bindir $OS $no_proc
 [ $DEGUG ] && echo "env_vars:$env_vars"
 distrodir=$(echo $env_vars | awk '{print $1}')
 bindir=$(echo $env_vars | awk '{print $2}')
 OS=$(echo $env_vars | awk '{print $3}')
-#bindir="$distrodir/bin/$OS"
+no_proc=$(echo $env_vars | awk '{print $4}')
 
-[ $DEBUG -eq 1 ] && echo "distrodir:$distrodir"
-[ $DEBUG -eq 1 ] && echo "bindir:$bindir"
+[ $DEBUG -eq 1 ] && echo "distrodir:$distrodir|bindir:$bindir|OS:$OS|no_proc:$no_proc"
 
 # 0.1 Determine if pipeline scripts are in $PATH; 
 # if not, add them
@@ -889,7 +961,7 @@ dir_suffix=t${mol_type}_k${kde_stringency}_m${min_supp_val}_s${spr}_l${spr_lengt
 
 printf "
  ${CYAN}>>> $(basename $0) vers. $VERSION run with the following parameters:${NC}
- ${YELLOW}Run started on $TIMESTAMP_SHORT_HMS under $OSTYPE on $HOSTNAME
+ ${YELLOW}Run started on $TIMESTAMP_SHORT_HMS under $OSTYPE on $HOSTNAME with $no_proc cores
  wkdir=$wkdir
  distrodir=$distrodir
  bindir=$bindir
@@ -1091,6 +1163,8 @@ then
     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
     [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > count_tree_branches ph no_tree_branches.list &> /dev/null"
     count_tree_branches ph no_tree_branches.list &> /dev/null
+    
+    [ ! -s no_tree_branches.list ] && install_Rlibs_msg no_tree_branches.list ape
      
     check_output no_tree_branches.list $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
     
@@ -1099,7 +1173,7 @@ then
     for phy in $(grep -v '^#Tree' no_tree_branches.list | awk -v min_no_ext_branches=$min_no_ext_branches 'BEGIN{FS="\t"; OFS="\t"}$7 < min_no_ext_branches' | cut -f1)
     do
          base=$(echo $phy | sed 's/_allFTlgG\.ph//')
-	 print_start_time && printf "${RED} >>> will remove ${base}* because it has < 5 branches!${NC}\n"
+	 print_start_time && printf "${LRED} >>> will remove ${base}* because it has < 5 branches!${NC}\n"
 	 rm ${base}*
     done
 
@@ -1113,6 +1187,7 @@ then
     print_start_time && printf "${BLUE}# running kde test ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
     [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > run_kdetrees.R ph all_GTRG_trees.tre $kde_stringency &> /dev/null"
     run_kdetrees.R ph all_GTRG_trees.tre $kde_stringency &> /dev/null
+    [ ! -s kde_dfr_file_all_GTRG_trees.tre.tab ] && install_Rlibs_msg kde_dfr_file_all_GTRG_trees.tre.tab kdetrees
     check_output kde_dfr_file_all_GTRG_trees.tre.tab $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
     # 4.3 mv outliers to kde_outliers
@@ -1376,7 +1451,7 @@ then
     for phy in $(grep -v '^#Tree' no_tree_branches.list | awk -v min_no_ext_branches=$min_no_ext_branches 'BEGIN{FS="\t"; OFS="\t"}$7 < min_no_ext_branches' | cut -f1)
     do
          base=$(echo $phy | sed 's/_allFTlgG\.ph//')
-	 printf "${RED} >>> will remove ${base}* because it has < 5 branches!${NC}\n"
+	 printf "${LRED} >>> will remove ${base}* because it has < 5 branches!${NC}\n"
 	 rm ${base}*
     done
 
