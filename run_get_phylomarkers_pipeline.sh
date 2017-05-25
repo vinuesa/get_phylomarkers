@@ -13,7 +13,10 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.9_24May17'  # v.1.9_24May17: install_Rlibs_msg now checks if there are installed packages in $distrodir/lib/R/*
+VERSION='1.9.1_25May17'  # v1.9.1_25May17 removes the symbols statement from PAUP's data block from nex files 
+                         # generated in the popGen (-R 2) mode. This conflicts with predefined DNA state symbol in the new paup
+                         #  
+                       # v.1.9_24May17: install_Rlibs_msg now checks if there are installed packages in $distrodir/lib/R/*
                        #                 If not, it will cd into $distrodir and run install_R_deps.R
                        # v1.8.1_24May17 fixed problmes with @INC searching of rename.pl by prepending $distrodir/rename.pl
                        #v1.8_23May17. Added R code in count_tree_branches() to use local_lib if ape is not installed systemwide; 
@@ -122,7 +125,6 @@ function check_dependencies()
 	  exit 1
        fi
     done	  
-    
 }    
 #----------------------------------------------------------------------------------------- 
 
@@ -1431,6 +1433,14 @@ tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && ex
        	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
         [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null"
 	convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null 
+	
+	# remove the symbols statement from PAUP's data block; this seems to conflict with predefined DNA state symbol in the new paup
+        [ $DEBUG -eq 1 ] && echo "# running: perl -pe 'if(/^format/){ s/ symbols=.*;/;/}' $file > ${file}ed && mv ${file}ed $file"
+        for file in *.nex
+	do 
+	   perl -pe 'if(/^format/){ s/ symbols=.*;/;/ }' $file > ${file}ed && mv ${file}ed $file 
+	done   
+
 	  
         print_start_time && printf "${BLUE}# Running popGen_summStats.pl ...${NC}\n" | \
        	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
