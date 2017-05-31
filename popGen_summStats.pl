@@ -47,7 +47,7 @@
 #------------------------------------------------------------------------------------------------#
 
 # Code development history: April 16th 2010 -> 
-my $VERSION ="v1.3.2"; # v1.3.1 some code cleanup; remove the symbols=.*;/;/ line form nexu data block
+my $VERSION ="v1.3.3"; # v1.3.3 some code cleanup; remove the symbols=.*;/;/ line form nexus data block using native perl; validated
                     # v1.3 May 14th, 2017. Added portable shebang line for get_phylomarkers
                     # v1.2 Aug 9st, 2011: included an important test 'unless ($paup_data[2]){}' # i.e. next if the alignment has no variable sites! 
                     #    the alignment won't be processed by get_pop_summary_stats() if it has no variable sites; otherwise it will die (see comments in the unless block)
@@ -241,8 +241,31 @@ elsif($run_mode == 2)
     }
     
     # remove the "symbols=.*;" ending from the format interleave datatype=dna   gap=- symbols="GCTA"; nexus line
-    #my $nexf="";
-    #system("for nexf in *nex; do sed 's/ symbols=.*;/;/' $nexf > ${nexf}ed; mv ${nexf}.ed $nexf; done");
+    while( my $nex_aln = <*$nexus_aln_ext> )
+    {
+         my $nexed = $nex_aln . 'ed';
+    	 open NEX, '<', $nex_aln or die "can't open file $nex_aln: $!\n\n";
+	 open EDNEX, '>',  $nexed or die "can't write to file $nexed: $!\n\n";
+	 #print "# working on cdn_aln: $cdn_aln\n"; exit;
+	 while(<NEX>)
+	 {
+	    if(/^format/i)
+	    {
+	       s/\h+symbols=.*?;/;/;
+	       print EDNEX;
+	    }
+	    else
+	    {
+	       print EDNEX;
+	    }
+	 
+	 }
+	 close NEX;
+	 close EDNEX;
+	 system "mv $nexed $nex_aln";
+    }	  
+
+    
     
     open PAUP, "> paup.cmd", or die "can't write file paup.cmd: $!\n";
     if( $hs ){ print PAUP "hs nrep=$nrep start=step add=rand; describe; "; }
