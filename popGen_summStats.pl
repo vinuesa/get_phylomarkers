@@ -745,7 +745,7 @@ sub fas2nex
 		    
 		    # this is to remove symbols="AcTagCGt"; from the nexus file,
 		    # originated due to upper and lowercase letters of CDS and IGS regions from IGS amplicons
-		    system "sed 's/symbols=.*/;/' ${basename}.nex > ${basename}.nexed; mv ${basename}.nexed ${basename}.nex"
+		    system "sed 's/ symbols=.*;/;/' ${basename}.nex > ${basename}.nexed && mv ${basename}.nexed ${basename}.nex"
 	}
 	$counter++
     }
