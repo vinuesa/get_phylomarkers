@@ -13,7 +13,8 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.8.2_30May17' # Added -n $n_cores flag, which is passed to run_pexec_cmmds.sh '' $n_cores, so that it runs on MacOSX!!! <<< Thanks Alfredo!
+VERSION='1.8.2_30May17' # 1.8.3_30May17: prepended $ditrodir/ to perl scripts that use FindBin; so that it can find the required libs in $ditrodir/lib/perl
+                        # Added -n $n_cores flag, which is passed to run_pexec_cmmds.sh '' $n_cores, so that it runs on MacOSX!!! <<< Thanks Alfredo!
                         # v1.8.1_24May17 fixed problmes with @INC searching of rename.pl by prepending $distrodir/rename.pl
                        #v1.8_23May17. Added R code in count_tree_branches() to use local_lib if ape is not installed systemwide; 
                       #    searches and prints the number of available cores on HOSTNAME 
@@ -589,7 +590,7 @@ function concat_alns()
         concat_file="concat_protAlns.faa"
     fi
     
-    concat_alignments.pl list2concat > $concat_file
+    $distrodir/concat_alignments.pl list2concat > $concat_file
     check_output $concat_file $pPID
     perl -ne 'if (/^#|^$/){ next }else{print}' $concat_file > ed && mv ed $concat_file
     check_output $concat_file $pPID 
@@ -615,7 +616,7 @@ function make_labels_4_trees()
     printf "${BLUE}# Adding labels back to tree ...${NC}\n"
     grep '>' $(ls ${label_dir}/*fnaedno | head -1) > tree_labels.list
     perl -pe '$c++; s/>/$c\t/; s/\h\[/_[/' tree_labels.list > ed && mv ed tree_labels.list
-    add_labels2tree.pl tree_labels.list ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph &> /dev/null
+    $distrodir/add_labels2tree.pl tree_labels.list ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph &> /dev/null
     check_output ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG_ed.ph $parent_PID
 }
 #----------------------------------------------------------------------------------------- 
@@ -1286,7 +1287,7 @@ tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && ex
         print_start_time && printf "${BLUE}# removing uninformative sites from concatenated alignment ...${NC}\n" | \
 	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
         [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > remove_uninformative_sites_from_aln.pl < concat_cdnAlns.fna > concat_cdnAlns.fnainf"
-        remove_uninformative_sites_from_aln.pl < concat_cdnAlns.fna > concat_cdnAlns.fnainf
+        $distrodir/remove_uninformative_sites_from_aln.pl < concat_cdnAlns.fna > concat_cdnAlns.fnainf
         check_output concat_cdnAlns.fnainf $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	
 	[ ! -s concat_cdnAlns.fnainf ] && print_start_time && printf "\n${RED} >>> ERROR: The expected file concat_cdnAlns.fnainf was not produced! will exit now!${NC}\n\n" | \
@@ -1343,7 +1344,7 @@ tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && ex
              print_start_time && printf "${BLUE}# converting fasta files to nexus files${NC}\n" | \
        	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	     [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null"
-             convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null
+             $distrodir/convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null
 	     
 	     print_start_time && printf "${BLUE}# Will test the molecular clock hypothesis for $no_top_markers top markers. This will take some time ...${NC}\n" | \
        	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
@@ -1425,12 +1426,12 @@ tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && ex
         print_start_time && printf "${BLUE}# converting $no_top_markers fasta files to nexus format ...${NC}\n" | \
        	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
         [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null"
-	convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null 
+	$distrodir/convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null 
 	  
         print_start_time && printf "${BLUE}# Running popGen_summStats.pl ...${NC}\n" | \
        	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u &> popGen_summStats_hs100.log"
-	popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u &> popGen_summStats_hs100.log
+	$distrodir/popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u &> popGen_summStats_hs100.log
 	
 	check_output polymorphism_descript_stats.tab $parent_PID
 	
@@ -1562,7 +1563,7 @@ then
 
     # 5.8 remove uninformative sites from the concatenated alignment to speed up computation
         print_start_time && printf "${BLUE}# removing uninformative sites from concatenated alignment ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-    remove_uninformative_sites_from_aln.pl < concat_protAlns.faa > concat_protAlns.faainf
+    $distrodir/remove_uninformative_sites_from_aln.pl < concat_protAlns.faa > concat_protAlns.faainf
 
     check_output concat_protAlns.faainf $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
