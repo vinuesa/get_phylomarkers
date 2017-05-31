@@ -241,7 +241,8 @@ elsif($run_mode == 2)
     }
     
     # remove the "symbols=.*;" ending from the format interleave datatype=dna   gap=- symbols="GCTA"; nexus line
-    system "for f in *nex; do sed 's/ symbols=.*;/;/' $f > ${f}ed && mv ${f}.ed $f; done";
+    #my $nexf="";
+    #system("for nexf in *nex; do sed 's/ symbols=.*;/;/' $nexf > ${nexf}ed; mv ${nexf}.ed $nexf; done");
     
     open PAUP, "> paup.cmd", or die "can't write file paup.cmd: $!\n";
     if( $hs ){ print PAUP "hs nrep=$nrep start=step add=rand; describe; "; }
@@ -748,6 +749,7 @@ sub fas2nex
 		    
 		    # this is to remove symbols="AcTagCGt"; from the nexus file,
 		    # originated due to upper and lowercase letters of CDS and IGS regions from IGS amplicons
+		    system "sed 's/ symbols=.*;/;/' $basename.nex > $basename.nexed; mv $basename.nexed $basename.nex"
 	}
 	$counter++
     }
