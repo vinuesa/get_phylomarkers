@@ -15,7 +15,8 @@
 #--------------------------------------------------------------------------
 
 progname=$(basename "$0")
-VERSION='0.7_25May17' # v0.7_25May17 1. added code to remove the symbols statement from PAUP's data block, 
+VERSION='0.8_29May17' # v0.8_29May1: improved the regex to remove the symbol=""; part, which worked on Linux but not on MacOSX
+                      # v0.7_25May17 1. added code to remove the symbols statement from PAUP's data block, 
                       #     as it seems to conflict with predefined DNA state symbol (on buluc!)
 		      #     2. fixed regexes in run_paup_clock_test_with_user_tree that capture the -lnL values
                       # v0.6_3May17' Major upgrade version: added -R 1, which calles the function described in 1 below.
@@ -374,7 +375,7 @@ PAUPBLOCK
 fi
    
    # remove the symbols statement from PAUP's data block, as it seems to conflict with predefined DNA state symbol
-   perl -pe 'if(/^format/){ s/ symbols=.*;/;/}' $nexus > ${nexux}ed && mv ${nexux}ed $nexus
+   perl -pe 'if(/^format /){ s/\h+symbols=.*?;/;/}' $nexus > ${nexux}ed && mv ${nexux}ed $nexus
    [ $DEBUG -eq 1 ] && head $nexus
 
    # 2. run paup* with the file-specific cmd file
