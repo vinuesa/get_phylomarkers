@@ -47,7 +47,8 @@
 #------------------------------------------------------------------------------------------------#
 
 # Code development history: April 16th 2010 -> 
-my $VERSION = 1.3;  # v1.3 May 14th, 2017. Added portable shebang line for get_phylomarkers
+my $VERSION ="v1.3.1"; # v1.3.1 some code cleanup; 
+                    # v1.3 May 14th, 2017. Added portable shebang line for get_phylomarkers
                     # v1.2 Aug 9st, 2011: included an important test 'unless ($paup_data[2]){}' # i.e. next if the alignment has no variable sites! 
                     #    the alignment won't be processed by get_pop_summary_stats() if it has no variable sites; otherwise it will die (see comments in the unless block)
                     # v1.1 Jul 21st, 2011: simply changed method no_sequences by num_sequences, since the former is deprecated in BioPerl > 1.5
@@ -744,7 +745,7 @@ sub fas2nex
 		    
 		    # this is to remove symbols="AcTagCGt"; from the nexus file,
 		    # originated due to upper and lowercase letters of CDS and IGS regions from IGS amplicons
-		    system "sed 's/symbols=.*/;/' $basename.nex > $basename.nexed; mv $basename.nexed $basename.nex"
+		    system "sed 's/symbols=.*/;/' ${basename}.nex > ${basename}.nexed; mv ${basename}.nexed ${basename}.nex"
 	}
 	$counter++
     }
@@ -932,136 +933,3 @@ sub print_alignment_stats
 	 #return $aln->length;
 }
 #------------------------------------------------------------------------------------------------#
-
-__END__
-
-#-----------------------------------------------------------------------------------------#
-# See sample code in: 
-
-### 1) /home/pablo/Perl/BioPerl-1.6.0/scripts/popgen   
-
-
-### 2) /home/pablo/Perl/BioPerl-1.6.0/t/PopGen
-
-# build a population from an alignment
-
-my $alnin = Bio::AlignIO->new(-format => 'clustalw',
-			      -file   => test_input_file('T7.aln'));
-my $aln = $alnin->next_aln;
-$population = Bio::PopGen::Utilities->aln_to_population(-alignment => $aln);
-is($population->get_number_individuals,9);
-#warn($aln->match_line,"\n");
-my $matchline = $aln->match_line;
-is( $population->get_marker_names, $matchline =~ tr/ //);
-for my $name ( $population->get_marker_names ) {
-    my $marker = $population->get_Marker($name); 
-#    warn("$name ",join(" ",$marker->get_Alleles()),"\n");
-}
-#-----------------------------------------------------------------------------------------#
-
-### 3) /home/pablo/Perl/BioPerl-1.6.0/examples/popgen/parse_calc_stats.pl
-
-#!/usr/bin/perl -w
-# Author: Jason Stajich, jason@bioperl.org
-# $Id: parse_calc_stats.pl 15087 2008-12-04 02:48:00Z bosborne $
-# $Revision: 6576 $
-
-use strict;
-
-use Bio::PopGen::IO;
-use Bio::PopGen::Statistics;
-use Bio::PopGen::Population;
-
-my $io = new Bio::PopGen::IO(-format => 'prettybase',
-			     # the Bio::Root::IO->catfile is only
-			     # to make file access platform independent
-			     -file   => Bio::Root::IO->catfile
-			     (qw( t data popstats.prettybase)));
-
-# This is an example of how to read in data from Bio::PopGen::IO
-# We're going to make 2 lists, @outgroup, @ingroup
-# @outgroup is a single individual which is named 'out'
-# @ingroup is the set of individuals we are testing
-my (@ingroup,@outgroup);
-while( my $ind = $io->next_individual ) {
-    if($ind->unique_id =~ /out/) {
-	push @outgroup, $ind;
-    } else { 
-	push @ingroup, $ind;	
-    }
-}
-
-# We'll get the names of all the markers (or sites)
-# that this individual has genotypes for
-my @marker_names = $ingroup[0]->get_marker_names();
-
-# the number of sites is the same as the number of markers
-# we assume that all the individuals have the same number of sites
-# or that this data is 'aligned' if these were derived from a 
-# multiple sequence alignment
-my $sitecount = scalar @marker_names;
-
-foreach my $ind ( @ingroup ) {
-    # here let's print out the individual name and all their alleles
-    # for all the markers
-    # like this
-    # Name: INDIVIDUALNAME
-    #      A1,A2 B1,B2,...
-    print "Name: ", $ind->unique_id,"\n";
-    print "\t";
-    foreach my $marker ( @marker_names ) {
-	for my $genotype ( $ind->get_Genotypes($marker) ) {
-	    my @alleles = $genotype->get_Alleles();
-	    # In this example these are actually single alleles anyways...
-	    print join(",", @alleles), " ";
-	}
-    }
-    print "\n";
-    
-    # There is a more compact way to write that
-    print "Name: ", $ind->unique_id,
-          "\n\t", join(" ", map { join(",",$_->get_Alleles) } 
-		          map { $ind->get_Genotypes($_) } @marker_names),"\n";
-    print "--\n";
-}
-
-# We can compute some statistics about these individuals
-# (underlying assumption is that they are unrelated...)
-
-print "Pi: ",Bio::PopGen::Statistics->pi(\@ingroup), "\n";
-print "Theta: ",Bio::PopGen::Statistics->theta(\@ingroup), "\n";
-
-# we can also treat them like a population
-my $ingroup_pop = new Bio::PopGen::Population(-individuals => \@ingroup);
-
-print "Pi: ",Bio::PopGen::Statistics->pi($ingroup_pop), "\n";
-print "Theta: ",Bio::PopGen::Statistics->theta($ingroup_pop), "\n";
-
-
-
-
-
-# You can also simulate individuals from a coalescent 
-use Bio::PopGen::Simulation::Coalescent;
-
-my $ssize = 5;
-my $sim = new Bio::PopGen::Simulation::Coalescent(-sample_size => $ssize);
-my $tree = $sim->next_tree;
-my $mutcount = 100;
-$sim->add_Mutations($tree, $mutcount);
-
-# The leaves are the simulated individuals
-my @leaves = $tree->get_leaf_nodes;
-
-# We can use the Stats module either like Bio::PopGen::Statistics->XXX
-# or like this:
-my $stats = new Bio::PopGen::Statistics;
-# $stats->verbose(1);
-print "Coalescent pi: ", $stats->pi(\@leaves), "\n";
-print "Coalescent theta: ", $stats->theta(\@leaves), "\n";
-my $coalescent_pop = new Bio::PopGen::Population(-individuals => \@leaves);
-
-print "Coalescent pi: ", $stats->pi($coalescent_pop), "\n";
-print "Coalescent theta: ", $stats->theta($coalescent_pop), "\n";
-
-
