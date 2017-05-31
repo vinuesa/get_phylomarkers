@@ -1,6 +1,7 @@
-# $Id: IO.pm,v 1.6.4.1 2006/10/02 23:10:23 sendu Exp $
 #
 # BioPerl module for Bio::PopGen::IO
+#
+# Please direct questions and support issues to <bioperl-l@bioperl.org> 
 #
 # Cared for by Jason Stajich <jason-at-bioperl.org>
 #
@@ -15,10 +16,10 @@
 Bio::PopGen::IO - Input individual,marker,allele information
 
 =head1 SYNOPSIS
-
+ 
   use Bio::PopGen::IO;
-  my $io = new Bio::PopGen::IO(-format => 'csv',
-                               -file   => 'data.csv');
+  my $io = Bio::PopGen::IO->new(-format => 'csv',
+                                -file   => 'data.csv');
 
   # Some IO might support reading in a population at a time
 
@@ -48,13 +49,24 @@ the Bioperl mailing list.  Your participation is much appreciated.
   bioperl-l@bioperl.org                  - General discussion
   http://bioperl.org/wiki/Mailing_lists  - About the mailing lists
 
+=head2 Support 
+
+Please direct usage questions or support issues to the mailing list:
+
+I<bioperl-l@bioperl.org>
+
+rather than to the module maintainer directly. Many experienced and 
+reponsive experts will be able look at the problem and quickly 
+address it. Please include a thorough description of the problem 
+with code and data examples if at all possible.
+
 =head2 Reporting Bugs
 
 Report bugs to the Bioperl bug tracking system to help us keep track
 of the bugs and their resolution. Bug reports can be submitted via
 the web:
 
-  http://bugzilla.open-bio.org/
+  https://github.com/bioperl/bioperl-live/issues
 
 =head1 AUTHOR - Jason Stajich
 
@@ -85,7 +97,7 @@ use base qw(Bio::Root::IO);
 =head2 new
 
  Title   : new
- Usage   : my $obj = new Bio::PopGen::IO();
+ Usage   : my $obj = Bio::PopGen::IO->new();
  Function: Builds a new Bio::PopGen::IO object 
  Returns : an instance of Bio::PopGen::IO
  Args    :
@@ -113,6 +125,20 @@ sub new {
     return "Bio::PopGen::IO::${format}"->new(@args);
   }
 }
+
+
+=head2 format
+
+ Title   : format
+ Usage   : $format = $stream->format()
+ Function: Get the PopGen format
+ Returns : PopGen format
+ Args    : none
+
+=cut
+
+# format() method inherited from Bio::Root::IO
+
 
 # _initialize is chained for all PopGen::IO classes
 
@@ -242,7 +268,7 @@ sub fh {
 =head2 _load_format_module
 
  Title   : _load_format_module
- Usage   : *INTERNAL SearchIO stuff*
+ Usage   : *INTERNAL Bio::PopGen::IO stuff*
  Function: Loads up (like use) a module at run time on demand
  Example : 
  Returns : 
@@ -307,7 +333,7 @@ sub TIEHANDLE {
 
 sub READLINE {
   my $self = shift;
-  return $self->{'processor'}->next_result() unless wantarray;
+  return $self->{'processor'}->next_result() || undef unless wantarray;
   my (@list, $obj);
   push @list, $obj while $obj = $self->{'processor'}->next_result();
   return @list;
