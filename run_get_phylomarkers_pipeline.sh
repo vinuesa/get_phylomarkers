@@ -13,8 +13,9 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.8.2_30May17' # 1.8.3_30May17: prepended $ditrodir/ to perl scripts that use FindBin; so that it can find the required libs in $ditrodir/lib/perl
+VERSION='1.8.4_30May17' # 1.8.4_30May17: prepended $ditrodir/ to perl scripts that use FindBin; so that it can find the required libs in $ditrodir/lib/perl
                         # Added -n $n_cores flag, which is passed to run_pexec_cmmds.sh '' $n_cores, so that it runs on MacOSX!!! <<< Thanks Alfredo!
+			#    automatically set n_cores=no_proc if [ -z $n_cores ]
                         # v1.8.1_24May17 fixed problmes with @INC searching of rename.pl by prepending $distrodir/rename.pl
                        #v1.8_23May17. Added R code in count_tree_branches() to use local_lib if ape is not installed systemwide; 
                       #    searches and prints the number of available cores on HOSTNAME 
@@ -921,7 +922,7 @@ fi
 
 if [ -z $n_cores ]
 then
-     n_cores=$n_proc   
+     n_cores=$no_proc   
 fi
 
 
