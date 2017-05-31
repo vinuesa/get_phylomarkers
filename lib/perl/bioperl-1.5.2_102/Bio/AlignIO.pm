@@ -1,4 +1,3 @@
-# $Id: AlignIO.pm,v 1.46.4.4 2006/10/02 23:10:11 sendu Exp $
 #
 # BioPerl module for Bio::AlignIO
 #
@@ -37,10 +36,10 @@ Bio::AlignIO - Handler for AlignIO Formats
 
     use Bio::AlignIO;
 
-    open MYIN,"testaln.fasta";
+    open MYIN, '<', 'testaln.fasta' or die "Could not read file 'testaln.fasta': $!\n";
     $in  = Bio::AlignIO->newFh(-fh     => \*MYIN,
                                -format => 'fasta');
-    open my $MYOUT, '>', 'testaln.pfam';
+    open my $MYOUT, '>', 'testaln.pfam' or die "Could not write file 'testaln.pfam': $!\n";
     $out = Bio::AlignIO->newFh(-fh     =>  $MYOUT,
                                -format => 'pfam');
 
@@ -97,7 +96,7 @@ multiple sequences is a common requirement, simultaneous handling of
 multiple alignments is not. The only current exception is format
 C<bl2seq> which parses results of the BLAST C<bl2seq> program and which
 may produce several alignment pairs.  This set of alignment pairs can
-be read using multiple calls to L<next_aln()>.
+be read using multiple calls to L<next_aln>.
 
 =head1 CONSTRUCTORS
 
@@ -108,9 +107,9 @@ be read using multiple calls to L<next_aln()>.
    $seqIO = Bio::AlignIO->new(-format => $format);
    $seqIO = Bio::AlignIO->new(-fh => \*STDOUT, -format => $format);
 
-The L<new()> class method constructs a new L<Bio::AlignIO> object.  
+The L<new> class method constructs a new L<Bio::AlignIO> object.  
 The returned object can be used to retrieve or print alignment
-objects. L<new()> accepts the following parameters:
+objects. L<new> accepts the following parameters:
 
 =over 4
 
@@ -180,10 +179,10 @@ all treated equivalently.
    # read from STDIN or use @ARGV:
    $fh = Bio::AlignIO->newFh(-format => $format);
 
-This constructor behaves like L<new()>, but returns a tied filehandle
+This constructor behaves like L<new>, but returns a tied filehandle
 rather than a L<Bio::AlignIO> object.  You can read sequences from this
 object using the familiar E<lt>E<gt> operator, and write to it using
-L<print()>. The usual array and $_ semantics work.  For example, you can
+L<print>. The usual array and $_ semantics work.  For example, you can
 read all sequence objects into an array like this:
 
   @sequences = <$fh>;
@@ -238,13 +237,24 @@ of the Bioperl mailing lists.  Your participation is much appreciated.
   bioperl-l@bioperl.org                  - General discussion
   http://bioperl.org/wiki/Mailing_lists  - About the mailing lists
 
+=head2 Support 
+
+Please direct usage questions or support issues to the mailing list:
+
+I<bioperl-l@bioperl.org>
+
+rather than to the module maintainer directly. Many experienced and 
+reponsive experts will be able look at the problem and quickly 
+address it. Please include a thorough description of the problem 
+with code and data examples if at all possible.
+
 =head2 Reporting Bugs
 
 Report bugs to the Bioperl bug tracking system to help us keep track
 the bugs and their resolution.  Bug reports can be submitted via the
 web:
 
-  http://bugzilla.open-bio.org/
+  https://github.com/bioperl/bioperl-live/issues
 
 =head1 AUTHOR - Peter Schattner
 
@@ -365,13 +375,29 @@ sub fh {
   return $s;
 }
 
+
+=head2 format
+
+ Title   : format
+ Usage   : $format = $stream->format()
+ Function: Get the alignment format
+ Returns : alignment format
+ Args    : none
+
+=cut
+
+# format() method inherited from Bio::Root::IO
+
+
 # _initialize is where the heavy stuff will happen when new is called
 
 sub _initialize {
   my($self,@args) = @_;
-  my ($flat) = $self->_rearrange([qw(DISPLAYNAME_FLAT)],
+  my ($flat,$alphabet,$width) = $self->_rearrange([qw(DISPLAYNAME_FLAT ALPHABET WIDTH)],
 				 @args);
   $self->force_displayname_flat($flat) if defined $flat;
+  $self->alphabet($alphabet);
+  $self->width($width) if defined $width;
   $self->_initialize_io(@args);
   1;
 }
@@ -452,19 +478,21 @@ sub write_aln {
 sub _guess_format {
 my $class = shift;
    return unless $_ = shift;
-   return 'clustalw' if /\.aln$/i;
-   return 'emboss'   if /\.(water|needle)$/i;
-   return 'metafasta'if /\.metafasta$/;
-   return 'fasta'    if /\.(fasta|fast|seq|fa|fsa|nt|aa)$/i;
-   return 'maf'      if /\.maf/i;
-   return 'mega'     if /\.(meg|mega)$/i;
-   return 'meme'     if /\.meme$/i;
-   return 'msf'      if /\.(msf|pileup|gcg)$/i;
-   return 'nexus'    if /\.(nexus|nex)$/i;
-   return 'pfam'     if /\.(pfam|pfm)$/i;
-   return 'phylip'   if /\.(phylip|phlp|phyl|phy|ph)$/i;
-   return 'psi'      if /\.psi$/i;
-   return 'selex'    if /\.(selex|slx|selx|slex|sx)$/i;
+   return 'clustalw'    if /\.aln$/i;
+   return 'emboss'      if /\.(water|needle)$/i;
+   return 'metafasta'   if /\.metafasta$/;
+   return 'fasta'       if /\.(fasta|fast|seq|fa|fsa|nt|aa)$/i;
+   return 'maf'         if /\.maf/i;
+   return 'mega'        if /\.(meg|mega)$/i;
+   return 'meme'        if /\.meme$/i;
+   return 'msf'         if /\.(msf|pileup|gcg)$/i;
+   return 'nexus'       if /\.(nexus|nex)$/i;
+   return 'pfam'        if /\.(pfam|pfm)$/i;
+   return 'phylip'      if /\.(phylip|phlp|phyl|phy|ph)$/i;
+   return 'psi'         if /\.psi$/i;
+   return 'stockholm'   if /\.stk$/i;
+   return 'selex'       if /\.(selex|slx|selx|slex|sx)$/i;
+   return 'xmfa'        if /\.xmfa$/i;
 }
 
 sub DESTROY {
@@ -479,7 +507,7 @@ sub TIEHANDLE {
 
 sub READLINE {
   my $self = shift;
-  return $self->{'alignio'}->next_aln() unless wantarray;
+  return $self->{'alignio'}->next_aln() || undef unless wantarray;
   my (@list,$obj);
   push @list,$obj  while $obj = $self->{'alignio'}->next_aln();
   return @list;
@@ -508,5 +536,28 @@ sub force_displayname_flat{
     return $self->{'_force_displayname_flat'} = shift if @_;
     return $self->{'_force_displayname_flat'} || 0;
 }
+
+=head2 alphabet
+
+ Title   : alphabet
+ Usage   : $obj->alphabet($newval)
+ Function: Get/Set alphabet for purpose of passing to Bio::LocatableSeq creation
+ Example : $obj->alphabet('dna');
+ Returns : value of alphabet (a scalar)
+ Args    : on set, new value (a scalar or undef, optional)
+
+
+=cut
+
+sub alphabet {
+    my $self = shift;
+    my $value = shift;
+    if ( defined $value ) {
+        $self->throw("Invalid alphabet $value") unless $value eq 'rna' || $value eq 'protein' || $value eq 'dna';
+        $self->{'_alphabet'} = $value;
+    }
+    return $self->{'_alphabet'};
+}
+
 
 1;
