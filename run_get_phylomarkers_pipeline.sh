@@ -13,7 +13,8 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.8.1_24May17' # v1.8.1_24May17 fixed problmes with @INC searching of rename.pl by prepending $distrodir/rename.pl
+VERSION='1.8.2_30May17' # Added -n $n_cores flag, which is passed to run_pexec_cmmds.sh '' $n_cores, so that it runs on MacOSX!!! <<< Thanks Alfredo!
+                        # v1.8.1_24May17 fixed problmes with @INC searching of rename.pl by prepending $distrodir/rename.pl
                        #v1.8_23May17. Added R code in count_tree_branches() to use local_lib if ape is not installed systemwide; 
                       #    searches and prints the number of available cores on HOSTNAME 
 		      #    exports R_LIBS="$R_LIBS:$distrodir/lib/R" to fix issues with library paths in R scripts
@@ -749,6 +750,7 @@ function print_help()
      -l <integer> max. spr length (7-12 are reasonable values)                                     [default: $spr_length]
      -m <real> min. average support value (0.7-0.8 are reasonable values) for trees to be selected [default: $min_supp_val]
      -M <string> base Model for clock test (use one of: GTR|TrN|HKY|K2P|F81); uses +G in all cases [default: $base_mod]
+     -n <integer> number of cores to use                                                           [default: all cores]
      -q <real> quantile (0.95|0.99) of Chi-square distribution for computing molec. clock p-value  [default: $q]
      -r <string> root method (midpoint|outgroup)                                                   [default: $root_method]
      -s <integer> number of spr rounds (4-20 are reasonable values) for FastTree tree searching    [default: $spr]
@@ -787,6 +789,7 @@ search_thoroughness=medium
 kde_stringency=1.5
 min_supp_val=0.75
 min_no_ext_branches=4
+n_cores=
 VERBOSITY=0
 spr_length=8
 spr=4
@@ -799,7 +802,7 @@ q=0.99
 
 
 # See bash cookbook 13.1 and 13.2
-while getopts 'c:e:k:K:l:m:M:p:q:r:s:t:T:R:hHdCDV' OPTIONS
+while getopts 'c:e:k:K:l:m:M:n:p:q:r:s:t:T:R:hHdCDV' OPTIONS
 do
    case $OPTIONS in
    h)   print_help
@@ -823,6 +826,8 @@ do
    m)   min_supp_val=$OPTARG
         ;;
    M)   base_mod=$OPTARG
+        ;;
+   n)   n_cores=$OPTARG
         ;;
    t)   mol_type=$OPTARG
         ;;
@@ -912,6 +917,13 @@ then
     exit 1
 fi
 
+
+if [ -z $n_cores ]
+then
+     n_cores=$n_proc   
+fi
+
+
 if [ "$mol_type" != "DNA" -a "$mol_type" != "PROT" ] # "$mol_type" == "BOTH" not implemented yet
 then
      printf "\n${RED}ERROR: -t must be DNA or PROT${NC}\n"
@@ -966,7 +978,7 @@ dir_suffix=t${mol_type}_k${kde_stringency}_m${min_supp_val}_s${spr}_l${spr_lengt
 
 printf "
  ${CYAN}>>> $(basename $0) vers. $VERSION run with the following parameters:${NC}
- ${YELLOW}Run started on $TIMESTAMP_SHORT_HMS under $OSTYPE on $HOSTNAME with $no_proc cores
+ ${YELLOW}Run started on $TIMESTAMP_SHORT_HMS under $OSTYPE on $HOSTNAME with $n_cores cores
  wkdir=$wkdir
  distrodir=$distrodir
  bindir=$bindir
@@ -1007,11 +1019,11 @@ for file in *faa; do awk 'BEGIN {FS = "|"}{print $1, $2, $3}' $file | perl -pe '
 for file in *fna; do awk 'BEGIN {FS = "|"}{print $1, $2, $3}' $file | perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > ${file}ed; done
 
 # 1.2 add_nos2fasta_header.pl to avoid problems with duplicate labels
-[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > run_pexec_cmmds.sh faaed 'add_nos2fasta_header.pl $file > ${file}no' &> /dev/null"
-run_pexec_cmmds.sh faaed 'add_nos2fasta_header.pl $file > ${file}no' &> /dev/null
+[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > run_pexec_cmmds.sh faaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null"
+run_pexec_cmmds.sh faaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null
 
 [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > run_pexec_cmmds.sh fnaed 'add_nos2fasta_header.pl $file > ${file}no' &> /dev/null"
-run_pexec_cmmds.sh fnaed 'add_nos2fasta_header.pl $file > ${file}no' &> /dev/null
+run_pexec_cmmds.sh fnaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null
 
 no_alns=$(ls *.fnaedno | wc -l)
 
@@ -1032,8 +1044,8 @@ perl -pe '$c++; s/>/$c\t/; s/\h\[/_[/' tree_labels.list > ed && mv ed tree_label
 
 # 2.1 generate the protein alignments using clustalo
 print_start_time &&  printf "${BLUE}# generating $no_alns codon alignments ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > clustalo -i $file -o ${file%.*}_cluo.faaln --output-order input-order' &> /dev/null"
-run_pexec_cmmds.sh faaedno 'clustalo -i $file -o ${file%.*}_cluo.faaln --output-order input-order' &> /dev/null
+[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > 'run_pexec_cmmds.sh faaedno clustalo -i $file -o ${file%.*}_cluo.faaln --output-order input-order' $n_cores &> /dev/null"
+run_pexec_cmmds.sh faaedno 'clustalo -i $file -o ${file%.*}_cluo.faaln --output-order input-order' $n_cores &> /dev/null
 
 # 2.2 generate the codon alignments (files with *_cdnAln.fasta extension) using pal2nal.pl, 
 #     excluding gaps, and mismatched codons, assuming a bacterial genetic code
@@ -1045,7 +1057,7 @@ run_pexec_cmmds.sh faaedno 'clustalo -i $file -o ${file%.*}_cluo.faaln --output-
 # NOTE: to execute run_pexec_cmmds.sh with a customized command, resulting from the interpolation of multiple varialbles,
 #       we have to first construct the command line in a variable and pipe its content into bash for execution
 faaln_ext=faaln
-command="run_pexec_cmmds.sh $faaln_ext 'pal2nal.pl \$file \${file%_cluo.faaln}.fnaedno -output fasta -nogap -nomismatch -codontable $codontable > \${file%_cluo.faaln}_cdnAln.fasta'"
+command="run_pexec_cmmds.sh $faaln_ext 'pal2nal.pl \$file \${file%_cluo.faaln}.fnaedno -output fasta -nogap -nomismatch -codontable $codontable > \${file%_cluo.faaln}_cdnAln.fasta' $n_cores"
 
 # now we can execute run_pexec_cmmds.sh with a customized command, resulting from the interpolation of multiple varialbles
 [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > $command | bash &> /dev/null" 
@@ -1091,8 +1103,8 @@ tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && ex
 
 # 3.2 run Phi from the PhiPack in parallel
 print_start_time && printf "${BLUE}# running Phi test in PhiPack dir ...${NC}\n"| tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > run_pexec_cmmds.sh fasta 'Phi -f $file -p 1000 > ${file%.*}_Phi.log' &> /dev/null"
-run_pexec_cmmds.sh fasta 'Phi -f $file -p 1000 > ${file%.*}_Phi.log' &> /dev/null
+[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > run_pexec_cmmds.sh fasta 'Phi -f $file -p 1000 > ${file%.*}_Phi.log' $n_cores &> /dev/null"
+run_pexec_cmmds.sh fasta 'Phi -f $file -p 1000 > ${file%.*}_Phi.log' $n_cores &> /dev/null
 
 # 3.3 process the *_Phi.log files generated by Phi to write a summary table and print short overview to STDOUT
 for f in *_Phi.log
@@ -1156,8 +1168,8 @@ then
 
     print_start_time && printf "${BLUE}# estimating $no_non_recomb_alns_perm_test gene trees from non-recombinant sequences ...${NC}\n" | \
     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-    [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > run_pexec_cmmds.sh fasta 'FastTree -quiet -nt -gtr -gamma -bionj -slownni -mlacc 3 -spr 8 -sprlength 8 < $file > ${file%.*}_allFTGTRG.ph' &> /dev/null"    
-    run_pexec_cmmds.sh fasta 'FastTree -quiet -nt -gtr -gamma -bionj -slownni -mlacc 3 -spr 8 -sprlength 8 < $file > ${file%.*}_allFTGTRG.ph' &> /dev/null
+    [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > run_pexec_cmmds.sh fasta 'FastTree -quiet -nt -gtr -gamma -bionj -slownni -mlacc 3 -spr 8 -sprlength 8 < $file > ${file%.*}_allFTGTRG.ph' $n_cores &> /dev/null"    
+    run_pexec_cmmds.sh fasta 'FastTree -quiet -nt -gtr -gamma -bionj -slownni -mlacc 3 -spr 8 -sprlength 8 < $file > ${file%.*}_allFTGTRG.ph' $n_cores &> /dev/null
     
     no_gene_trees=$(ls *allFTGTRG.ph | wc -l)
     [ $no_gene_trees -lt 1 ] && print_start_time && printf "\n${LRED} >>> Warning: There are no gene tree to work on in non_recomb_cdn_alns/. will exit now!${NC}\n\n" | \
@@ -1218,8 +1230,8 @@ then
         ln -s ../*ph .
    
         print_start_time && printf "${BLUE}# labeling $no_kde_ok gene trees in dir kde_ok/ ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-        [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > run_pexec_cmmds.sh ph 'add_labels2tree.pl ../../../tree_labels.list $file' &> /dev/null"
-        run_pexec_cmmds.sh ph 'add_labels2tree.pl ../../../tree_labels.list $file' &> /dev/null
+        [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > run_pexec_cmmds.sh ph 'add_labels2tree.pl ../../../tree_labels.list $file' $n_cores &> /dev/null"
+        run_pexec_cmmds.sh ph 'add_labels2tree.pl ../../../tree_labels.list $file' $n_cores &> /dev/null
         # remove symbolic links to cleanup kde_ok/
         for f in $(ls *ph | grep -v '_ed\.ph'); do rm $f; done
     
@@ -1344,7 +1356,7 @@ tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && ex
              
             echo -e "#nexfile\tlnL_unconstr\tlnL_clock\tLRT\tX2_crit_val\tdf\tp-val\tmol_clock" > $results_table
 	    
-	     cmd="run_pexec_cmmds.sh nex 'run_parallel_molecClock_test_with_paup.sh -R 1 -f \$file -M $base_mod -t ph -b global_mol_clock -q $q'"
+	     cmd="run_pexec_cmmds.sh nex 'run_parallel_molecClock_test_with_paup.sh -R 1 -f \$file -M $base_mod -t ph -b global_mol_clock -q $q' $n_cores"
 	     [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo "run_parallel_molecClock.cmd: $cmd"
 	     echo $cmd | bash &> /dev/null
 	     
@@ -1440,8 +1452,8 @@ then
     
     print_start_time && printf "${BLUE}# estimating $no_non_recomb_alns_perm_test gene trees from non-recombinant sequences ...${NC}\n" | \
     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-    [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > run_pexec_cmmds.sh faaln 'FastTree -quiet -lg -gamma -bionj -slownni -mlacc 3 -spr 8 -sprlength 8 < $file > ${file%.*}_allFTlgG.ph' &> /dev/null"
-    run_pexec_cmmds.sh faaln 'FastTree -quiet -lg -gamma -bionj -slownni -mlacc 3 -spr 8 -sprlength 8 < $file > ${file%.*}_allFTlgG.ph' &> /dev/null
+    [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > run_pexec_cmmds.sh faaln 'FastTree -quiet -lg -gamma -bionj -slownni -mlacc 3 -spr 8 -sprlength 8 < $file > ${file%.*}_allFTlgG.ph'  $n_cores &> /dev/null"
+    run_pexec_cmmds.sh faaln 'FastTree -quiet -lg -gamma -bionj -slownni -mlacc 3 -spr 8 -sprlength 8 < $file > ${file%.*}_allFTlgG.ph' $n_cores &> /dev/null
     
     #remove trees with < 5 branches
     print_start_time && printf "${BLUE}# counting branches on $no_non_recomb_alns_perm_test gene trees ...${NC}\n" | \
@@ -1494,8 +1506,8 @@ then
         ln -s ../*ph .
    
         print_start_time && printf "${BLUE}# labeling $no_kde_ok gene trees in dir kde_ok/ ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-        [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > run_pexec_cmmds.sh ph 'faalnheader2treetag_PhyML_Consense_Topol_V03.pl ../../../tree_labels.list $file' &> /dev/null"
-        run_pexec_cmmds.sh ph 'faalnheader2treetag_PhyML_Consense_Topol_V03.pl ../../../tree_labels.list $file' &> /dev/null
+        [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > run_pexec_cmmds.sh ph 'faalnheader2treetag_PhyML_Consense_Topol_V03.pl ../../../tree_labels.list $file' $n_cores &> /dev/null"
+        run_pexec_cmmds.sh ph 'faalnheader2treetag_PhyML_Consense_Topol_V03.pl ../../../tree_labels.list $file' $n_cores &> /dev/null
     
         # remove symbolic links to cleanup kde_ok/
         for f in $(ls *ph | grep -v '_ed\.ph'); do rm $f; done
