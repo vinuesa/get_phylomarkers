@@ -14,16 +14,17 @@
 
 #--------------------------------------------------------------------------
 
-progname=$(basename $0)
-VERSION='0.6_3May17' # v0.6_3May17' Major upgrade version: added -R 1, which calles the function described in 1 below.
+progname=$(basename "$0")
+VERSION='0.7_25May17' # v0.7_25May17 1. added code to remove the symbols statement from PAUP's data block, 
+                      #     as it seems to conflict with predefined DNA state symbol (on buluc!)
+		      #     2. fixed regexes in run_paup_clock_test_with_user_tree that capture the -lnL values
+                      # v0.6_3May17' Major upgrade version: added -R 1, which calles the function described in 1 below.
                      #    1. run_paup_clock_test_with_user_tree() to run without jmodeltest2, which is now -R 2
                      #    by using pre-computed userteres and passing either -M GTR|TrN|HKY|K2P|F81 as base models to adjust
 		     #    model params on the user tree, with gamma correction of rates. 
 		     #    2. Also uses -r to pass rootmethod midpoint|outgroup, levaing midpoint as default! much better
 		     #   TODO: The logic of run_paup_clock_test() is not good, as it runs the for loop within the function;
 		     #        Recode that function as in run_paup_clock_test_with_user_tree() and add the rootmethod option to itW
-		     
-		     
             # 0.5_28April17set default no_subst_schemes for jmodeltest2 to the minimum=3, 
                         #      used as default by jmodeltest2 to speed up genomic analyses.
 	                #      In jmodeltest2 changed -S BEST to -t BIONJ to speed up!
@@ -34,6 +35,8 @@ VERSION='0.6_3May17' # v0.6_3May17' Major upgrade version: added -R 1, which cal
             # v0.3, July 19th, 2014; Fully integrated with run_amplicon_evalutation_pipeline.sh
             # v0.2, July 19th, 2014; Major upgrade: added get_opts, various subs and R code to compute X2 stats
             # 0.1,  July 2013; first prototype. Depended on usr provied df and crit X2 val
+#-------------------------------------------------------------------------
+
 function check_dependencies()
 {
     check_dep_flag=$1
@@ -46,7 +49,7 @@ function check_dependencies()
        #if which $programname >/dev/null; then <== avoid which
        # see: http://stackoverflow.com/questions/592620/check-if-a-program-exists-from-a-bash-script
        bin=$(type -P $programname)
-       if [ -z $bin ]; then
+       if [ -z "$bin" ]; then
           echo
           echo " ERROR: $programname not in place!"
           echo " ... you will need to install \"$programname\" first or include it in \$PATH"
@@ -58,7 +61,7 @@ function check_dependencies()
      done
    
    # 1.1 check jmodeltest2 is in place
-   modeltest_home=$(echo $JMODELTEST_HOME)
+   modeltest_home=$(echo "$JMODELTEST_HOME")
    if(( $? ))
    then
          echo "# jmodeltest2 seems not be in place. Check  echo \$JMODELTEST_HOME"
@@ -69,9 +72,9 @@ function check_dependencies()
    # 2) check all required perl modules are in @INC  
    echo
    echo "# >>> checking Perl modules ..."
-   for mod in Bio::SeqIO
-   do
-      perldoc "$mod" > module_check.tmp
+   #for mod in Bio::SeqIO
+   #do
+      perldoc "Bio::SeqIO" > module_check.tmp
       grep '^No docum' module_check.tmp
       if (( $? ))
       then
@@ -84,7 +87,7 @@ function check_dependencies()
           echo '----------------------------------------------------------------------------------'
 	  exit 1
       fi
-   done
+   #done
 
    echo
    echo '>>>>>>>>>>>>>>>>>>>>> DEPENDENCIES CHECK RESULT: OK <<<<<<<<<<<<<<<<<<<<<<<<<<'
@@ -92,9 +95,61 @@ function check_dependencies()
   
   [ -s module_check.tmp ] && rm module_check.tmp
 
-  [ $check_dep_flag -eq 1 ] && exit 0
+  [ "$check_dep_flag" -eq 1 ] && exit 0
 }
 #-------------------------------------------------------------------------
+
+function set_script_environment()
+{
+    if [[ "$OSTYPE" == "linux-gnu" ]]
+    then
+         scriptdir=$(readlink -f "${BASH_SOURCE[0]}")
+    	 distrodir=$(dirname "$scriptdir") #echo "scriptdir: $scriptdir|basedir:$distrodir|OSTYPE:$OSTYPE"
+    	 bindir=$distrodir/bin/linux
+	 OS='linux'
+	 no_cores=$(awk '/^processor/{n+=1}END{print n}' /proc/cpuinfo)
+    elif [[ "$OSTYPE" == "darwin"* ]]
+    then
+       distrodir=$(cd "$(dirname "$0")"; pwd)
+       bindir=$distrodir/bin/macosx-intel
+       OS='darwin'
+       no_cores=$(sysctl -n hw.ncpu)
+    fi
+    echo "$distrodir $bindir $OS $no_cores"
+}
+#----------------------------------------------------------------------------------------- 
+
+function set_bindirs()
+{  
+    # receives: $bindir $homebinpathflag
+    bindir=$1
+
+    not_in_path=0
+
+    bins=( paup )
+
+    for prog in "${bins[@]}" 
+    do
+       bin=$(type -P "$prog")
+       if [ -z "$bin" ]
+       then
+          echo
+          printf "${RED}# $prog not found in \$PATH ... ${NC}\n"
+	        not_in_path=1
+       fi	  
+   done	  
+ 
+   if [ $not_in_path -eq 1 ]
+   then
+   	   printf "${CYAN} updating PATH=$PATH:$bindir ${NC}\n"
+   	   #export PATH=$PATH:$bindir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)  
+	     # we do not export, so that this PATH update lasts only for the run of the script, 
+	     # avoiding a longer alteration of $ENV; by appending to the end of PATH, no user-preferences should be altered 
+	     PATH=$PATH:$bindir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)
+   fi
+   #echo $setbindir_flag
+}
+#----------------------------------------------------------------------------------------- 
 
 function check_no_seqs_in_fasta()
 {
@@ -103,10 +158,9 @@ function check_no_seqs_in_fasta()
     # get the most frequent class to filter out those amps that do not match this no.
    
     fasta_file_ext=$1    
-    cwd=$(pwd)
 
-    no_seqNo_classes=$(grep -c '>' *.${fasta_file_ext} | cut -d: -f2 | sort | uniq -c | wc -l)
-    modal_no_seqs_in_amps=$(grep -c '>' *.${fasta_file_ext} | cut -d: -f2 | sort | uniq -c | sort -nrk1 | awk '{print $2}' | head -1)
+    no_seqNo_classes=$(grep -c '>' *."${fasta_file_ext}" | cut -d: -f2 | sort | uniq -c | wc -l)
+    modal_no_seqs_in_amps=$(grep -c '>' *."${fasta_file_ext}" | cut -d: -f2 | sort | uniq -c | sort -nrk1 | awk '{print $2}' | head -1)
     
     if [ "$no_seqNo_classes" -ne 1 ]
     then
@@ -134,7 +188,7 @@ function check_is_numbered_fasta_file()
 {
     fasta_file=$1
     
-    fasta_id=$(head -1 $fasta_file | cut -d' ' -f1 | sed 's/>//')
+    fasta_id=$(head -1 "$fasta_file" | cut -d' ' -f1 | sed 's/>//')
     
     # http://stackoverflow.com/questions/806906/how-do-i-test-if-a-variable-is-a-number-in-bash
     re='^[0-9]+$'
@@ -142,12 +196,12 @@ function check_is_numbered_fasta_file()
     then
         echo "# Warning of function check_is_numbered_fasta_file: $fasta_file has not numbered header!" >&2
 	echo "#  Will run add_nos2fasta_header.pl! and process the file" >&2
-	add_nos2fasta_header.pl $fasta_file
-	if [ -s my_${fasta_file} ]
+	add_nos2fasta_header.pl "$fasta_file"
+	if [ -s my_"${fasta_file}" ]
 	then
-	    awk '{print $1}' my_${fasta_file} > ed
-	    mv ed my_${fasta_file}
-	    [ -s my_${fasta_file} ] && mv ${fasta_file} src_fasta_files
+	    awk '{print $1}' my_"${fasta_file}" > ed
+	    mv ed "my_${fasta_file}"
+	    [ -s "my_${fasta_file}" ] && mv "${fasta_file}" src_fasta_files
 	fi
     fi
 }
@@ -170,8 +224,7 @@ function run_X2_stats()
        p_ChiSq_test_val_file=${nex_basename}_p_ChiSq_test_val.txt
        LRT_file=${nex_basename}_LRT.txt
  
- 
-       R --no-save -q << RCMD &> ${nex_basename}_compute_critical_X2_val.R
+       R --no-save -q <<RCMD &> ${nex_basename}_compute_critical_X2_val.R
 
        LRT <- 2*($lnL_unconstr - $lnL_clock)
        
@@ -188,11 +241,11 @@ function run_X2_stats()
        sink()
 RCMD
 
-    if [ -s $crit_X2_val_file ]
+    if [ -s "$crit_X2_val_file" ]
     then
 	# need to get rid of R's vector notation in file [1] 54
-	cut -d' ' -f2 $crit_X2_val_file > ${crit_X2_val_file}ed
-	mv ${crit_X2_val_file}ed $crit_X2_val_file
+	cut -d' ' -f2 "$crit_X2_val_file" > "${crit_X2_val_file}ed"
+	mv "${crit_X2_val_file}ed" "$crit_X2_val_file"
     else
         echo
 	echo "# ERROR: function compute_critical_X2_val did not reutrn file $crit_X2_val_file"
@@ -200,11 +253,11 @@ RCMD
 	exit 1
     fi
 
-    if [ -s $p_ChiSq_test_val_file ]
+    if [ -s "$p_ChiSq_test_val_file" ]
     then
 	# need to get rid of R's vector notation in file [1] 1.571452e-07
-	cut -d' ' -f2 $p_ChiSq_test_val_file > ${p_ChiSq_test_val_file}ed
-	mv ${p_ChiSq_test_val_file}ed $p_ChiSq_test_val_file
+	cut -d' ' -f2 "$p_ChiSq_test_val_file" > "${p_ChiSq_test_val_file}ed"
+	mv "${p_ChiSq_test_val_file}ed" "$p_ChiSq_test_val_file"
     else
         echo
 	echo "# ERROR: function compute_critical_X2_val did not reutrn file $p_ChiSq_test_val_file"
@@ -212,11 +265,11 @@ RCMD
 	exit 2
     fi
 
-    if [ -s $LRT_file ]
+    if [ -s "$LRT_file" ]
     then
 	# need to get rid of R's vector notation in file [1] 1.571452e-07
-	cut -d' ' -f2 $LRT_file > ${LRT_file}ed
-	mv ${LRT_file}ed $LRT_file
+	cut -d' ' -f2 "$LRT_file" > "${LRT_file}ed"
+	mv "${LRT_file}ed" "$LRT_file"
     else
         echo
 	echo "# ERROR: function compute_critical_X2_val did not reutrn file $LRT_file"
@@ -266,8 +319,7 @@ function run_paup_clock_test_with_user_tree()
   
    scorefile_unconstr=${nexus%.*}_M${basemod}_r${root_method}_o${outgroup}_unconstrained_clock.scores
    scorefile_constr=${nexus%.*}_M${basemod}_r${root_method}_o${outgroup}_constrained_clock.scores
-
-
+   
 # 1. write the paup commands file for each nexus input file
 
 if [ "$root_method" == "outgroup" ]
@@ -314,20 +366,24 @@ begin paup;
   lsc /scorefile=$scorefile_constr replace=yes; 
   tstatus;
   log stop;
-
-end;
-quit;
+  end;
+  quit;
   
 PAUPBLOCK
 
 fi
+   
+   # remove the symbols statement from PAUP's data block, as it seems to conflict with predefined DNA state symbol
+   perl -pe 'if(/^format/){ s/ symbols=.*;/;/}' $nexus > ${nexux}ed && mv ${nexux}ed $nexus
+   [ $DEBUG -eq 1 ] && head $nexus
 
    # 2. run paup* with the file-specific cmd file
+   [ $DEBUG -eq 1 ] && echo "# running: cat $paupcmdfile | paup -n $nexus &> /dev/null"
    cat $paupcmdfile | paup -n $nexus &> /dev/null
    
-   # get the lnL values for the unconstrained and constrained trees
-   lnL_unconstr=$(egrep -A3 '^Tree' $logfile | grep ln | head -1 | perl -pe 's/ln L\s+//' )
-   lnL_clock=$(egrep -A3 '^Tree' $logfile | grep ln | tail -1 | perl -pe 's/ln L\s+//')
+   # get the lnL values for the unconstrained and constrained trees: watch out the specific regexes
+   lnL_unconstr=$(egrep -A 3 '^Tree' $logfile | egrep '^-ln' | head -1 | perl -pe 's/-ln L\s+//' )
+   lnL_clock=$(egrep -A 3 '^Tree' $logfile | egrep '^-ln' | tail -1 | perl -pe 's/-ln L\s+//')
    
    # see: https://www.shell-tips.com/2010/06/14/performing-math-calculation-in-bash/
    #ChiSq=$(echo "2*($lnL_unconstr - $lnL_clock)" | bc)
@@ -341,7 +397,7 @@ fi
    fi
    
    # 3. run R for the ChiSQ stats
-   echo "# running: run_X2_stats $nex_basename $q $df $lnL_unconstr $lnL_clock"
+   [ $DEBUG -eq 1 ] && echo "# running: run_X2_stats $nex_basename $q $df $lnL_unconstr $lnL_clock"
    run_X2_stats $nex_basename $q $df $lnL_unconstr $lnL_clock
 
    critical_X2_val=$(cat ${nex_basename}_critical_X2_val.txt)
@@ -456,7 +512,6 @@ no_seq=
 df=
 q=0.99
 
-
 # flags
 VERBOSE=0
 DEBUG=0
@@ -565,10 +620,31 @@ then
        exit 8   
 fi
 
+###>>> Set the script's environment
+#env_vars=$(set_script_environment) # returns: $distrodir $bindir $OS $no_proc
+#[ $DEGUG ] && echo "env_vars:$env_vars"
+#distrodir=$(echo $env_vars | awk '{print $1}')
+#bindir=$(echo $env_vars | awk '{print $2}')
+#OS=$(echo $env_vars | awk '{print $3}')
+#no_proc=$(echo $env_vars | awk '{print $4}')
+#
+#[ $DEBUG -eq 1 ] && echo "distrodir:$distrodir|bindir:$bindir|OS:$OS|no_proc:$no_proc"
 
-###>>> Exported variables !!!
-# see learning BASH pp. 77 and 150
-#declare -x factor_label=$factor_label perl # export only2perl!!!  $ENV{factor_label}
+# 0.1 Determine if pipeline scripts are in $PATH; 
+# if not, add them
+#check_scripts_in_path $distrodir
+
+# 0.2  Determine if second-party binaries are in $PATH; 
+#  if they are not in $PATH then:
+# i) will generate a symlink from $HOME/bin (if in path)
+# to the binaries provided in $bindir.
+# ii) If no $HOME/bin exists, or it is not in $PATH,
+# then $bindir will be added to $PATH
+set_bindirs $bindir
+
+# 0.3 append the $distrodir/lib/R to R_LIBS and export
+export R_LIBS="$R_LIBS:$distrodir/lib/R"
+
 
 #-----------------------#
 # >>>>> MAIN CODE <<<<< #
