@@ -375,7 +375,7 @@ PAUPBLOCK
 fi
    
    # remove the symbols statement from PAUP's data block, as it seems to conflict with predefined DNA state symbol
-   perl -pe 'if(/^format /){ s/\h+symbols=.*?;/;/}' $nexus > ${nexux}ed && mv ${nexux}ed $nexus
+   perl -pe 'if(/^format /){ s/\h+symbols=.*?;/;/}' $nexus > ${nexus}ed && mv ${nexus}ed $nexus
    [ $DEBUG -eq 1 ] && head $nexus
 
    # 2. run paup* with the file-specific cmd file
