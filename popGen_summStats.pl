@@ -241,7 +241,7 @@ elsif($run_mode == 2)
     }
     
     # remove the "symbols=.*;" ending from the format interleave datatype=dna   gap=- symbols="GCTA"; nexus line
-    system "for f in *nex; do sed 's/ symbols=.*;/;/' $f > ${f}ed && mv ${f}.ed $f; done"
+    system "for f in *nex; do sed 's/ symbols=.*;/;/' $f > ${f}ed && mv ${f}.ed $f; done";
     
     open PAUP, "> paup.cmd", or die "can't write file paup.cmd: $!\n";
     if( $hs ){ print PAUP "hs nrep=$nrep start=step add=rand; describe; "; }
