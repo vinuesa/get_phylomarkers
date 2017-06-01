@@ -13,7 +13,7 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.9_31May17' # v1.9_31May17: improved progress messages and directory cleanup
+VERSION='1.9.1_1Jun17' # v1.9.1_1Jun17: more directory cleanup ...
                       # 1.8.4_30May17: prepended $ditrodir/ to perl scripts that use FindBin; so that it can find the required libs in $ditrodir/lib/perl
                         # Added -n $n_cores flag, which is passed to run_pexec_cmmds.sh '' $n_cores, so that it runs on MacOSX!!! <<< Thanks Alfredo!
 			#    automatically set n_cores=no_proc if [ -z $n_cores ]
@@ -1146,7 +1146,7 @@ do
    cp ../${base}*.faaln non_recomb_FAA_alns
 done
 
-# 3.5 cleanup phipack_dir
+# 3.5 cleanup phipack_dir; rm *fasta, which are the same as in topdir
 rm *cdnAln.fasta
 
 #------------------------------------------------------------------------------------------------
@@ -1403,18 +1403,27 @@ tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && ex
 	 # 4. cleanup
          tar -czf molClock_PAUP_files.tgz *_paup.block *.nex  *_clockTest.log *tre *clock.scores *critical_X2_val.R
          [ -s molClock_PAUP_files.tgz ] && rm *_paup.block *.nex  *_clockTest.log *tre *clock.scores *critical_X2_val.R
-         rm list2concat Rplots.pdf header.tmp list2grep.tmp *allFT*.ph *_cdnAln.fasta concat_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
+         rm list2concat Rplots.pdf header.tmp list2grep.tmp concat_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
 
 	 tar -czf concatenated_alignment_files.tgz concat_cdnAlns.fna concat_cdnAlns.fnainf 
          [ -s concatenated_alignment_files.tgz ] && rm concat_cdnAlns.fna concat_cdnAlns.fnainf 
 	 rm mol_clock_MGTRG_r_o_q099_ClockTest.ta* gene_trees2_concat_tree_RF_distances.tab
-	 rm ../*allFT*.ph ../*_cdnAln.fasta ../Rplots.pdf ../all_*trees.tre ../sorted*perc.tab sorted_aggregated_*tab
+	 rm ../Rplots.pdf ../sorted*perc.tab sorted_aggregated_*tab ../all_*trees.tre
+
+        cd $top_dir
+	tar -czf codon_alignments.tgz *_cdnAln.fasta
+        [ -s codon_alignments.tgz ] && rm *_cdnAln.fasta
+        tar -czf protein_alignments.tgz *.faaln
+        [ -s protein_alignments.tgz ] && rm *.faaln
 
         fi
     fi # if [ $runmode -eq 1 ]; then run phylo pipeline on DNA seqs
     
-    
-#>>>>> RUNMODE 2: PopGen
+
+#---------------------------------#    
+# >>>>> RUNMODE 2: PopGen <<<<<<< #
+#---------------------------------#    
+
     if [ $runmode -eq 2 ]
     then
         mkdir popGen && cd popGen
@@ -1463,7 +1472,12 @@ tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && ex
 	tar -czf clean_cdnAlns.tgz *clean.fasta *nex
 	[ -s clean_cdnAlns.tgz ] && rm *clean.fasta *nex
 	
-	rm paup.cmd ../*_allFT*ph ../*cdnAln.fasta ../all_*trees.tre ../Rplots.pdf *cdnAln.fasta popGen_summStats_*.log
+	rm paup.cmd  ../all_*trees.tre ../Rplots.pdf popGen_summStats_*.log
+	
+        tar -czf codon_alignments.tgz *_cdnAln.fasta
+        [ -s codon_alignments.tgz ] && rm *_cdnAln.fasta
+        tar -czf protein_alignments.tgz *.faaln
+        [ -s protein_alignments.tgz ] && rm *.faaln
 	
     fi
 fi # if [ "$mol_type" == "DNA"    
@@ -1640,11 +1654,19 @@ then
     compute_suppValStas_and_RF-dist.R $wkdir 2 faaln ph 1 &> /dev/null
     
    # 6. cleanup
-   rm list2concat Rplots.pdf *allFT*.ph *faaln sorted*perc.tab concat_nonRecomb_KdeFilt_protAlns_FT*.ph
+   rm list2concat Rplots.pdf sorted*perc.tab concat_nonRecomb_KdeFilt_protAlns_FT*.ph
+   
+   # rm *allFT*.ph *faaln
 
    tar -czf concatenated_alignment_files.tgz concat_protAlns.faa concat_protAlns.faainf
    [ -s concatenated_alignment_files.tgz ] && rm concat_protAlns.faa concat_protAlns.faainf
-   rm ../*allFT*.ph ../*faaln ../Rplots.pdf ../all_FT*trees.tre ../sorted*perc.tab sorted_aggregated_*tab
+   rm  ../Rplots.pdf ../all_FT*trees.tre ../sorted*perc.tab sorted_aggregated_*tab
+
+   cd $top_dir
+   tar -czf codon_alignments.tgz *_cdnAln.fasta
+   [ -s codon_alignments.tgz ] && rm *_cdnAln.fasta
+   tar -czf protein_alignments.tgz *.faaln
+   [ -s protein_alignments.tgz ] && rm *.faaln
 fi
 
 
