@@ -13,7 +13,8 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.8.4_30May17' # 1.8.4_30May17: prepended $ditrodir/ to perl scripts that use FindBin; so that it can find the required libs in $ditrodir/lib/perl
+VERSION='1.9_31May17' # v1.9_31May17: improved progress messages and directory cleanup
+                      # 1.8.4_30May17: prepended $ditrodir/ to perl scripts that use FindBin; so that it can find the required libs in $ditrodir/lib/perl
                         # Added -n $n_cores flag, which is passed to run_pexec_cmmds.sh '' $n_cores, so that it runs on MacOSX!!! <<< Thanks Alfredo!
 			#    automatically set n_cores=no_proc if [ -z $n_cores ]
                         # v1.8.1_24May17 fixed problmes with @INC searching of rename.pl by prepending $distrodir/rename.pl
@@ -1006,7 +1007,7 @@ fi
 mkdir get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT} && cd get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}
 top_dir=$(pwd)
 
-print_start_time && printf "${BLUE}# processing source fastas in directory get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT} ...${NC}\n" | \
+print_start_time && printf "${LBLUE}# processing source fastas in directory get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT} ...${NC}\n" | \
 tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
 ln -s ../*faa .
@@ -1078,8 +1079,8 @@ do
      fi	   
 done
 
-# 2.3 cleanup: remove the source fnaed and faaed files; make numbered_fna_files.tgz and numbered_faa_files.tgz; rm *aedno
-rm *fnaed *faaed
+# 2.3 cleanup: remove the source faa, fna, fnaed and faaed files; make numbered_fna_files.tgz and numbered_faa_files.tgz; rm *aedno
+rm *fnaed *faaed *faa *fna
 [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > tar -czf numbered_fna_files.tgz *fnaedno"
 tar -czf numbered_fna_files.tgz *fnaedno
 [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > tar -czf numbered_fna_files.tgz *faaedno"
@@ -1093,18 +1094,16 @@ rm *aedno
 #     Mark dir as phipack_dir
 mkdir PhiPack && cd PhiPack
 phipack_dir=$(pwd)
-
 ln -s ../*fasta .
 
+# 3.1.2 check that we have codon alignments before proceeding
 no_fasta_files=$(ls *.fasta | wc -l)
 
-[ $no_fasta_files -gt 1 ] && print_start_time && printf "${BLUE}# running Phi in PhiPack dir on $no_fasta_files codon alignments ...${NC}\n" | \
-tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 [ $no_fasta_files -lt 1 ] && print_start_time && printf "\n${RED} >>> ERROR: there are no codon alignments to run Phi on. Will exit now!${NC}\n\n" | \
 tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && exit 3
 
 # 3.2 run Phi from the PhiPack in parallel
-print_start_time && printf "${BLUE}# running Phi test in PhiPack dir ...${NC}\n"| tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+print_start_time && printf "${LBLUE}# running Phi recombination test in PhiPack dir ...${NC}\n"| tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > run_pexec_cmmds.sh fasta 'Phi -f $file -p 1000 > ${file%.*}_Phi.log' $n_cores &> /dev/null"
 run_pexec_cmmds.sh fasta 'Phi -f $file -p 1000 > ${file%.*}_Phi.log' $n_cores &> /dev/null
 
@@ -1121,20 +1120,20 @@ check_output Phi_results_${TIMESTAMP_SHORT}.tsv $parent_PID | tee -a ${logdir}/g
 no_non_recomb_alns_perm_test=$(awk '$2 > 5e-02 && $3 > 5e-02' Phi_results_${TIMESTAMP_SHORT}.tsv | wc -l)
 total_no_cdn_alns=$(ls *_cdnAln.fasta | wc -l)
 
-printf "${GREEN} >>> Phi test result: there are $no_non_recomb_alns_perm_test non-recomb alignments out of $total_no_cdn_alns total alignments${NC}\n" | \
+printf "${GREEN} >>> Phi test result: there are $no_non_recomb_alns_perm_test non-recombinant alignments out of $total_no_cdn_alns input alignments${NC}\n" | \
 tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
 [ $no_non_recomb_alns_perm_test -lt 1 ] && print_start_time && printf "\n${LRED} >>> Warning: All alignments seem to have recombinant sequences. will exit now!${NC}\n\n" | \
 tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && exit 3
 
+#3.3.2 cleanup dir
+tar -czf Phi_test_log_files.tgz *Phi.log
+[ -s Phi_test_log_files.tgz ] && rm *Phi.log Phi.inf*
+
 # 3.4 mv non-recombinant codon alignments and protein alignments to their own directories:
 #     non_recomb_cdn_alns/ and  non_recomb_cdn_alns/
 #     Mark dir as non_recomb_cdn_alns
 mkdir non_recomb_cdn_alns
-non_recomb_cdn_alns_dir=$(pwd)
-
-print_start_time && printf "${BLUE}# working in dir non_recomb_cdn_alns ...${NC}\n" | \
-tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
 for base in $(awk '$2 > 5e-02 && $3 > 5e-02' Phi_results_${TIMESTAMP_SHORT}.tsv | awk '{print $1}' | sed 's/_Phi\.log//')
 do 
@@ -1146,6 +1145,9 @@ for base in $(awk '$2 > 5e-02 && $3 > 5e-02' Phi_results_${TIMESTAMP_SHORT}.tsv 
 do
    cp ../${base}*.faaln non_recomb_FAA_alns
 done
+
+# 3.5 cleanup phipack_dir
+rm *cdnAln.fasta
 
 #------------------------------------------------------------------------------------------------
 #>>>BLOCK 4. Compute individual ML gene trees from codon or protein alignments 
@@ -1167,6 +1169,11 @@ done
 if [ "$mol_type" == "DNA" ]
 then
     cd non_recomb_cdn_alns
+
+    non_recomb_cdn_alns_dir=$(pwd)
+
+    print_start_time && printf "${LBLUE}# working in dir non_recomb_cdn_alns ...${NC}\n" | \
+    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
     print_start_time && printf "${BLUE}# estimating $no_non_recomb_alns_perm_test gene trees from non-recombinant sequences ...${NC}\n" | \
     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
@@ -1201,6 +1208,7 @@ then
     [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > cat *allFTGTRG.ph > all_GTRG_trees.tre"
     cat *allFTGTRG.ph > all_GTRG_trees.tre
     check_output all_GTRG_trees.tre $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+    [ ! -s all_GTRG_trees.tre ] && exit 3
 
     # 4.2 run_kdetrees.R at desired stringency 
     print_start_time && printf "${BLUE}# running kde test ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
@@ -1211,7 +1219,7 @@ then
 
     # 4.3 mv outliers to kde_outliers
     no_kde_outliers=$(grep -c outlier kde_dfr_file_all_GTRG_trees.tre.tab)
-    no_kde_ok=$(grep -vc outlier kde_dfr_file_all_GTRG_trees.tre.tab)
+    no_kde_ok=$(grep -v outlier kde_dfr_file_all_GTRG_trees.tre.tab | grep -vc '^file')
 
     if [ $no_kde_outliers -gt 0 ]
     then
@@ -1234,7 +1242,8 @@ then
         print_start_time && printf "${BLUE}# labeling $no_kde_ok gene trees in dir kde_ok/ ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
         [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > run_pexec_cmmds.sh ph 'add_labels2tree.pl ../../../tree_labels.list $file' $n_cores &> /dev/null"
         run_pexec_cmmds.sh ph 'add_labels2tree.pl ../../../tree_labels.list $file' $n_cores &> /dev/null
-        # remove symbolic links to cleanup kde_ok/
+        
+	# remove symbolic links to cleanup kde_ok/
         for f in $(ls *ph | grep -v '_ed\.ph'); do rm $f; done
     
         cd ..
@@ -1267,7 +1276,7 @@ then
         top_markers_dir="top_${no_top_markers}_markers_ge${min_supp_val_perc}perc"
         top_markers_tab=$(ls sorted_aggregated_support_values4loci_ge${min_supp_val_perc}perc.tab)
     
-        print_start_time && printf "${BLUE}# making dir $top_markers_dir and moving $no_top_markers top markers into it ...${NC}\n" | \
+        print_start_time && printf "${LBLUE}# making dir $top_markers_dir and moving $no_top_markers top markers into it ...${NC}\n" | \
         tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
         mkdir $top_markers_dir && cd $top_markers_dir
         top_markers_dir=$(pwd)
@@ -1326,11 +1335,11 @@ tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && ex
 
         if [ -s ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG_ed.ph ]
         then
-            mv ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG_ed.ph ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG_ed.sptree # for compute_suppValStats_and_RF-dist.R
-            check_output ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG_ed.sptree $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+            mv ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG_ed.ph ${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}cdnAlns_FTGTRG_ed.sptree # for compute_suppValStats_and_RF-dist.R
+            check_output ${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}cdnAlns_FTGTRG_ed.sptree $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
             printf "${GREEN} >>> found in dir $top_markers_dir ...${NC}\n\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
         else
-              printf "${LRED} >>> WARNING: ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG_ed.sptree could not be produced!${NC}"
+              printf "${LRED} >>> WARNING: ${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}cdnAlns_FTGTRG_ed.sptree could not be produced!${NC}"
         fi 
     
         print_start_time && printf "${BLUE}# computing the mean support values and RF-distances of each gene tree to the concatenated tree   ...${NC}\n" | \
@@ -1392,18 +1401,28 @@ tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && ex
 	    fi
 
 	 # 4. cleanup
-         tar -czf molClock_PAUP_files.tgz *_paup.block *.nex  *_clockTest.log *tre *clock.scores
-         [ -s molClock_PAUP_files.tgz ] && rm *_paup.block *.nex  *_clockTest.log *tre *clock.scores
-         rm list2concat Rplots.pdf
+         tar -czf molClock_PAUP_files.tgz *_paup.block *.nex  *_clockTest.log *tre *clock.scores *critical_X2_val.R
+         [ -s molClock_PAUP_files.tgz ] && rm *_paup.block *.nex  *_clockTest.log *tre *clock.scores *critical_X2_val.R
+         rm list2concat Rplots.pdf header.tmp list2grep.tmp *allFT*.ph *_cdnAln.fasta concat_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
+
+	 tar -czf concatenated_alignment_files.tgz concat_cdnAlns.fna concat_cdnAlns.fnainf 
+         [ -s concatenated_alignment_files.tgz ] && rm concat_cdnAlns.fna concat_cdnAlns.fnainf 
+	 rm mol_clock_MGTRG_r_o_q099_ClockTest.ta* gene_trees2_concat_tree_RF_distances.tab
+	 rm ../*allFT*.ph ../*_cdnAln.fasta ../Rplots.pdf ../all_*trees.tre ../sorted*perc.tab sorted_aggregated_*tab
+
         fi
     fi # if [ $runmode -eq 1 ]; then run phylo pipeline on DNA seqs
     
-
+    
 #>>>>> RUNMODE 2: PopGen
     if [ $runmode -eq 2 ]
     then
         mkdir popGen && cd popGen
-        popGen_dir=$(pwd)
+	popGen_dir=$(pwd)
+
+        print_start_time && printf "${LBLUE}# Moved into dir popGen ...${NC}\n" | \
+       	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	
 
 	ln -s ../*fasta .
 	no_top_markers=$(ls *fasta | wc -l)
@@ -1438,6 +1457,14 @@ tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && ex
 	
 	printf "${GREEN} >>> descriptive DNA polymorphism stats are found in:\n$popGen_dir ...${NC}\n\n" | \
 	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	
+	
+	# cleanup
+	tar -czf clean_cdnAlns.tgz *clean.fasta *nex
+	[ -s clean_cdnAlns.tgz ] && rm *clean.fasta *nex
+	
+	rm paup.cmd ../*_allFT*ph ../*cdnAln.fasta ../all_*trees.tre ../Rplots.pdf *cdnAln.fasta popGen_summStats_*.log
+	
     fi
 fi # if [ "$mol_type" == "DNA"    
 
@@ -1551,7 +1578,7 @@ then
     top_markers_dir="top_${no_top_markers}_markers_ge${min_supp_val_perc}perc"
     top_markers_tab=$(ls sorted_aggregated_support_values4loci_ge${min_supp_val_perc}perc.tab)
     
-    print_start_time && printf "${BLUE}# making dir $top_markers_dir and moving $no_top_markers top markers into it ...${NC}\n" | \
+    print_start_time && printf "${LBLUE}# making dir $top_markers_dir and moving $no_top_markers top markers into it ...${NC}\n" | \
     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
     mkdir $top_markers_dir && cd $top_markers_dir
     ln -s ../$top_markers_tab .
@@ -1598,7 +1625,11 @@ then
     [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph &> /dev/null"
     add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph &> /dev/null
     
-    check_output ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG_ed.ph $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+    [ -s ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG_ed.ph ] && \
+    mv ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG_ed.ph ${tree_prefix}_${no_top_markers}nonRecomb_KdeFilt_protAlns_FTlgG.spTree
+    [ -s ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG_ed.ph ] && rm ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph
+    
+    check_output ${tree_prefix}_${no_top_markers}nonRecomb_KdeFilt_protAlns_FTlgG.spTree $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
      
     printf "${GREEN} >>> found in dir $wkdir ...${NC}\n\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
     
@@ -1607,6 +1638,13 @@ then
     wkdir=$(pwd)
     [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > compute_suppValStas_and_RF-dist.R $wkdir 2 faaln ph 1 &> /dev/null"
     compute_suppValStas_and_RF-dist.R $wkdir 2 faaln ph 1 &> /dev/null
+    
+   # 6. cleanup
+   rm list2concat Rplots.pdf *allFT*.ph *faaln sorted*perc.tab concat_nonRecomb_KdeFilt_protAlns_FT*.ph
+
+   tar -czf concatenated_alignment_files.tgz concat_protAlns.faa concat_protAlns.faainf
+   [ -s concatenated_alignment_files.tgz ] && rm concat_protAlns.faa concat_protAlns.faainf
+   rm ../*allFT*.ph ../*faaln ../Rplots.pdf ../all_FT*trees.tre ../sorted*perc.tab sorted_aggregated_*tab
 fi
 
 
