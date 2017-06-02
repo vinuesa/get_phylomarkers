@@ -1,13 +1,33 @@
 # Installation and execution notes for the get_phylomarkers pipeline
 
-This file lists the software components of the get_phylomarkers pipeline and briefly describes how to install them.
+Version: June 1st, 2017
 
-The pipeline runs on Linux and Mac OS X environments, although it has not been extensively tested in the latter.
+This file lists the software components of the *get_phylomarkers* pipeline and briefly describes how to install them.
+
+The pipeline runs on Linux (Ubuntu and RedHat distros) and Mac OS X environments.
 
 It assumes that recent versions of Bash, Perl and R are installed on a multicore (64bit) machine, ideally a server running Linux.
-The pipeline is designed to take advantage of modern multiprocessor machines to parallelize all repetitive tasks that have to be performed on each entry sequence, like generating multiple sequence alignments, deriving codon alignments, inferring maximum likelihood gene phylogenies and computing their clock-likeness. Therefore, if your intention is to select optimal genome markers to infer genome phylogenies, you should run the pipeline on a multiprocessor/multicore server to speed up computations. 
+The pipeline is designed to take advantage of modern multicore machines to parallelize all repetitive tasks that have to be performed on each entry sequence, like generating multiple sequence alignments, deriving codon alignments, inferring maximum likelihood gene phylogenies and testing their clock-likeness. Therefore, if your intention is to select optimal genome markers to infer genome phylogenies, you should run the pipeline on a multiprocessor/multicore server to speed up computations. 
 
-Version: May 16th, 2017
+
+## Quick install and test notes
+
+1. clone the repository into a suitable directory (e.g.  $HOME/src/gitHub/) using the command 'git clone https://github.com/vinuesa/get_phylomarkers.git'
+
+2. cd into get_phylomarkers/ and run './install_R_deps.R', which will install R packages into get_phylomarkers/lib/R
+
+3. copy the test_sequences directory into a suitable place (e.g. 'cp -r test_sequences $HOME)
+
+4. cd into the test_sequences dir (e.g. '$HOME/test_sequences')
+
+5. issue the following command to test if the distro is working on your system: '/path/to/get_phylomarkers/run_get_phylomarkers_pipeline.sh -R 1 -t DNA -K 1', which will run in phylogenomics mode (-R 1), on DNA sequences (-t DNA), and will test the molecular clock hypothesis (-K 1). 
+ 
+6. check it now on the protein level: 'run_get_phylomarkers_pipeline.sh -R 1 -t PROT'. Note that for this second invocation, you will probably not need to prepend the full path to the script anymore (see NOTES below).
+
+7. Explore the help menu of the main script to see the options available for customization of the run. It is printed to STDOUT when issuing run_get_phylomarkers_pipeline.sh -h or simply run_get_phylomarkers_pipeline.sh
+
+That's it, enjoy. 
+
 
 ## Scripts distributed through GitHub
 
@@ -17,7 +37,7 @@ NOTES:
 on the local machine where the get_phylomarkers package was downloaded. It will also check if the host machine has a 
 \$HOME/bin dir included in \$PATH. If so, the main script will automatically generate 
 symlinks in \$HOME/bin to the package scripts, so that they become visible system-wide.
-Otherwise, it will append the distribution directory holding the scripts to the \$PATH variable.
+Otherwise, it will append the distribution directory holding the scripts to the \$PATH variable, which is set from within the script, but not written down to .bash_profile to avoid any interference with user settings.
 
 2. The auxiliary scripts are called sequentially by the main script run_get_phylomarkers_pipeline.sh 
 according to predefined runmodes and on DNA or protein sequences. However, the auxiliary scripts all have
@@ -73,7 +93,7 @@ NOTES:
 
 1. the corresponding binaries, after installation, shoud be found in on one of the directories listed in the $PATH variable.  On Linux machines this is typically /usr/local/bin (if you have superuser privileges) or \$HOME/bin if not. 
 
-2. If the required binaries are not found in \$PATH, the main script will automatically try to use the ones packaged in the distribution under bin/linux or bin/macosx-intel directories, as required for the local environment. 
+2. If the required binaries are not found in \$PATH, the main script will automatically try to use the statically compiled versions packaged in the distribution under bin/linux or bin/macosx-intel directories, as required for the local environment. 
 
 3. It is strongly recommended, howerver, that the user downloads the latest versions of the binaries from the links provided below. This is particularly important for [paup*](https://people.sc.fsu.edu/~dswofford/paup_test/), since the current version is a test version that automatically expires every 6 months:
 
