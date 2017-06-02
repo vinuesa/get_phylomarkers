@@ -49,4 +49,5 @@ config
 description
 hooks/
 info/
+development_history_and_notes.txt
 
