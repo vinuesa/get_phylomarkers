@@ -9,12 +9,14 @@
 #: AIM: select optimal molecular markers for phylogenomics and population genomics from orthologous gene clusters computed by get_homologues
 #
 #: OUTPUT: multiple sequence alignments (of protein and DNA sequences) of selected markers, gene and supermatrix phylogenies, 
-#          along with summary graphics and tables summarizing the filtering procedure. If requested. 
+#          along with graphics and tables summarizing the filtering procedure. 
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.9.1_1Jun17' # v1.9.1_1Jun17: more directory cleanup ...
-                      # 1.8.4_30May17: prepended $ditrodir/ to perl scripts that use FindBin; so that it can find the required libs in $ditrodir/lib/perl
+VERSION='1.9.2_1Jun17'  # v1.9.2_1Jun17: code cleanup > removed comments and print_development_notes(); append the $distrodir/lib/perl to PERL5LIB and export
+                        # v1.9.1_1Jun17: more sensible directory cleanup ...
+			# v1.9_31May17: improved progress messages and directory cleanup ...
+                        # 1.8.4_30May17: prepended $ditrodir/ to perl scripts that use FindBin; so that it can find the required libs in $ditrodir/lib/perl
                         # Added -n $n_cores flag, which is passed to run_pexec_cmmds.sh '' $n_cores, so that it runs on MacOSX!!! <<< Thanks Alfredo!
 			#    automatically set n_cores=no_proc if [ -z $n_cores ]
                         # v1.8.1_24May17 fixed problmes with @INC searching of rename.pl by prepending $distrodir/rename.pl
@@ -227,85 +229,6 @@ function set_bindirs()
 }
 #----------------------------------------------------------------------------------------- 
 
-#function check_homebinpath()
-#{
-#   distrodir=$1
-#   
-#   homebinflag=0
-#   homebinpathflag=0
-#   
-#   if [ ! -d $HOME/bin ]
-#   then
-#      export PATH=$PATH:$distrodir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)  
-#   else
-#       homebinflag=1
-#    fi
-#    
-#   if [ -d $(echo $PATH | sed 's/:/\n/g' | grep "$HOME/bin$") ] # be specific: should end in bin, excluding subdirs
-#   then
-#        homebinpathflag=1
-#	
-#	printf "${CYAN} Will generate symlinks in $HOME/bin to Bash, Perl and R scripts in $distrodir ...${NC}"
-#        ln -s $distrodir/*.sh $HOME/bin &> /dev/null
-#	ln -s $distrodir/*.R $HOME/bin &> /dev/null
-#	ln -s $distrodir/*.pl $HOME/bin &> /dev/null
-#   else
-#        export PATH=$PATH:$distrodir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)
-#   fi
-#   echo "$homebinflag $homebinpathflag"
-#}
-##----------------------------------------------------------------------------------------- 
-
-
-#function check_binaries_in_path()
-#{
-#    bindir=$1
-#    
-#    bins=( clustalo FastTree pexec Phi paup consense )
-#    
-#    for prog in "${bins[@]}"
-#    do
-#       bin=$(type -P $prog)
-#       if [ -z $bin ]; then
-#          echo
-#          printf "${RED}# WARNING: binary $prog is not in \$PATH!\n${NC}"
-#	  printf "${CYAN} >>> Will append $bindir to \$PATH ${NC}\n"
-#	  #check_homebinpath $distrodir
-#          #echo "# ... you will need to install \"$prog\" first or include it in \$PATH"
-#          #echo "# ... exiting"
-##          exit 1
-#       fi
-#    done
-#}
-#----------------------------------------------------------------------------------------- 
-
-#run_pexec_cmmds()
-#{
-#  # run pexec to parallelize processes on all available cores, or user-defined no. of cores
-#  #   requires 3 or max 4 args
-#  #  <file extension name> <'command'> [no_of_cores]
-#
-#   ext=$1
-#   command=$2
-#   suffix=$3
-#   no_of_cores=$4
-#
-#   total_files=$(ls *$ext | wc -l)
-#
-#   if [ -z $no_of_cores ]
-#   then
-#       # use all available cores
-#       pexec -r *.$ext -e file -c -o - -- "$command; [ $VERBOSITY -eq 1 ] && echo \$file \=\=\> processed!; done"  
-#   else
-#       # use defined cores
-#       pexec -n $no_of_cores -r *.$ext -e file -c -o - -- "$command; [ $VERBOSITY -eq 1 ] && echo \$file \=\=\> processed!; done"
-#   fi
-#
-#   echo 
-#   printf  "${GREEN}run_pexec_cmmds is done executing $command on $total_files input files ...${NC}"
-#   echo 
-#}
-#----------------------------------------------------------------------------------------- 
 
 function print_usage_notes()
 {
@@ -592,7 +515,8 @@ function concat_alns()
         concat_file="concat_protAlns.faa"
     fi
     
-    $distrodir/concat_alignments.pl list2concat > $concat_file
+    #$distrodir/concat_alignments.pl list2concat > $concat_file
+    concat_alignments.pl list2concat > $concat_file
     check_output $concat_file $pPID
     perl -ne 'if (/^#|^$/){ next }else{print}' $concat_file > ed && mv ed $concat_file
     check_output $concat_file $pPID 
@@ -618,7 +542,8 @@ function make_labels_4_trees()
     printf "${BLUE}# Adding labels back to tree ...${NC}\n"
     grep '>' $(ls ${label_dir}/*fnaedno | head -1) > tree_labels.list
     perl -pe '$c++; s/>/$c\t/; s/\h\[/_[/' tree_labels.list > ed && mv ed tree_labels.list
-    $distrodir/add_labels2tree.pl tree_labels.list ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph &> /dev/null
+    #$distrodir/add_labels2tree.pl tree_labels.list ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph &> /dev/null
+    add_labels2tree.pl tree_labels.list ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph &> /dev/null
     check_output ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG_ed.ph $parent_PID
 }
 #----------------------------------------------------------------------------------------- 
@@ -682,52 +607,6 @@ function check_output()
 }
 #----------------------------------------------------------------------------------------- 
 
-function print_development_notes()
-{
-   cat <<DEV
-   $progname v.$VERSION usage:
- 
-   TODO: (last review: May 17th, 2017)
-    I. CRITICAL/Important:
-          
-    0.1 Compile external binaries on Mac OS X (64 bits) to include in $distrodir/bin/macos-intel, write install instruction
-    
-    1. run_kdetrees.R and compute_suppValStas_and_RF-dist.R run_molecClock_test_with_paup.sh may be refactored into functions run from within $progname
-    1.1 verify if kdetrees or RF-dist require haplotyes and/or rooted trees! 
-    1.2 rationalize names of output files (*out) and improve graphics; think of using ggplot2 graphics-
-    1.3 verify the output generated by runmodes 1 and 2 of compute_suppValStas_and_RF-dist.R; we are calling it with runmode 2 in both occasions
-    1.4 add array dependencies lists for perl modules/packages and write install_get_phylomarkers.sh script
-        to make install as easy as possible for users; incude required R and Perl libs.
-    1.5 Write documentation/Manual    
-    1.6. refactor -t PROT and -t DNA codes into subs using appropriate suffixes; make_labels_4_trees() calibrated for DNA!!!
-         Make also sure that we use a concat_prefix in the concatenated tree file name, because this is expected by 
-	 compute_suuValStats_and_RF-dist.R
-    1.7 Need to check the check_output function	and related checking code; add more checking code
-    1.8 Need to think of most suitable install procedure, including directory structure
-  
-    II. DESIRABLE:
-    2.1 implement functions to run AU tests and to compute RF distances against the concatenated tree of top markers
-    2.2 Think if implementing here the pop_genetics or in a separte script; remove -R if not used! A reasonable place would be
-       to run the evaluation pipeline in the non_recomb_cdn_aln/ dir, and run it after the kdetrees test. 
-    2.3 finish/test the run_pexec_cmmds() function to run from within the script (minimize the usage of external scripts)
-    2.4 Add the functionality of get_TajD_critical_values() and get_FuLi_critical_values() to popGen_summStats.pl	 
-
-    III: CODE CLEANUP
-    3.1 Cleanup all companion scripts
-    3.2 Rename some scripts to something less pathological, particularly add_labels2tree.pl
-        and run_molecClock_test_jmodeltest2_paup.sh
-
-    NOTES:
-      1. read the descriptions of code blocks with: grep -A 300 BLOCK $progname | egrep '^#|^[[:space:]]+#'
-      
-      
-    VERSION HISTORY:
-      
-DEV
-
-exit 0
-}
-#----------------------------------------------------------------------------------------- 
 
 function print_help()
 {
@@ -745,8 +624,7 @@ function print_help()
      -H flag to print additional usage Notes
      -c <integer> NCBI codontable number (1-23) for pal2nal.pl to generate codon alignment;        [default:$codontable] 
      -C flag to print codontables
-     -d flag to print debugging messages; please use if you encounter problems executing the code  [default: $DEBUG]
-     -D flag to print development notes and TODOs                                            
+     -D flag to print debugging messages; please use if you encounter problems executing the code  [default: $DEBUG]
      -e <integer> select gene trees with at least (min. = 4) external branches                     [default: $min_no_ext_branches]
      -k <real> kde stringency (0.7-1.6 are reasonable values; less is more stringent)              [default: $kde_stringency]
      -K <integer> run molecular clock test on codon alignments                                     [default: $eval_clock]
@@ -805,7 +683,7 @@ q=0.99
 
 
 # See bash cookbook 13.1 and 13.2
-while getopts 'c:e:k:K:l:m:M:n:p:q:r:s:t:T:R:hHdCDV' OPTIONS
+while getopts 'c:e:k:K:l:m:M:n:p:q:r:s:t:T:R:hHCDV' OPTIONS
 do
    case $OPTIONS in
    h)   print_help
@@ -816,9 +694,7 @@ do
         ;;
    C)	print_codontables
 	;;
-   d)   DEBUG=1
-        ;;
-   D)	print_development_notes
+   D)   DEBUG=1
         ;;
    e)   min_no_ext_branches=$OPTARG
 	;;
@@ -898,6 +774,9 @@ set_bindirs $bindir
 
 # 0.3 append the $distrodir/lib/R to R_LIBS and export
 export R_LIBS="$R_LIBS:$distrodir/lib/R"
+
+# 0.4 append the $distrodir/lib/perl to PERL5LIB and export
+export PERL5LIB="${PERL5LIB}:${distrodir}/lib/perl:${distrodir}/lib/perl/bioperl-1.5.2_102"
 
 #-------------------------------------#
 # >>>BLOCK 0.2 CHECK USER OPTIONS <<< #
@@ -1014,8 +893,10 @@ ln -s ../*faa .
 ln -s ../*fna .
 
 # fix fasta file names with two and three dots
-$distrodir/rename.pl 's/\.\.\./\./g' *.faa
-$distrodir/rename.pl 's/\.\.\./\./g' *.fna
+#$distrodir/rename.pl 's/\.\.\./\./g' *.faa
+rename.pl 's/\.\.\./\./g' *.faa
+#$distrodir/rename.pl 's/\.\.\./\./g' *.fna
+rename.pl 's/\.\.\./\./g' *.fna
 
 # 1.1 fix fastaheaders of the source protein and DNA fasta files
 for file in *faa; do awk 'BEGIN {FS = "|"}{print $1, $2, $3}' $file | perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > ${file}ed; done
@@ -1297,7 +1178,8 @@ tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && ex
         print_start_time && printf "${BLUE}# removing uninformative sites from concatenated alignment ...${NC}\n" | \
 	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
         [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > remove_uninformative_sites_from_aln.pl < concat_cdnAlns.fna > concat_cdnAlns.fnainf"
-        $distrodir/remove_uninformative_sites_from_aln.pl < concat_cdnAlns.fna > concat_cdnAlns.fnainf
+        #$distrodir/remove_uninformative_sites_from_aln.pl < concat_cdnAlns.fna > concat_cdnAlns.fnainf
+	remove_uninformative_sites_from_aln.pl < concat_cdnAlns.fna > concat_cdnAlns.fnainf
         check_output concat_cdnAlns.fnainf $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	
 	[ ! -s concat_cdnAlns.fnainf ] && print_start_time && printf "\n${RED} >>> ERROR: The expected file concat_cdnAlns.fnainf was not produced! will exit now!${NC}\n\n" | \
@@ -1354,7 +1236,8 @@ tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && ex
              print_start_time && printf "${BLUE}# converting fasta files to nexus files${NC}\n" | \
        	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	     [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null"
-             $distrodir/convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null
+             #$distrodir/convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null
+	     convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null
 	     
 	     print_start_time && printf "${BLUE}# Will test the molecular clock hypothesis for $no_top_markers top markers. This will take some time ...${NC}\n" | \
        	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
@@ -1455,12 +1338,14 @@ tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && ex
         print_start_time && printf "${BLUE}# converting $no_top_markers fasta files to nexus format ...${NC}\n" | \
        	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
         [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null"
-	$distrodir/convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null 
+	#$distrodir/
+	convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null 
 	  
         print_start_time && printf "${BLUE}# Running popGen_summStats.pl ...${NC}\n" | \
        	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u &> popGen_summStats_hs100.log"
-	$distrodir/popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u &> popGen_summStats_hs100.log
+	#$distrodir/popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u &> popGen_summStats_hs100.log
+	popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u &> popGen_summStats_hs100.log
 	
 	check_output polymorphism_descript_stats.tab $parent_PID
 	
@@ -1605,7 +1490,8 @@ then
 
     # 5.8 remove uninformative sites from the concatenated alignment to speed up computation
         print_start_time && printf "${BLUE}# removing uninformative sites from concatenated alignment ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-    $distrodir/remove_uninformative_sites_from_aln.pl < concat_protAlns.faa > concat_protAlns.faainf
+    #$distrodir/remove_uninformative_sites_from_aln.pl < concat_protAlns.faa > concat_protAlns.faainf
+    remove_uninformative_sites_from_aln.pl < concat_protAlns.faa > concat_protAlns.faainf
 
     check_output concat_protAlns.faainf $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
@@ -1688,7 +1574,7 @@ Pablo Vinuesa and Bruno Contreras-Moreira 2017. Get_PhyloMarkers, a pipeline to 
 optimal markers for microbial phylogenomics, population genetics and genomic taxomy. 
 Available at https://github.com/vinuesa/get_phylomarkers 
 
-A publication in preparation. The abstract was accepted in Frontiers in Microbiology, 
+A publication is in preparation. The abstract was accepted in Frontiers in Microbiology, 
 for the Reserarch topic on "microbial taxonomy, phylogeney and biodiversity" 
 http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity
 
@@ -1704,7 +1590,7 @@ http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-a
       http://www.ccg.unam.mx/~vinuesa/
       https://digital.csic.es/cris/rp/rp02661/
       
-      Please run the script with the -d flag added at the end of the 
+      Please run the script with the -D flag added at the end of the 
       command line and send us the output, so that we can better diagnose 
       the problem.
       
