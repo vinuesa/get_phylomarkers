@@ -17,6 +17,12 @@
 # > remove.packages("Rcpp")
 # > install.packages("Rcpp",dependencies=TRUE, lib="lib/R", repos="https://cloud.r-project.org")
 
+# Instructions to install ape in MacOS in case in fails
+# install gfortran from https://gcc.gnu.org/wiki/GFortranBinaries
+# $ R
+# > install.packages("ape",dependencies=TRUE, lib="lib/R", type="source")
+
+
 repository = 'https://cloud.r-project.org'; #'http://cran.rstudio.com';
 required_packages = c("ape", "kdetrees", "stringr", "vioplot", "ggplot2", "gplots", "plyr", "seqinr")
 local_lib = "./lib/R"
