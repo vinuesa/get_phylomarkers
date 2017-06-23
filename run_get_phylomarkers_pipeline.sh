@@ -1153,7 +1153,7 @@ then
         awk -v min_supp_val=$min_supp_val '$2 >= min_supp_val' sorted_aggregated_support_values4loci.tab > sorted_aggregated_support_values4loci_ge${min_supp_val_perc}perc.tab
         check_output sorted_aggregated_support_values4loci_ge${min_supp_val_perc}perc.tab $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
     
-        no_top_markers=$(wc -l sorted_aggregated_support_values4loci_ge${min_supp_val_perc}perc.tab | cut -d' ' -f1)
+        no_top_markers=$(wc -l sorted_aggregated_support_values4loci_ge${min_supp_val_perc}perc.tab |cut -d' ' -f1)
         top_markers_dir="top_${no_top_markers}_markers_ge${min_supp_val_perc}perc"
         top_markers_tab=$(ls sorted_aggregated_support_values4loci_ge${min_supp_val_perc}perc.tab)
     
