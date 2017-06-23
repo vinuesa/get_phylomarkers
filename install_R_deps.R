@@ -1,7 +1,7 @@
-#!/usr/bin/Rscript
+#!/usr/bin/env Rscript
 
 # check installed R packages and install only the missing ones 
-# Bruno Contreras, Pablo Vinuesa, May2017
+# Bruno Contreras, Pablo Vinuesa, Jun2017
 
 # Instructions to update R on Ubuntu systems, Xenial in the example:
 
