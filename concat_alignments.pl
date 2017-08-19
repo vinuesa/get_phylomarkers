@@ -26,7 +26,7 @@ else{ ($listfile) = @ARGV;  }
 
 if(! -s $listfile){ die "#$progname : need a valid list file\n"; }
 
-#print "# $progname params: input file $listfile\n";
+# print "# $progname params: input file $listfile\n";
 
 ######################################################
 

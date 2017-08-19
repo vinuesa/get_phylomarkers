@@ -31,7 +31,7 @@ use Pod::Usage;
 
 use FindBin '$Bin'; # added by Bruno May2017
 use lib "$Bin/lib/perl/";
-use File::Rename ();
+use File::Rename;
 
 main() unless caller;
 

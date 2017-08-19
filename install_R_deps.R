@@ -18,14 +18,14 @@
 # > install.packages("Rcpp",dependencies=TRUE, lib="lib/R", repos="https://cloud.r-project.org")
 
 repository = 'https://cloud.r-project.org'; #'http://cran.rstudio.com';
-required_packages = c("ape", "kdetrees", "stringr", "vioplot", "ggplot2", "gplots", "plyr", "seqinr")
+required_packages = c("ape", "kdetrees", "stringr", "vioplot", "ggplot2", "gplots", "dplyr", "seqinr")
 local_lib = "./lib/R"
 
 .libPaths( c( .libPaths(), local_lib) )
 
 for (package in required_packages) {
   if (!require(package, character.only=T, quietly=T)) {
-    sprintf("# cannot load %s, will get if from %s and install it in %s",package,repository,local_lib)
+    sprintf("# cannot load %s, will get it from %s and install it in %s",package,repository,local_lib)
     install.packages(package, dependencies=TRUE, lib=local_lib, repos=repository)
   }
 }
