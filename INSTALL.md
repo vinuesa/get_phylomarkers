@@ -84,8 +84,8 @@ superuser privileges and within it execute the following command:
 install.packages( c("ape", "kdetrees", "stingr", "vioplot", "ggplot2", "gplots", "plyr", "seqinr"), dep=T)
 
 Please see examples in the source code of *./install_R_deps.R* to solve problems that might arise when
-old versions of the, particularly *Rcpp*, are already in the system.
-
+old versions of the, particularly *Rcpp*, are already in the system. Tips are also provided to install
+"ape" in Mac systems.
 
 ## External dependencies: second party binaries to be installed by the user. 
 
