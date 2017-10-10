@@ -13,7 +13,8 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.9.2_1Jun17'  # v1.9.2_1Jun17: code cleanup > removed comments and print_development_notes(); append the $distrodir/lib/perl to PERL5LIB and export
+VERSION='1.9.3_10Oct17' # v1.9.3_10Oct17: improved error message when kdetrees fail
+                        # v1.9.2_1Jun17: code cleanup > removed comments and print_development_notes(); append the $distrodir/lib/perl to PERL5LIB and export
                         # v1.9.1_1Jun17: more sensible directory cleanup ...
 			# v1.9_31May17: improved progress messages and directory cleanup ...
                         # 1.8.4_30May17: prepended $ditrodir/ to perl scripts that use FindBin; so that it can find the required libs in $ditrodir/lib/perl
@@ -381,8 +382,9 @@ function install_Rlibs_msg()
    Rpackage=$2
 
    printf "${RED} ERROR: the expected outfile $outfile was not produced\n"  
-   printf "       This may be because you have not installed the R package $Rpackage.\n"
-   printf "       Run using the command 'Rscript install_R_deps.R' from within $distrodir to install them\n${NC}"  
+   printf "       This may be because R package(s) $Rpackage are not properly installed.\n"
+   printf "       Please run the script './install_R_deps.R' from within $distrodir to install them.\n"
+   printf "       Further installation tips can be found in file Rscript install_R_deps.R\n${NC}"  
    
    R --no-save --quiet <<RCMD 2> /dev/null
    
@@ -1093,7 +1095,7 @@ then
     print_start_time && printf "${BLUE}# running kde test ...${NC}\n"|tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
     [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > run_kdetrees.R ph all_GTRG_trees.tre $kde_stringency &> /dev/null"
     run_kdetrees.R ph all_GTRG_trees.tre $kde_stringency &> /dev/null
-    [ ! -s kde_dfr_file_all_GTRG_trees.tre.tab ] && install_Rlibs_msg kde_dfr_file_all_GTRG_trees.tre.tab kdetrees
+    [ ! -s kde_dfr_file_all_GTRG_trees.tre.tab ] && install_Rlibs_msg kde_dfr_file_all_GTRG_trees.tre.tab kdetrees,ape
     check_output kde_dfr_file_all_GTRG_trees.tre.tab $parent_PID|tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
     # 4.3 mv outliers to kde_outliers
