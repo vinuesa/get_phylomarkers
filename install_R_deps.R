@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
 # check installed R packages and install only the missing ones 
-# Bruno Contreras, Pablo Vinuesa, Jun2017
+# Bruno Contreras, Pablo Vinuesa, Oct2017
 
 # Instructions to update R on Ubuntu systems, Xenial in the example:
 
@@ -17,7 +17,7 @@
 # > remove.packages("Rcpp")
 # > install.packages("Rcpp",dependencies=TRUE, lib="lib/R", repos="https://cloud.r-project.org")
 
-# Instructions to install ape in MacOS in case in fails
+# Instructions to install ape in MacOS in case it fails
 # install gfortran from https://gcc.gnu.org/wiki/GFortranBinaries
 # $ R
 # > install.packages("ape",dependencies=TRUE, lib="lib/R", type="source")
@@ -36,3 +36,4 @@ for (package in required_packages) {
   }
 }
 
+sessionInfo()
