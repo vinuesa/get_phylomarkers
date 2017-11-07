@@ -13,15 +13,17 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.9.4_6Nov17'  # v1.9.4_6Nov17: added error checking for Phi run when sequences lack enough polymorphism for the test to work
-                        # v1.9.3_10Oct17: improved error message when kdetrees fail
-                        # v1.9.2_1Jun17: code cleanup > removed comments and print_development_notes(); append the $distrodir/lib/perl to PERL5LIB and export
-                        # v1.9.1_1Jun17: more sensible directory cleanup ...
-			# v1.9_31May17: improved progress messages and directory cleanup ...
-                        # 1.8.4_30May17: prepended $ditrodir/ to perl scripts that use FindBin; so that it can find the required libs in $ditrodir/lib/perl
-                        # Added -n $n_cores flag, which is passed to run_pexec_cmmds.sh '' $n_cores, so that it runs on MacOSX!!! <<< Thanks Alfredo!
-			#    automatically set n_cores=no_proc if [ -z $n_cores ]
-                        # v1.8.1_24May17 fixed problmes with @INC searching of rename.pl by prepending $distrodir/rename.pl
+VERSION='1.9.5_7Nov17' # v1.9.5_7Nov17: prints a logfile for FastTree runs and captures the lnL value of the corresponding tree; 
+                       #                more detailed info reported on alignments with too few informative sites for the Phi test to be work on
+                       # v1.9.4_6Nov17: added error checking for Phi run when sequences lack enough polymorphism for the test to work
+                       # v1.9.3_10Oct17: improved error message when kdetrees fail
+                       # v1.9.2_1Jun17: code cleanup > removed comments and print_development_notes(); append the $distrodir/lib/perl to PERL5LIB and export
+                       # v1.9.1_1Jun17: more sensible directory cleanup ...
+		       # v1.9_31May17: improved progress messages and directory cleanup ...
+                       # 1.8.4_30May17: prepended $ditrodir/ to perl scripts that use FindBin; so that it can find the required libs in $ditrodir/lib/perl
+                       # Added -n $n_cores flag, which is passed to run_pexec_cmmds.sh '' $n_cores, so that it runs on MacOSX!!! <<< Thanks Alfredo!
+		       #    automatically set n_cores=no_proc if [ -z $n_cores ]
+                       # v1.8.1_24May17 fixed problmes with @INC searching of rename.pl by prepending $distrodir/rename.pl
                        #v1.8_23May17. Added R code in count_tree_branches() to use local_lib if ape is not installed systemwide; 
                       #    searches and prints the number of available cores on HOSTNAME 
 		      #    exports R_LIBS="$R_LIBS:$distrodir/lib/R" to fix issues with library paths in R scripts
@@ -997,14 +999,14 @@ for f in *_Phi.log
 do 
    let COUNTER++
    # make sure there are sufficient informative sites (polymorphisms) for the test to work
-   if [ ! $(echo $f | grep "Too few informative sites") ] # if exit status is not 0
+   if [ ! $(cat $f | grep '^Too few informative sites') ] # if exit status is not 0
    then 
        # if there are "Too few informative sites"; assign dummy, non significative values
        # and report this in the logfile!
        let COUNTER++
        norm=1
        perm=1
-       echo -e "$f\t$norm\t$perm"
+       echo -e "$f\t$norm\t$perm\tTOO_FEW_INFORMATIVE_SITES"
        nonInfoAln[$COUNTER]="$f"
    else
       perm=$(grep Permut $f|awk '{print $3}')
@@ -1028,6 +1030,17 @@ if [ ${#nonInfoAln[@]} -gt 0 ]
 then
   print_start_time && printf "${LRED} >>> Phi test WARNING: there ${#nonInfoAln[@]} alignments with too few informative sites for the Phi test to be work on ... ${NC} \n"|\
   tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+
+  # print the names of the alignments with too few informative sites for the Phi test to be work on
+  if [ "$VERBOSITY" -eq "1" -o  "$DEBUG" -eq "1" ]
+  then
+      printf "${LRED} >>> The alignments with too few informative sites for the Phi test to be work on are:${NC} \n"|\
+      tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+      for f in "${nonInfoAln[@]}"
+      do
+           printf "${LRED} >>> ${f}${NC}\n"| tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+      done
+  fi
 fi
 
 [ $no_non_recomb_alns_perm_test -lt 1 ] && print_start_time && printf "\n${LRED} >>> Warning: All alignments seem to have recombinant sequences. will exit now!${NC}\n\n"|\
@@ -1217,27 +1230,37 @@ tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && ex
 
         if [ "$search_thoroughness" == "high" ]
         then
-            FastTree -quiet -nt -gtr -bionj -slownni -gamma -mlacc 3 -spr $spr -sprlength $spr_length < concat_cdnAlns.fnainf > ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
+            FastTree -quiet -nt -gtr -bionj -slownni -gamma -mlacc 3 -spr $spr -sprlength $spr_length -log ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log < concat_cdnAlns.fnainf > ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
         fi
 
         if [ "$search_thoroughness" == "medium" ]
         then
-            FastTree -quiet -nt -gtr -bionj -slownni -gamma -mlacc 2 -spr $spr -sprlength $spr_length < concat_cdnAlns.fnainf > ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
+            FastTree -quiet -nt -gtr -bionj -slownni -gamma -mlacc 2 -spr $spr -sprlength $spr_length -log ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log < concat_cdnAlns.fnainf > ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
         fi
 
         if [ "$search_thoroughness" == "low" ]
         then
-            FastTree -quiet -nt -gtr -bionj -gamma -spr $spr -sprlength $spr_length < concat_cdnAlns.fnainf > ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
+            FastTree -quiet -nt -gtr -bionj -gamma -spr $spr -sprlength $spr_length -log ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log < concat_cdnAlns.fnainf > ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
         fi
 
         if [ "$search_thoroughness" == "lowest" ]
         then
-            FastTree -quiet -nt -gtr -gamma -mlnni 4 < concat_cdnAlns.fnainf > ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
+            FastTree -quiet -nt -gtr -gamma -mlnni 4 -log ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log < concat_cdnAlns.fnainf > ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
         fi
 
-        check_output ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph $parent_PID|tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+        check_output ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	
+	if [ -s "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log" -a -s "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph" ]
+	then
+	    lnL=$(grep ML_Lengths2 "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log" | grep TreeLogLk | sed 's/TreeLogLk[[:space:]]ML_Lengths2[[:space:]]//')
+	    printf "${GREEN} >>> lnL for ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph = $lnL ${NC}\n" |\
+	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	else
+	    printf "${LRED} >>> WARNING: ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log could not be produced!${NC}\n" |\
+	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	fi
     
-        print_start_time && printf "${BLUE}# Adding labels back to tree ...${NC}\n"|tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+        print_start_time && printf "${BLUE}# Adding labels back to tree ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
         [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph &> /dev/null"
         add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph &> /dev/null
 
@@ -1265,20 +1288,29 @@ tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && ex
              #$distrodir/convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null
 	     convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null
 	     
+	     # FIX the nexus file format produced by bioperl: (recent paup version error message provided below)
+	     # User-defined symbol 'A' conflicts with predefined DNA state symbol.
+             # If you are using a predefined format ('DNA', 'RNA', 'nucleotide', or 'protein'), 
+             # you may not specify predefined states for this format as symbols in  the Format command.
+	     for nexusf in *.nex
+	     do
+	       perl -pe 'if(/^format /){ s/symbols.*$/;/}' $nexusf > ed && mv ed $nexusf
+	     done
+	     
 	     print_start_time && printf "${BLUE}# Will test the molecular clock hypothesis for $no_top_markers top markers. This will take some time ...${NC}\n"|\
        	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
              #run_molecClock_test_jmodeltest2_paup.sh -R 1 -M $base_mod -t ph -e fasta -b molec_clock -q $q &> /dev/null
 	     
 	     
 	    # 2. >>> print table header and append results to it
-            no_dot_q=$(echo $q|sed 's/\.//' )
+            no_dot_q=$(echo $q | sed 's/\.//' )
             results_table=mol_clock_M${base_mod}G_r${rooting_method}_o${outgroup_OTU_nomol}_q${no_dot_q}_ClockTest.tab
              
             echo -e "#nexfile\tlnL_unconstr\tlnL_clock\tLRT\tX2_crit_val\tdf\tp-val\tmol_clock" > $results_table
 	    
 	     cmd="run_pexec_cmmds.sh nex 'run_parallel_molecClock_test_with_paup.sh -R 1 -f \$file -M $base_mod -t ph -b global_mol_clock -q $q' $n_cores"
 	     [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo "run_parallel_molecClock.cmd: $cmd"
-	     echo $cmd|bash &> /dev/null
+	     echo $cmd | bash &> /dev/null
 	     
 	     mol_clock_tab=$(ls *_ClockTest.tab)
 
@@ -1288,7 +1320,7 @@ tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && ex
 		tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	    
                # Paste filoinfo and clocklikeness tables
-               cut -f1 gene_trees2_concat_tree_RF_distances.tab|grep -v loci|sed 's/"//; s/"$/_/'  > list2grep.tmp
+               cut -f1 gene_trees2_concat_tree_RF_distances.tab | grep -v loci | sed 's/"//; s/"$/_/'  > list2grep.tmp
                head -1 "$mol_clock_tab" > header.tmp
            
 	       # sort lines in molecular clock output file according to order in gene_trees2_concat_tree_RF_distances.tab
@@ -1310,14 +1342,14 @@ tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && ex
 	    fi
 
 	 # 4. cleanup
-         tar -czf molClock_PAUP_files.tgz *_paup.block *.nex  *_clockTest.log *tre *clock.scores *critical_X2_val.R
+         tar -czf molClock_PAUP_files.tgz *_paup.block *.nex  *_clockTest.log *tre *clock.scores *critical_X2_val.R $mol_clock_tab ${mol_clock_tab}sorted mol_clock_MGTRG_r_o_q099_ClockTest.ta*
          [ -s molClock_PAUP_files.tgz ] && rm *_paup.block *.nex  *_clockTest.log *tre *clock.scores *critical_X2_val.R
-         rm list2concat Rplots.pdf header.tmp list2grep.tmp concat_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
+         [ "$DEBUG" -eq "0" ] && rm list2concat Rplots.pdf header.tmp list2grep.tmp concat_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
 
 	 tar -czf concatenated_alignment_files.tgz concat_cdnAlns.fna concat_cdnAlns.fnainf 
          [ -s concatenated_alignment_files.tgz ] && rm concat_cdnAlns.fna concat_cdnAlns.fnainf 
-	 rm mol_clock_MGTRG_r_o_q099_ClockTest.ta* gene_trees2_concat_tree_RF_distances.tab
-	 rm ../Rplots.pdf ../sorted*perc.tab sorted_aggregated_*tab ../all_*trees.tre
+	 [ "$DEBUG" -eq "0" ] && rm mol_clock_MGTRG_r_o_q099_ClockTest.ta* gene_trees2_concat_tree_RF_distances.tab
+	 [ "$DEBUG" -eq "0" ] && rm ../Rplots.pdf ../sorted*perc.tab sorted_aggregated_*tab ../all_*trees.tre
 
         cd $top_dir
 	tar -czf codon_alignments.tgz *_cdnAln.fasta
@@ -1527,25 +1559,35 @@ then
     
     if [ "$search_thoroughness" == "high" ]
     then
-        FastTree -quiet -lg -bionj -slownni -gamma -mlacc 3 -spr $spr -sprlength $spr_length < concat_protAlns.faainf > ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph
+        FastTree -quiet -lg -bionj -slownni -gamma -mlacc 3 -spr $spr -sprlength $spr_length -log ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.log < concat_protAlns.faainf > ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph
     fi
 
     if [ "$search_thoroughness" == "medium" ]
     then
-        FastTree -quiet -lg -bionj -slownni -gamma -mlacc 2 -spr $spr -sprlength $spr_length < concat_protAlns.faainf > ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph
+        FastTree -quiet -lg -bionj -slownni -gamma -mlacc 2 -spr $spr -sprlength $spr_length -log ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.log < concat_protAlns.faainf > ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph
     fi
 
     if [ "$search_thoroughness" == "low" ]
     then
-        FastTree -quiet -lg -bionj -gamma -spr $spr -sprlength $spr_length < concat_protAlns.faainf > ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph
+        FastTree -quiet -lg -bionj -gamma -spr $spr -sprlength $spr_length -log ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.log < concat_protAlns.faainf > ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph
     fi
 
     if [ "$search_thoroughness" == "lowest" ]
     then
-        FastTree -quiet -lg -gamma -mlnni 4 < concat_protAlns.faainf > ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph
+        FastTree -quiet -lg -gamma -mlnni 4 -log ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.log < concat_protAlns.faainf > ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph
     fi
 
-    check_output ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph $parent_PID|tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+    check_output ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+    
+    
+   if [ -s "${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.log" -a -s "${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph" ]
+   then
+       lnL=$(grep ML_Lengths2 "${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.log" | grep TreeLogLk | sed 's/TreeLogLk[[:space:]]ML_Lengths2[[:space:]]//')
+       printf "${GREEN} >>> lnL for ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph = $lnL ${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+   else
+       printf "${LRED} >>> WARNING: ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.log could not be produced!${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+   fi
+
     
     print_start_time && printf "${BLUE}# Adding labels back to tree ...${NC}\n"|tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
     [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph &> /dev/null"
@@ -1555,7 +1597,7 @@ then
     mv ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG_ed.ph ${tree_prefix}_${no_top_markers}nonRecomb_KdeFilt_protAlns_FTlgG.spTree
     [ -s ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG_ed.ph ] && rm ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph
     
-    check_output ${tree_prefix}_${no_top_markers}nonRecomb_KdeFilt_protAlns_FTlgG.spTree $parent_PID|tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+    check_output ${tree_prefix}_${no_top_markers}nonRecomb_KdeFilt_protAlns_FTlgG.spTree $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
      
     printf "${GREEN} >>> found in dir $wkdir ...${NC}\n\n"|tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
     
@@ -1566,13 +1608,13 @@ then
     compute_suppValStas_and_RF-dist.R $wkdir 2 faaln ph 1 &> /dev/null
     
    # 6. cleanup
-   rm list2concat Rplots.pdf sorted*perc.tab concat_nonRecomb_KdeFilt_protAlns_FT*.ph
+   [ "$DEBUG" -eq "0" ] && rm list2concat Rplots.pdf sorted*perc.tab concat_nonRecomb_KdeFilt_protAlns_FT*.ph
    
    # rm *allFT*.ph *faaln
 
    tar -czf concatenated_alignment_files.tgz concat_protAlns.faa concat_protAlns.faainf
    [ -s concatenated_alignment_files.tgz ] && rm concat_protAlns.faa concat_protAlns.faainf
-   rm  ../Rplots.pdf ../all_FT*trees.tre ../sorted*perc.tab sorted_aggregated_*tab
+   [ "$DEBUG" -eq "0" ] && rm  ../Rplots.pdf ../all_FT*trees.tre ../sorted*perc.tab sorted_aggregated_*tab
 
    cd $top_dir
    tar -czf codon_alignments.tgz *_cdnAln.fasta

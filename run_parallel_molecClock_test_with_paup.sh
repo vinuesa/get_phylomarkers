@@ -214,7 +214,7 @@ function run_X2_stats()
     # qchisq(0.95, df); 
     # rechazamos H0 si X2 observada > valor critico
     # La p la calculamos asi: 1 - pchisq(X2,df)
-       # $nex_basename $q $df $lnL_unconstr $lnL_clock
+       # $nex_basename $q $df $lnL_unconstr $lnL_clock 
        nex_basename=$1
        q=$2
        df=$3
@@ -227,7 +227,7 @@ function run_X2_stats()
  
        R --no-save -q <<RCMD &> ${nex_basename}_compute_critical_X2_val.R
 
-       LRT <- 2*($lnL_unconstr - $lnL_clock)
+       LRT <- 2 * ($lnL_unconstr - $lnL_clock)
        
        sink(file="$LRT_file")
        print(LRT)
@@ -375,7 +375,7 @@ PAUPBLOCK
 fi
    
    # remove the symbols statement from PAUP's data block, as it seems to conflict with predefined DNA state symbol
-   perl -pe 'if(/^format /){ s/\h+symbols=.*?;/;/}' $nexus > ${nexus}ed && mv ${nexus}ed $nexus
+   perl -pe 'if(/^format /){ s/\h+symbols=.*$/;/}' $nexus > ${nexus}ed && mv ${nexus}ed $nexus
    [ $DEBUG -eq 1 ] && head $nexus
 
    # 2. run paup* with the file-specific cmd file
@@ -399,7 +399,7 @@ fi
    
    # 3. run R for the ChiSQ stats
    [ $DEBUG -eq 1 ] && echo "# running: run_X2_stats $nex_basename $q $df $lnL_unconstr $lnL_clock"
-   run_X2_stats $nex_basename $q $df $lnL_unconstr $lnL_clock
+   run_X2_stats "$nex_basename" "$q" "$df" "$lnL_unconstr" "$lnL_clock"
 
    critical_X2_val=$(cat ${nex_basename}_critical_X2_val.txt)
    p_val=$(cat ${nex_basename}_p_ChiSq_test_val.txt)
@@ -479,7 +479,7 @@ function print_help()
  
  NOTES:
       1) qchisq(0.95, df);  H0 is rejected if X2 observed > critical value. df = no_tax -2
-         The p-value is computed liake so: 1 - pchisq(X2,df)
+         The p-value is computed like so: 1 - pchisq(X2,df)
 
  TODO:
      *  The logic of run_paup_clock_test() is not good, as it runs the for loop within the function;
@@ -695,7 +695,7 @@ echo
    run_paup_clock_test_with_user_tree $nex_file $nextree $base_mod $results_table $rooting_method $outgroup_OTU_no
  
    # 5) cleanup and compress intermediary files
-   [ -s ${nex_basename}_critical_X2_val.txt ] &&  rm ${nex_basename}_critical_X2_val.txt
+   [ -s ${nex_basename}_critical_X2_val.txt ] && rm ${nex_basename}_critical_X2_val.txt
    [ -s ${nex_basename}_LRT.txt ] && rm ${nex_basename}_LRT.txt
    [ -s ${nex_basename}_p_ChiSq_test_val.txt ] && rm ${nex_basename}_p_ChiSq_test_val.txt  	 
 
