@@ -117,22 +117,19 @@ calls of FastTree on codon alignments. The gene trees are computed with high acc
       
      	-nt -gtr -gamma -bionj -slownni -mlacc 3 -spr 8 -sprlength 8 
      	
-      For concatenated codon alignments, which may take a considerable time (up to several hours)
-      for large datasets (~ 100 taxa and > 300 concatenated genes) the user can choose to run 
-      FastTree with at different **levels of tree-search thoroughness**: high|medium|low|lowest 
+For concatenated codon alignments, which may take a considerable time (up to several hours) or
+for large datasets (~ 100 taxa and > 300 concatenated genes) the user can choose to run FastTree with at different **levels of tree-search thoroughness**: high|medium|low|lowest 
       
       high:   -nt -gtr -bionj -slownni -gamma -mlacc 3 -spr 4 -sprlength 8
       medium: -nt -gtr -bionj -slownni -gamma -mlacc 2 -spr 4 -sprlength 8 
       low:    -nt -gtr -bionj -slownni -gamma -spr 4 -sprlength 8 
       lowest: -nt -gtr -gamma -mlnni 4
       
-      where -s $spr and -l $spr_length can be set by the user. 
-      The lines above show their default values.
+where -s $spr and -l $spr_length can be set by the user. The lines above show their default values.
       
-      For protein alignments, the search parameters are the same, only the model changes to lg
+For protein alignments, the search parameters are the same, only the model changes to lg
       
       high: -lg -bionj -slownni -gamma -mlacc 3 -spr 4 -sprlength 8
-      ...
       
 Please refer to the FastTree manual for the details.
       
