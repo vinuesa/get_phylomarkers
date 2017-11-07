@@ -922,6 +922,7 @@ run_pexec_cmmds.sh fnaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &>
 no_alns=$(ls *.fnaedno|wc -l)
 
 [ $no_alns -eq 0 ] && printf "\n${RED} >>> ERROR: There are no codon alignments to work on! Something went wrong. Please check input and settings ...${NC}\n" && exit 4
+print_start_time && printf "${BLUE}# Total number of alignments to be computed $no_alns ${NC}\n"
 
 # 1.3 generate a tree_labels.list file for later tree labeling
 print_start_time && printf "${BLUE}# generating the labels file for tree-labeling ...${NC}\n"|tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
@@ -930,7 +931,6 @@ grep '>' $(ls *fnaedno|head -1) > tree_labels.list
 
 [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > perl -pe '$c++; s/>/$c\t/; s/\h\[/_[/' tree_labels.list > ed && mv ed tree_labels.list"
 perl -pe '$c++; s/>/$c\t/; s/\h\[/_[/' tree_labels.list > ed && mv ed tree_labels.list
-
 
 #------------------------------------------------------------------------------------------------
 #>>>BLOCK 2. Generate cdnAlns with with pal2nal, maintaining the input-order of the source fastas
