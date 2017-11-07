@@ -13,7 +13,8 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.9.5_7Nov17' # v1.9.5_7Nov17: prints a logfile for FastTree runs and captures the lnL value of the corresponding tree; 
+VERSION='1.9.5_8Nov17' # v1.9.5_8Nov17: the number of sequences in input FASTA files is checked upfront
+                       # v1.9.5_7Nov17: prints a logfile for FastTree runs and captures the lnL value of the corresponding tree; 
                        #                more detailed info reported on alignments with too few informative sites for the Phi test to be work on
                        # v1.9.4_6Nov17: added error checking for Phi run when sequences lack enough polymorphism for the test to work
                        # v1.9.3_10Oct17: improved error message when kdetrees fail
