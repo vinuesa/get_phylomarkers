@@ -9,9 +9,9 @@ at [CCG-UNAM, Mexico](http://www.ccg.unam.mx/) and
 [Bruno Contreras-Moreira](https://digital.csic.es/cris/rp/rp02661/) 
  at [EEAD-CSIC, Spain](http://www.eead.csic.es/). It is released to the public domain under the GNU GPLv3 [license](./LICENSE).
  
-## Installation
+## Installation & dependencies
 
-For installation instructions please check [INSTALL.md](INSTALL.md).
+For installation instructions and dependencies please check [INSTALL.md](INSTALL.md).
 
 ## Aim
 The pipeline selects markers with optimal phylogenetic attributes from the homologous gene 
