@@ -635,7 +635,7 @@ function print_help()
      -l <integer> max. spr length (7-12 are reasonable values)                                     [default: $spr_length]
      -m <real> min. average support value (0.7-0.8 are reasonable values) for trees to be selected [default: $min_supp_val]
      -M <string> base Model for clock test (use one of: GTR|TrN|HKY|K2P|F81); uses +G in all cases [default: $base_mod]
-     -n <integer> number of cores to use                                                           [default: all cores]
+     -n <integer> number of cores/threads to use                                                   [default: all cores]
      -q <real> quantile (0.95|0.99) of Chi-square distribution for computing molec. clock p-value  [default: $q]
      -r <string> root method (midpoint|outgroup)                                                   [default: $root_method]
      -s <integer> number of spr rounds (4-20 are reasonable values) for FastTree tree searching    [default: $spr]
