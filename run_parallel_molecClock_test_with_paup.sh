@@ -16,7 +16,7 @@
 
 progname=$(basename "$0")
 VERSION='0.8_29May17' # v0.9_11Nov17: fixed signs of ln_unconstrained and ln_clock (adding back - signs to values captured by regex)
-                      #               in run_paup_clock_test_with_user_tree
+                      #               in run_paup_clock_test_with_user_tree; now correctly displayed on clock test table
                       # v0.8_29May17: improved the regex to remove the symbol=""; part, which worked on Linux but not on MacOSX
                       # v0.7_25May17 1. added code to remove the symbols statement from PAUP's data block, 
                       #     as it seems to conflict with predefined DNA state symbol (on buluc!)
@@ -229,7 +229,7 @@ function run_X2_stats()
  
        R --no-save -q <<RCMD &> ${nex_basename}_compute_critical_X2_val.R
 
-       LRT <- 2 * ($lnL_unconstr - $lnL_clock)
+       LRT <- 2 * (${lnL_unconstr} - ${lnL_clock})
        
        sink(file="$LRT_file")
        print(LRT)
@@ -366,7 +366,7 @@ begin paup;
 
   roottrees rootmethod=midpoint;
   lset clock=yes $lset_line2;
-  lsc /scorefile=$scorefile_constr replace=yes; 
+  lsc /scorefile=$scorefile_constr replace=yes;
   tstatus;
   log stop;
   end;
@@ -385,13 +385,11 @@ fi
    cat $paupcmdfile | paup -n $nexus &> /dev/null
    
    # get the lnL values for the unconstrained and constrained trees: watch out the specific regexes
-   lnL_unconstr=$(egrep -A 3 '^Tree' $logfile | egrep '^-ln' | head -1 | perl -pe 's/-ln L\s+//' )
-   lnL_unconstr=-${lnL_unconstr} # add minus sign back to lnL
-   lnL_clock=$(egrep -A 3 '^Tree' $logfile | egrep '^-ln' | tail -1 | perl -pe 's/-ln L\s+//')
-   lnL_clock=-${lnL_clock} # add minus sign back to lnL
+   lnL_unconstr=$(tail -1 "$scorefile_unconstr" |  awk '{printf "%.8f%.0d\n", $2 * -1, 0}') # add minus sign back to lnL
+   lnL_clock=$(tail -1 "$scorefile_constr" |  awk '{printf "%.8f%.0d\n", $2 * -1, 0}')      # add minus sign back to lnL
    # see: https://www.shell-tips.com/2010/06/14/performing-math-calculation-in-bash/
    #ChiSq=$(echo "2*($lnL_unconstr - $lnL_clock)" | bc)
-   #ChiSqRound=$(echo $ChiSq | cut -d\. -f1 )
+   #ChiSqRound=$(echo $ChiSq | cut -d\. -f1 ) $(echo "$p*$h+2" | bc -l) # kw=$(bc <<< -2^63)
    
    if [ $CHECK_NO_SEQS_IN_NEXUS -eq 1 ]
    then
@@ -449,12 +447,12 @@ function print_help()
       -k check number of sequences in fasta                                           [flag, def $CHECK_NO_SEQS_IN_NEXUS]
 
  IIb) OPTIONAL arguments for running jmodeltest2 
-      -g no. of categories to discretizize the gamma distribution                    [def $no_cat]
-      -I run also models with prop. inv. sites                                       [flag, def $pInv]
+      -g no. of categories to discretizize the gamma distribution                     [def $no_cat]
+      -I run also models with prop. inv. sites                                        [flag, def $pInv]
          (jmodeltest is called with -f -g 4 to use also uneq_freq and +G models
 	  Only -I is ignored by default; can be added with -I)
-      -s no. of substitution schemes for jmodeltest2 <3,5,7,11,203>              [default $no_subst_schemes]
-      -S search algorithm <NNI, SPR, BEST>                                       [default $search_alg]
+      -s no. of substitution schemes for jmodeltest2 <3,5,7,11,203>                   [default $no_subst_schemes]
+      -S search algorithm <NNI, SPR, BEST>                                            [default $search_alg]
         
  EXAMPLE invocation lines
     1) standard run:
