@@ -13,7 +13,8 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.9.6.1_11Nov17' # 1.9.6.2_11Nov17: all DEBUG|VERBOSE messages written to logfile
+VERSION='1.9.6.3_11Nov17' # 1.9.6.3_11Nov17: added -R${runmode} to dir_suffix
+                        # 1.9.6.2_11Nov17: all DEBUG|VERBOSE messages written to logfile
                        # v1.9.6_11nov17: fixed code that writes Phi-test results to Phi_results_11nov17.tsv; 
                        #                 prints the Warning: will remove file* because it has < 5 branches! to log file (no only STDOUT)
                        # v1.9.5_8Nov17: the number of sequences in input FASTA files is checked upfront
@@ -864,7 +865,7 @@ parent_PID=$(get_script_PID $progname)
 
 logdir=$(pwd)
 
-dir_suffix=t${mol_type}_k${kde_stringency}_m${min_supp_val}_s${spr}_l${spr_length}_T${search_thoroughness}
+dir_suffix=R${runmode}t${mol_type}_k${kde_stringency}_m${min_supp_val}_s${spr}_l${spr_length}_T${search_thoroughness}
 
 printf "
  ${CYAN}>>> $(basename $0) vers. $VERSION run with the following parameters:${NC}
@@ -1237,8 +1238,7 @@ then
         ln -s ../$top_markers_tab .
         for base in $(awk '{print $1}' $top_markers_tab|grep -v loci|sed 's/"//g'); do ln -s ../${base}* .; done
    
-        [ $no_top_markers -lt 2 ] && print_start_time && printf "\n${LRED} >>> Warning: There are less than 2 top markers. Relax your filtering thresholds. will exit now!${NC}\n\n" | \
-	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && exit 3
+        [ $no_top_markers -lt 2 ] && print_start_time && printf "\n${LRED} >>> Warning: There are less than 2 top markers. Relax your filtering thresholds. will exit now!${NC}\n\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && exit 3
 
 
         # 4.7 generate supermatrix (concatenated alignment) 
@@ -1315,6 +1315,9 @@ then
 	[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > compute_suppValStas_and_RF-dist.R $top_markers_dir 2 fasta ph 1 &> /dev/null" | \
 	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
         compute_suppValStas_and_RF-dist.R $top_markers_dir 2 fasta ph 1 &> /dev/null
+	
+	# top100_median_support_values4loci.tab should probably not be written in the first instance
+	[ -s top100_median_support_values4loci.tab -a "${no_top_markers}" -lt 101 ] && rm top100_median_support_values4loci.tab
     
         # NOTE: after v0.9 this process is prallelized with run_pexec_cmmds.sh
 	if [ $eval_clock -gt 0 ]
@@ -1509,7 +1512,8 @@ then
     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
     cat *_allFTlgG.ph > all_FTlgG_trees.tre
     check_output all_FTlgG_trees.tre "$parent_PID" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-
+    [ ! -s all_FTlgG_trees.tre ] && exit 5
+    
     # 5.2 run_kdetrees.R at desired stringency 
     print_start_time && printf "${BLUE}# running kde test ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
     [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > run_kdetrees.R ph all_FTlgG_trees.tre $kde_stringency &> /dev/null" | \
@@ -1521,7 +1525,7 @@ then
     no_kde_outliers=$(grep -c outlier kde_dfr_file_all_FTlgG_trees.tre.tab)
     no_kde_ok=$(grep -vc outlier kde_dfr_file_all_FTlgG_trees.tre.tab)
 
-    if [ $no_kde_outliers -gt 0 ]
+    if [ "$no_kde_outliers" -gt "0" ]
     then
         print_start_time && printf "${BLUE}# making dir kde_outliers/ and moving $no_kde_outliers outlier files into it ...${NC}\n" | \
 	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
