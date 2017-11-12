@@ -13,8 +13,10 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.9.6.3_11Nov17' # 1.9.6.3_11Nov17: added -R${runmode} to dir_suffix
-                        # 1.9.6.2_11Nov17: all DEBUG|VERBOSE messages written to logfile
+VERSION='1.9.6.4_12Nov17' # 1.9.6.4_12Nov17: prints total number of trees with < 1 internal branches; 
+                          #       corrected regex so that all trees and alns with < 1 int br are removed (do not pass to downstream analyses)
+                       # 1.9.6.3_11Nov17:added -R${runmode} to dir_suffix
+                       # 1.9.6.2_11Nov17: all DEBUG|VERBOSE messages written to logfile
                        # v1.9.6_11nov17: fixed code that writes Phi-test results to Phi_results_11nov17.tsv; 
                        #                 prints the Warning: will remove file* because it has < 5 branches! to log file (no only STDOUT)
                        # v1.9.5_8Nov17: the number of sequences in input FASTA files is checked upfront
@@ -451,7 +453,7 @@ function count_tree_branches()
 
    [ $DEBUG -eq 1 ] && echo "# running count_tree_branches $ext $outfile"
     
-   R --no-save --quiet <<RCMD 
+   R --no-save --quiet <<RCMD &> /dev/null
   
    local_lib <- c("$distrodir/lib/R")
    distrodir <- c("$distrodir")
@@ -471,6 +473,8 @@ function count_tree_branches()
    trees <- list.files(pattern = "$ext\$")
    sink("$outfile")
    cat("#Tree","\t", "n_leaf_lab", "\t", "n_zero_len_br" , "\t", "n_nodes", "\t", "n_br", "\t", "n_int_br", "\t", "n_ext_br", "\t", "is_binary_tree", "\n")
+
+   no_int_br_counter <- 0
 
    for( i in 1:length(trees)){
       tr <- read.tree(trees[i])
@@ -496,9 +500,14 @@ function count_tree_branches()
       # taking into account the real num of branches, after removing those with zelo length 
       no_ext_branches <- floor((no_branches + 3) / 2) # floor() in case there is no real internal branch, we get -0.5
       no_int_branches <- ceiling(no_branches - no_ext_branches) # ceiling() in case there is no real internal branch, we get -0.5
+      if ( no_int_branches < 1 ) no_int_br_counter <- no_int_br_counter + 1
       cat(trees[i], "\t", Ntips, "\t", n_zero_length_branches, "\t", Nnodes, "\t", no_branches, "\t", no_int_branches, "\t", no_ext_branches, "\t", is_binary_tree, "\n")
-   }
+    }
    sink()
+   
+   # return this number from function to print in main script
+   cat(no_int_br_counter)
+   
 RCMD
 
 #check_output $outfile 
@@ -1136,7 +1145,7 @@ then
     [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > count_tree_branches ph no_tree_branches.list &> /dev/null" | \
     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
-    count_tree_branches ph no_tree_branches.list &> /dev/null
+    count_tree_branches ph no_tree_branches.list # &> /dev/null
     [ ! -s no_tree_branches.list ] && install_Rlibs_msg no_tree_branches.list ape
 
     check_output no_tree_branches.list $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
@@ -1144,14 +1153,19 @@ then
     # remove trees with < 5 external branches (leaves)
      [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " >  removing trees with < 5 external branches (leaves)" | \
      tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-    for phy in $(grep -v '^#Tree' no_tree_branches.list | awk -v min_no_ext_branches=$min_no_ext_branches 'BEGIN{FS="\t"; OFS="\t"}$7 < min_no_ext_branches'|cut -f1)
+    
+    no_tree_counter=0
+    for phy in $(grep -v '^#Tree' no_tree_branches.list | awk -v min_no_ext_branches=$min_no_ext_branches 'BEGIN{FS="\t"; OFS="\t"}$7 < min_no_ext_branches' |cut -f1)
     do
-         base=$(echo $phy|sed 's/_allFTlgG\.ph//')
+         base=$(echo $phy | sed 's/_allFT.*ph//')
 	 print_start_time && printf "${LRED} >>> will remove ${base}* because it has < 5 branches!${NC}\n" | \
 	 tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log 
 	 rm ${base}*
+	 let no_tree_counter++
     done
 
+    printf "${LRED} >>> WARNING: there are $no_tree_counter trees with < 1 internal branches (no real trees) that will be discarded ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+    
     # 4.1 generate the all_GTRG_trees.tre holding all source trees, which is required by kdetrees
     #     Make a check for the existence of the file to interrupt the pipeline if something has gone wrong
     [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > cat *allFTGTRG.ph > all_GTRG_trees.tre" | \
@@ -1419,8 +1433,8 @@ then
 	
 
 	ln -s ../*fasta .
-	no_top_markers=$(ls *fasta|wc -l)
-	tmpf=$(ls -1 *fasta|head -1)
+	no_top_markers=$(ls *fasta | wc -l)
+	tmpf=$(ls -1 *fasta | head -1)
 	no_seqs=$(grep -c '>' $tmpf)
 	[ $DEBUG -eq 1 ] && echo "no_seqs:$no_seqs"  | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
@@ -1451,9 +1465,9 @@ then
 	#$distrodir/popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u &> popGen_summStats_hs100.log
 	popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u &> popGen_summStats_hs100.log
 	
-	check_output polymorphism_descript_stats.tab $parent_PID
+	check_output polymorphism_descript_stats.tab $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	
-	printf "${GREEN} >>> descriptive DNA polymorphism stats are found in:\n$popGen_dir ...${NC}\n\n"| \
+	printf "${GREEN} >>> descriptive DNA polymorphism stats are found in:\n$popGen_dir ...${NC}\n\n" | \
 	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	
 	
@@ -1465,8 +1479,6 @@ then
 	
         tar -czf codon_alignments.tgz *_cdnAln.fasta
         [ -s codon_alignments.tgz ] && rm *_cdnAln.fasta
-        tar -czf protein_alignments.tgz *.faaln
-        [ -s protein_alignments.tgz ] && rm *.faaln
 	
     fi
 fi # if [ "$mol_type" == "DNA"    
@@ -1492,7 +1504,7 @@ then
     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
     [ "$DEBUG" -eq 1 -o "$VERBOSITY" -eq 1 ] && echo " > count_tree_branches ph no_tree_branches.list &> /dev/null"  | \
     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-    count_tree_branches ph no_tree_branches.list &> /dev/null
+    count_tree_branches ph no_tree_branches.list #&> /dev/null
    
     check_output no_tree_branches.list "$parent_PID" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
     
