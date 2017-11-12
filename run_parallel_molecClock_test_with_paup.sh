@@ -15,7 +15,9 @@
 #--------------------------------------------------------------------------
 
 progname=$(basename "$0")
-VERSION='0.8_29May17' # v0.8_29May1: improved the regex to remove the symbol=""; part, which worked on Linux but not on MacOSX
+VERSION='0.8_29May17' # v0.9_11Nov17: fixed signs of ln_unconstrained and ln_clock (adding back - signs to values captured by regex)
+                      #               in run_paup_clock_test_with_user_tree
+                      # v0.8_29May17: improved the regex to remove the symbol=""; part, which worked on Linux but not on MacOSX
                       # v0.7_25May17 1. added code to remove the symbols statement from PAUP's data block, 
                       #     as it seems to conflict with predefined DNA state symbol (on buluc!)
 		      #     2. fixed regexes in run_paup_clock_test_with_user_tree that capture the -lnL values
@@ -384,8 +386,9 @@ fi
    
    # get the lnL values for the unconstrained and constrained trees: watch out the specific regexes
    lnL_unconstr=$(egrep -A 3 '^Tree' $logfile | egrep '^-ln' | head -1 | perl -pe 's/-ln L\s+//' )
+   lnL_unconstr=-${lnL_unconstr} # add minus sign back to lnL
    lnL_clock=$(egrep -A 3 '^Tree' $logfile | egrep '^-ln' | tail -1 | perl -pe 's/-ln L\s+//')
-   
+   lnL_clock=-${lnL_clock} # add minus sign back to lnL
    # see: https://www.shell-tips.com/2010/06/14/performing-math-calculation-in-bash/
    #ChiSq=$(echo "2*($lnL_unconstr - $lnL_clock)" | bc)
    #ChiSqRound=$(echo $ChiSq | cut -d\. -f1 )
