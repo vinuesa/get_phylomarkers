@@ -8,8 +8,8 @@ my $VERBOSE = 0;
 my $parallelEXE = `which parallel`;
 if($parallelEXE eq ''){ 
 	print "# ERROR: parallel not in place!\n";
-	print "# ... you will need to install \"parallel\" first or include it in \$PATH";
-   print "# ... exiting";
+	print "# ... you will need to install \"parallel\" first or include it in \$PATH\n";
+   print "# ... exiting\n";
    exit(1)
 }
 elsif(!$ARGV[1]){
@@ -48,7 +48,14 @@ else{
 }
 
 warn "# $command" if($VERBOSE);
-print `$command`;
+open(RUN,"$command |") || die "# cannot run $command\n";
+while(<RUN>){
+	if(/Thread creation failed/){
+		print "\n >>> ERROR: This system cannot launch so many threads, please use option -n and re-run ...\n";
+		exit(3);
+	}
+}
+close(RUN);
 
 print "\ndone processing $total_files files ...\n";
-exit(3);
+exit(4);
