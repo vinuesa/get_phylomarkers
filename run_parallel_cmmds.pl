@@ -3,6 +3,11 @@
 # AUTHORS: Bruno Contreras Moreira, Pablo Vinuesa 
 # AIM: run commands in parallel to process multiple files using GNU parallel
 
+# added --gnu flag after invoking parallel
+# run_parallel_cmmds.pl faaed "add_nos2fasta_header.pl $file > ${file}no" 20
+# parallel: Error: --tollef has been retired.
+# parallel: Error: Remove --tollef or use --gnu to override --tollef.
+
 my $VERBOSE = 0; 
 
 my $parallelEXE = `which parallel`;
@@ -41,10 +46,10 @@ $command =~ s/\%([\.\-\_\w]+)/=s\/$1\/\/=/g;
 
 if($ARGV[2] && $ARGV[2] > 0){ 
 	my $n_of_cores = $ARGV[2];
-	$command = "ls -1 *$ext | parallel -j $n_of_cores \"$command\"";
+	$command = "ls -1 *$ext | parallel --gnu -j $n_of_cores \"$command\"";
 }
 else{
-	$command = "ls -1 *$ext | parallel \"$command\"";
+	$command = "ls -1 *$ext | parallel --gnu \"$command\"";
 }
 
 warn "# $command" if($VERBOSE);
