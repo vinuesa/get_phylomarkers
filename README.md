@@ -143,7 +143,7 @@ Pablo Vinuesa and Bruno Contreras-Moreira 2017. Get_PhyloMarkers, a pipeline to 
 ## Acknowledgements
 
 ### Personal
-We  thank  Romualdo  Zayas,  Víctor  del  Moral,  and  Alfredo  J. Hernández at CCG-UNAM for technical support.
+We thank Romualdo Zayas, Víctor del Moral and Alfredo J. Hernández at CCG-UNAM for technical support.
 
 ### Funding
 We gratefully acknowledge the funding provided by [DGAPA-PAPIIT/UNAM](http://dgapa.unam.mx/index.php/impulso-a-la-investigacion/papiit) (grants IN201806-2 and IN211814) and [CONACyT-Mexico](http://www.conacyt.mx/) (grants P1-60071 and 179133) to [Pablo Vinuesa](http://www.ccg.unam.mx/~vinuesa/), as well as the Fundación ARAID, and Consejo  Superior  de Investigaciones Científicas (grant 200720I038) to [Bruno Conteras-Moreira](http://161.111.227.80/compbio/staff/bruno_contreras_moreira.html).
