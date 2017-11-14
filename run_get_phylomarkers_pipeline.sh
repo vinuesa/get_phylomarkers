@@ -962,7 +962,7 @@ perl -pe '$c++; s/>/$c\t/; s/\h\[/_[/' tree_labels.list > ed && mv ed tree_label
 print_start_time &&  printf "${BLUE}# generating $no_alns codon alignments ...${NC}\n"|tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > 'run_parallel_cmmds.pl faaedno clustalo -i $file -o ${file%.*}_cluo.faaln --output-order input-order' $n_cores &> /dev/null" | \
 tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-run_parallel_cmmds.pl faaedno 'clustalo -i $file -o ${file%.*}_cluo.faaln --output-order input-order' $n_cores &> /dev/null
+run_parallel_cmmds.pl faaedno 'clustalo -i $file -o ${file%.*}_cluo.faaln --output-order input-order' $n_cores &> clustalo.log
 
 # 2.2 generate the codon alignments (files with *_cdnAln.fasta extension) using pal2nal.pl, 
 #     excluding gaps, and mismatched codons, assuming a bacterial genetic code
