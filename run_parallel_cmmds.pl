@@ -51,7 +51,7 @@ warn "# $command" if($VERBOSE);
 open(RUN,"$command |") || die "# cannot run $command\n";
 while(<RUN>){
 	if(/Thread creation failed/){
-		print "\n >>> ERROR: This system cannot launch so many threads, please use option -n and re-run ...\n";
+		print "\n >>> ERROR: Thread creation failed, stop ...\n";
 		exit(3);
 	}
 }
