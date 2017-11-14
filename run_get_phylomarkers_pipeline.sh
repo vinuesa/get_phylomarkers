@@ -964,6 +964,11 @@ print_start_time &&  printf "${BLUE}# generating $no_alns codon alignments ...${
 tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 run_parallel_cmmds.pl faaedno 'clustalo -i $file -o ${file%.*}_cluo.faaln --output-order input-order' $n_cores &> clustalo.log
 
+if grep -q "Thread creation failed" clustalo.log; then
+	printf "\n${RED} >>> ERROR: This system cannot accept so many threads, please use -n  ...${NC}\n" 
+fi
+
+
 # 2.2 generate the codon alignments (files with *_cdnAln.fasta extension) using pal2nal.pl, 
 #     excluding gaps, and mismatched codons, assuming a bacterial genetic code
 #for file in *faaln
