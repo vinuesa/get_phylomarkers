@@ -14,11 +14,12 @@ cd clustal-omega-1.2.4
 make
 cd ..
 
-# pexec-1.0rc8
+# parallel
 
-cd pexec-1.0rc8
+cd parallel-20171022
 ./configure
-make cd ..
+make
+cd ..
 
 # PhiPack
 
