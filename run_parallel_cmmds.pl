@@ -48,7 +48,7 @@ else{
 }
 
 warn "# $command" if($VERBOSE);
-system("$command");
+print `$command`;
 
 print "\ndone processing $total_files files ...\n";
 exit(3);
