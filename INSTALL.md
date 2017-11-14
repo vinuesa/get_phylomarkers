@@ -49,10 +49,10 @@ All scripts display usage instructions and describe their aims.
 ### Bash scripts
 
 * run_get_phylomarkers_pipeline.sh (the main script to run the pipeline)
-* run_pexec_cmmds.sh 
 * run_parallel_molecClock_test_with_paup.sh
 
 ### Perl scripts
+* run_parallel_cmmds.pl
 * add_labels2tree.pl 
 * add_nos2fasta_header.pl 
 * concat_alignments.pl 
@@ -100,9 +100,10 @@ NOTES:
 3. It is strongly recommended, howerver, that the user downloads the latest versions of the binaries from the links provided below. This is particularly important for [paup*](https://people.sc.fsu.edu/~dswofford/paup_test/), since the current version is a test version that automatically expires every 6 months:
 
 * [clustal omega](http://www.clustal.org/omega/). Multiple sequence alignment software. [Sievers et al. 2011](http://msb.embopress.org/content/7/1/539.long). On Ubuntu try: 'sudo apt-get install clustalo'
-* [pexec](https://www.gnu.org/software/pexec/). Execute processes in parallel on multicore machines. On Ubuntu try: 'sudo apt-get install pexec'
+* [parallel](https://www.gnu.org/software/parallel/). Executes processes in parallel on multicore machines. On Ubuntu try: 'sudo apt-get install parallel'
+<!--* [pexec](https://www.gnu.org/software/pexec/). Execute processes in parallel on multicore machines. On Ubuntu try: 'sudo apt-get install pexec'-->
 * [Phi test](https://www.maths.otago.ac.nz/~dbryant/software/PhiPack.tar.gz). Recombination test software. [Bruen et al. 2006](http://www.genetics.org/content/172/4/2665.long)
 * [FastTree](http://microbesonline.org/fasttree/). Fast maximum-likelihood tree searching program. [Price et al. 2010](http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0009490). On Ubuntu try: 'sudo apt-get install fasttree'
 * [paup*](https://people.sc.fsu.edu/~dswofford/paup_test/). Multipurpose phylogenetics software package developed by David Swofford and colleagues. NOTE: This is a test version that expires every 6 months! So please update regularly.
 
-4. Source code and manual compilation instructions are also provided.
+4. Source code and manual compilation instructions are also provided in case bundled binaries fail.
