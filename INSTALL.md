@@ -1,7 +1,7 @@
 # Installation and execution notes for the get_phylomarkers pipeline
 
-Version: June 1st, 2017
-
+Version: Nov, 14 2017
+ 
 This file lists the software components of the *get_phylomarkers* pipeline and briefly describes how to install them.
 
 The pipeline runs on Linux (Ubuntu and RedHat distros) and Mac OS X environments.
@@ -12,19 +12,21 @@ The pipeline is designed to take advantage of modern multicore machines to paral
 
 ## Quick install and test notes
 
-1. clone the repository into a suitable directory (e.g.  $HOME/src/gitHub/) using the command 'git clone https://github.com/vinuesa/get_phylomarkers.git'
+1. clone the repository into a suitable directory (e.g. $HOME/src/gitHub/) using the command 'git clone https://github.com/vinuesa/get_phylomarkers.git'
 
-2. cd into get_phylomarkers/ and run './install_R_deps.R', which will install R packages into get_phylomarkers/lib/R
+2. Make sure R is configured in your system. If not, please install package 'r-base'
 
-3. copy the test_sequences directory into a suitable place (e.g. 'cp -r test_sequences $HOME)
+3. cd into get_phylomarkers/ and run './install_R_deps.R', which will install R packages into get_phylomarkers/lib/R
 
-4. cd into the test_sequences dir (e.g. '$HOME/test_sequences')
+4. Copy the test_sequences directory into a suitable place (e.g. 'cp -r test_sequences $HOME)
 
-5. issue the following command to test if the distro is working on your system: '/path/to/get_phylomarkers/run_get_phylomarkers_pipeline.sh -R 1 -t DNA -K 1', which will run in phylogenomics mode (-R 1), on DNA sequences (-t DNA), and will test the molecular clock hypothesis (-K 1). 
+5. cd into the test_sequences dir (e.g. '$HOME/test_sequences')
+
+6. Issue the following command to test if the distro is working on your system: '/path/to/get_phylomarkers/run_get_phylomarkers_pipeline.sh -R 1 -t DNA -K 1', which will run in phylogenomics mode (-R 1), on DNA sequences (-t DNA), and will test the molecular clock hypothesis (-K 1). 
  
-6. check it now on the protein level: 'run_get_phylomarkers_pipeline.sh -R 1 -t PROT'. Note that for this second invocation, you will probably not need to prepend the full path to the script anymore (see NOTES below).
+7. Check it now on the protein level: 'run_get_phylomarkers_pipeline.sh -R 1 -t PROT'. Note that for this second invocation, you will probably not need to prepend the full path to the script anymore (see NOTES below).
 
-7. Explore the help menu of the main script to see the options available for customization of the run. It is printed to STDOUT when issuing run_get_phylomarkers_pipeline.sh -h or simply run_get_phylomarkers_pipeline.sh
+8. Explore the help menu of the main script to see the options available for customization of the run. It is printed to STDOUT when issuing run_get_phylomarkers_pipeline.sh -h or simply run_get_phylomarkers_pipeline.sh
 
 That's it, enjoy. 
 
@@ -83,7 +85,7 @@ superuser privileges and within it execute the following command:
 
 install.packages( c("ape", "kdetrees", "stingr", "vioplot", "ggplot2", "gplots", "plyr", "seqinr"), dep=T)
 
-Please see examples in the source code of *./install_R_deps.R* to solve problems that might arise when
+Please see examples in the source code of *install_R_deps.R* to solve problems that might arise when
 old versions of the, particularly *Rcpp*, are already in the system. Tips are also provided to install
 "ape" in Mac systems.
 
