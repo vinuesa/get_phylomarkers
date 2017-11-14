@@ -1,7 +1,12 @@
 #!/usr/bin/env Rscript
 
-# check installed R packages and install only the missing ones 
-# Bruno Contreras, Pablo Vinuesa, Oct2017
+# check R packages and install the missing ones 
+# Bruno Contreras Moreira, Pablo Vinuesa, Nov2017
+
+# WARNING: some packages require C (gcc) and C++ (g++) compilers to be installed
+# These can be installed with these commands:
+# sudo apt-get install g++      # Ubuntu
+# sudo yum install gcc-c++      # CentOS   
 
 # Instructions to update R on Ubuntu systems, Xenial in the example:
 
@@ -11,7 +16,7 @@
 # $ sudo apt-get update
 # $ sudo apt-get install r-base r-base-dev
 
-# Instructions in case some of the extant packages, such as Rcpp or ape, are not up-to-date:
+# Instructions in case some preinstalled packages, such as Rcpp or ape, are not up-to-date:
 
 # $ R
 # > remove.packages("Rcpp")
@@ -21,6 +26,7 @@
 # In MacOS this requires installing gfortran from https://gcc.gnu.org/wiki/GFortranBinaries
 # $ R
 # > install.packages("ape",dependencies=TRUE, lib="lib/R", type="source")
+# > install.packages("kdetrees",dependencies=TRUE, lib="lib/R", type="source")
 
 repository = 'https://cloud.r-project.org'; #'http://cran.rstudio.com';
 required_packages = c("ape", "kdetrees", "stringr", "vioplot", "ggplot2", "gplots", "dplyr", "seqinr")
