@@ -1,0 +1,3 @@
+#!/bin/bash
+
+echo You need to: source `which env_parallel.bash`
