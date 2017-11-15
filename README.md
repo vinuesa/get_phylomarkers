@@ -79,7 +79,7 @@ different species or strains.
 ###   i) Detection of recombinant loci. 
 
 Codon or protein alignments (depending on runmode) are first screened with **Phi-test** 
-([Bruen et al. 2006](http://www.genetics.org/content/172/4/2665.long)) for the presence of potential recombinant sequences. It is a well established fact that recombinant sequences negatively impact phylogenetic inference when using algorithms that do not account for the effects of this evolutionary force. The permutation test with 1000 permutations is used to compute the *p*-values. These are considerd significant if *p* < 0.05.
+([Bruen et al. 2006](http://www.genetics.org/content/172/4/2665.long)) for the presence of potential recombinant sequences. It is a well established fact that recombinant sequences negatively impact phylogenetic inference when using algorithms that do not account for the effects of this evolutionary force. The permutation test with 1000 permutations is used to compute the *p*-values. These are considered significant if *p* < 0.05.
  
 ### ii) Detection of trees deviating from expectations of the (multispecies) coalescent.
 
