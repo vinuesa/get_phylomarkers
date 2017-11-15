@@ -931,7 +931,8 @@ then
    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 else 
      printf "\n${RED} >>> ERROR: Input f?aed files do not contain the same number of strains and a single instance for each strain...\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES\n\tPlease check the GET_HOMOLOGUES manual${NC}\n" | \
-     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && exit 5
+     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log 
+     exit 5
 fi
 
 
