@@ -897,10 +897,10 @@ then
     exit 2
 fi 
 
-mkdir get_phylomarkers_${dir_suffix}_${TIMESTAMP_SHORT} && cd get_phylomarkers_${dir_suffix}_${TIMESTAMP_SHORT}
+mkdir get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT} && cd get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}
 top_dir=$(pwd)
 
-print_start_time && printf "${LBLUE}# processing source fastas in directory get_phylomarkers_${dir_suffix}_${TIMESTAMP_SHORT} ...${NC}\n"| \
+print_start_time && printf "${LBLUE}# processing source fastas in directory get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT} ...${NC}\n"| \
 tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
 ln -s ../*faa .
