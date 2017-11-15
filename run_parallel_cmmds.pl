@@ -3,21 +3,29 @@
 # AUTHORS: Bruno Contreras Moreira, Pablo Vinuesa 
 # AIM: run commands in parallel to process multiple files using GNU parallel
 
-# added --gnu flag after invoking parallel
-# run_parallel_cmmds.pl faaed "add_nos2fasta_header.pl $file > ${file}no" 20
-# parallel: Error: --tollef has been retired.
-# parallel: Error: Remove --tollef or use --gnu to override --tollef.
+use FindBin '$Bin';
 
 my $VERBOSE = 0; 
 
-my $parallelEXE = `which parallel`;
-if($parallelEXE eq ''){ 
-	print "# ERROR: parallel not in place!\n";
-	print "# ... you will need to install \"parallel\" first or include it in \$PATH\n";
-   print "# ... exiting\n";
-   exit(1)
+# check whether an attached parallel binary is available to avoid errors caused by older, 
+# non-compatible parallel binaries in the system
+my $parallelEXE = "$Bin/bin/";
+if($ENV{'OSTYPE'} =~ /darwin/){ $parallelEXE .= "macosx-intel/parallel" }
+else{ $parallelEXE .= "linux/parallel" }
+
+if(! -s $parallelEXE){
+  $parallelEXE = `which parallel`;
+  if($parallelEXE eq ''){ 
+    print "# ERROR: parallel not in place!\n";
+    print "# ... you will need to install \"parallel\" first or include it in \$PATH\n";
+    print "# ... exiting\n";
+    exit(1)
+  }
 }
-elsif(!$ARGV[1]){
+
+if($VERBOSE == 1){ print "# parallelEXE=$parallelEXE\n" }
+
+if(!$ARGV[1]){
 	print << "HELP";
   
 	$0 usage: requires 2 or max 3 args
@@ -44,12 +52,13 @@ $command =~ s/file//g;
 $command =~ s/\%\.\*/./g;
 $command =~ s/\%([\.\-\_\w]+)/=s\/$1\/\/=/g;
 
+# added --gnu flag for compatibility
 if($ARGV[2] && $ARGV[2] > 0){ 
 	my $n_of_cores = $ARGV[2];
-	$command = "ls -1 *$ext | parallel --gnu -j $n_of_cores \"$command\"";
+	$command = "ls -1 *$ext | $parallelEXE --gnu -j $n_of_cores \"$command\"";
 }
 else{
-	$command = "ls -1 *$ext | parallel --gnu \"$command\"";
+	$command = "ls -1 *$ext | $parallelEXE --gnu \"$command\"";
 }
 
 warn "# $command" if($VERBOSE);
