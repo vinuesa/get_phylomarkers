@@ -15,7 +15,7 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.9.7_14Nov17' 
+VERSION='1.9.7_14Nov17' #1.9.7.1_14Nov17: added strain composition check on f?aed files to make sure each one contains a single instance for the same number of strains
                        # 1.9.7_14Nov17: now using parallel instead of pexec binary, which failed in CentOS  
                        # 1.9.6.4_12Nov17: prints total number of trees with < 1 internal branches; 
                        # corrected regex so that all trees and alns with < 1 int br are removed (do not pass to downstream analyses)
@@ -60,7 +60,7 @@ VERSION='1.9.7_14Nov17'
                      #             runs compute_suppValStas_and_RF-dist.R in the top_X_markers dir
                      # v0.6_1May17 added get_script_PID() and count_tree_branches(); added -t BOTH
                      # v0.5_29April17 Added -t PROT
-                     # v0.4_27April17 Added print_usage_notes() and make_labels_4_trees()
+                     # v0.4_27April17 Added print_usage_notes()
 # Set GLOBALS
 DEBUG=0
 wkdir=$(pwd) #echo "# working in $wkdir"
@@ -557,18 +557,6 @@ function fix_fastaheader()
 }
 #----------------------------------------------------------------------------------------- 
 
-function make_labels_4_trees()
-{
-    #label_dir=$1
-    printf "${BLUE}# Adding labels back to tree ...${NC}\n"
-    grep '>' $(ls ${label_dir}/*fnaedno|head -1) > tree_labels.list
-    perl -pe '$c++; s/>/$c\t/; s/\h\[/_[/' tree_labels.list > ed && mv ed tree_labels.list
-    #$distrodir/add_labels2tree.pl tree_labels.list ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph &> /dev/null
-    add_labels2tree.pl tree_labels.list ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph &> /dev/null
-    check_output ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG_ed.ph $parent_PID
-}
-#----------------------------------------------------------------------------------------- 
-
 function get_critical_TajD_values()
 {
    no_seq=$1
@@ -623,7 +611,6 @@ function check_output()
 	exit 9
 	[ $DEBUG -eq 1 ] && echo "check_output running: kill -9 $pPID"
 	kill -9 $pPID
-	
     fi
 }
 #----------------------------------------------------------------------------------------- 
@@ -929,12 +916,28 @@ NSEQSFASTA=$(grep -c "^>" *.f[na]a | cut -d":" -f 2 | sort | uniq | wc -l)
 for file in *faa; do awk 'BEGIN {FS = "|"}{print $1, $2, $3}' $file|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > ${file}ed; done
 for file in *fna; do awk 'BEGIN {FS = "|"}{print $1, $2, $3}' $file|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > ${file}ed; done
 
+print_start_time && printf "${BLUE} # Performing strain check on f?aed files ...${NC}\n"
+faaed_strain_intersection_check=$(grep '>' *faaed | cut -d: -f2 | sort | uniq -c | awk '{print $1}' | sort | uniq -c | wc -l)
+fnaed_strain_intersection_check=$(grep '>' *fnaed | cut -d: -f2 | sort | uniq -c | awk '{print $1}' | sort | uniq -c | wc -l)
+
+# check that each file has the same number of strains and a single instance for each strain
+if [ $faaed_strain_intersection_check -eq 1 -a $fnaed_strain_intersection_check -eq 1 ]
+then 
+   printf "${GREEN} >>> Strain check OK: each f?aed file has the same number of strains and a single instance for each strain${NC}\n" | \
+   tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+else 
+     printf "\n${RED} >>> ERROR: Input f?aed files do not contain the same number of strains and a single instance for each strain...\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES\n\tPlease check the GET_HOMOLOGUES manual${NC}\n" | \
+     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && exit 5
+fi
+
+
 # 1.2 add_nos2fasta_header.pl to avoid problems with duplicate labels
 [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > run_parallel_cmmds.pl faaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null" | \
 tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 run_parallel_cmmds.pl faaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null
 
-[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > run_parallel_cmmds.pl fnaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null"
+[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > run_parallel_cmmds.pl fnaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null" | \
+tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 run_parallel_cmmds.pl fnaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null
 
 no_alns=$(ls *.fnaedno|wc -l)
