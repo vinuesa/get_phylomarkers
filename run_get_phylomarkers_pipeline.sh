@@ -920,7 +920,7 @@ NSEQSFASTA=$(grep -c "^>" *.f[na]a | cut -d":" -f 2 | sort | uniq | wc -l)
 for file in *faa; do awk 'BEGIN {FS = "|"}{print $1, $2, $3}' $file|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > ${file}ed; done
 for file in *fna; do awk 'BEGIN {FS = "|"}{print $1, $2, $3}' $file|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > ${file}ed; done
 
-print_start_time && printf "${BLUE} # Performing strain check on f?aed files ...${NC}\n"
+print_start_time && printf "${BLUE} # Performing strain composition check on f?aed files ...${NC}\n"
 faaed_strain_intersection_check=$(grep '>' *faaed | cut -d: -f2 | sort | uniq -c | awk '{print $1}' | sort | uniq -c | wc -l)
 fnaed_strain_intersection_check=$(grep '>' *fnaed | cut -d: -f2 | sort | uniq -c | awk '{print $1}' | sort | uniq -c | wc -l)
 
@@ -930,7 +930,7 @@ then
    printf "${GREEN} >>> Strain check OK: each f?aed file has the same number of strains and a single instance for each strain${NC}\n" | \
    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 else 
-     printf "\n${RED} >>> ERROR: Input f?aed files do not contain the same number of strains and a single instance for each strain...\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES\n\tPlease check the GET_HOMOLOGUES manual${NC}\n" | \
+     printf "\n${RED} >>> ERROR: Input f?aed files do not contain the same number of strains and a single instance for each strain...\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES]\n\tPlease check the GET_HOMOLOGUES manual${NC}\n" | \
      tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log 
      exit 5
 fi
