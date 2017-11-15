@@ -15,7 +15,7 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.9.7.2_14Nov17' # 1.9.7.2_14Nov17 popGen dir cleanup 
+VERSION='1.9.7.2_14Nov17' # 1.9.7.2_14Nov17 popGen dir cleanup + top_X_markers dir for -R 1 -t PROT
                          #1.9.7.1_14Nov17: added strain composition check on f?aed files to make sure each one contains a single instance for the same number of strains
                         #                 This is a critical check to avoid problems with inparalogues in some fastas if get_homologues.pl was run with -t X. Trees could
 			#                 be mislabeled in that case, and some alignments will most likely contain a different strain composition, generating a chimaeric
@@ -1698,7 +1698,7 @@ then
    [ "$DEBUG" -eq "0" ] && rm list2concat Rplots.pdf sorted*perc.tab concat_nonRecomb_KdeFilt_protAlns_FT*.ph | \
     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
    
-   # rm *allFT*.ph *faaln
+   rm *allFT*.ph *faaln
 
    tar -czf concatenated_alignment_files.tgz concat_protAlns.faa concat_protAlns.faainf
    [ -s concatenated_alignment_files.tgz ] && rm concat_protAlns.faa concat_protAlns.faainf
