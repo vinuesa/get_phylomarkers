@@ -14,7 +14,7 @@ The pipeline is designed to take advantage of modern multicore machines to paral
 
 1. clone the repository into a suitable directory (e.g. $HOME/src/gitHub/) using the command 'git clone https://github.com/vinuesa/get_phylomarkers.git'
 
-2. Make sure R is configured in your system. If not, please install package 'r-base'
+2. Make sure R is configured in your system. If not, please install R package (r-base in linux). See CRAN packages for OSX [here](https://cran.r-project.org/bin/macosx/).
 
 3. cd into get_phylomarkers/ and run './install_R_deps.R', which will install R packages into get_phylomarkers/lib/R
 
