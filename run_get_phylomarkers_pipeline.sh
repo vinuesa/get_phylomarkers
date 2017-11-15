@@ -901,7 +901,7 @@ mkdir get_phylomarkers_${dir_suffix}_${TIMESTAMP_SHORT} && cd get_phylomarkers_$
 top_dir=$(pwd)
 
 print_start_time && printf "${LBLUE}# processing source fastas in directory get_phylomarkers_${dir_suffix}_${TIMESTAMP_SHORT} ...${NC}\n"| \
-tee -a ${logdir}/get_phylomarkers_${dir_suffix}_${TIMESTAMP_SHORT}.log
+tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
 ln -s ../*faa .
 ln -s ../*fna .
