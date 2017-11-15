@@ -16,6 +16,10 @@
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
 VERSION='1.9.7_14Nov17' #1.9.7.1_14Nov17: added strain composition check on f?aed files to make sure each one contains a single instance for the same number of strains
+                        #                 This is a critical check to avoid problems with inparalogues in some fastas if get_homologues.pl was run with -t X. Trees could
+			#                 be mislabeled in that case, and some alignments will most likely contain a different strain composition, generating a chimaeric
+			#                 concatenated file; A useful ERROR message is printed (run compare_clusters.pl with -t NUM_GENOMES.
+			#                 Also calls run_parallel_cmmds.pl with parallel --gnu; some code cleanup
                        # 1.9.7_14Nov17: now using parallel instead of pexec binary, which failed in CentOS  
                        # 1.9.6.4_12Nov17: prints total number of trees with < 1 internal branches; 
                        # corrected regex so that all trees and alns with < 1 int br are removed (do not pass to downstream analyses)
