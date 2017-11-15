@@ -15,7 +15,8 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.9.7_14Nov17' #1.9.7.1_14Nov17: added strain composition check on f?aed files to make sure each one contains a single instance for the same number of strains
+VERSION='1.9.7.2_14Nov17' # 1.9.7.2_14Nov17 popGen dir cleanup 
+                         #1.9.7.1_14Nov17: added strain composition check on f?aed files to make sure each one contains a single instance for the same number of strains
                         #                 This is a critical check to avoid problems with inparalogues in some fastas if get_homologues.pl was run with -t X. Trees could
 			#                 be mislabeled in that case, and some alignments will most likely contain a different strain composition, generating a chimaeric
 			#                 concatenated file; A useful ERROR message is printed (run compare_clusters.pl with -t NUM_GENOMES.
@@ -896,11 +897,11 @@ then
     exit 2
 fi 
 
-mkdir get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT} && cd get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}
+mkdir get_phylomarkers_${dir_suffix}_${TIMESTAMP_SHORT} && cd get_phylomarkers_${dir_suffix}_${TIMESTAMP_SHORT}
 top_dir=$(pwd)
 
-print_start_time && printf "${LBLUE}# processing source fastas in directory get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT} ...${NC}\n"| \
-tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+print_start_time && printf "${LBLUE}# processing source fastas in directory get_phylomarkers_${dir_suffix}_${TIMESTAMP_SHORT} ...${NC}\n"| \
+tee -a ${logdir}/get_phylomarkers_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
 ln -s ../*faa .
 ln -s ../*fna .
@@ -920,7 +921,7 @@ NSEQSFASTA=$(grep -c "^>" *.f[na]a | cut -d":" -f 2 | sort | uniq | wc -l)
 for file in *faa; do awk 'BEGIN {FS = "|"}{print $1, $2, $3}' $file|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > ${file}ed; done
 for file in *fna; do awk 'BEGIN {FS = "|"}{print $1, $2, $3}' $file|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > ${file}ed; done
 
-print_start_time && printf "${BLUE} # Performing strain composition check on f?aed files ...${NC}\n"
+print_start_time && printf "${BLUE}# Performing strain composition check on f?aed files ...${NC}\n"
 faaed_strain_intersection_check=$(grep '>' *faaed | cut -d: -f2 | sort | uniq -c | awk '{print $1}' | sort | uniq -c | wc -l)
 fnaed_strain_intersection_check=$(grep '>' *fnaed | cut -d: -f2 | sort | uniq -c | awk '{print $1}' | sort | uniq -c | wc -l)
 
@@ -1489,13 +1490,12 @@ then
 	
 	
 	# cleanup
-	tar -czf clean_cdnAlns.tgz *clean.fasta *nex
-	[ -s clean_cdnAlns.tgz ] && rm *clean.fasta *nex
+	tar -czf clean_cdnAlns.tgz *_cdnAln_clean.fasta *.nex
+	[ -s clean_cdnAlns.tgz ] && rm -rf *_cdnAln_clean.fasta *.nex
 	
 	rm paup.cmd  ../all_*trees.tre ../Rplots.pdf popGen_summStats_*.log
 	
-        tar -czf codon_alignments.tgz *_cdnAln.fasta
-        [ -s codon_alignments.tgz ] && rm *_cdnAln.fasta
+        rm *_cdnAln.fasta
 	
     fi
 fi # if [ "$mol_type" == "DNA"    
