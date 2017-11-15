@@ -6,7 +6,7 @@
 #           Bruno Contreras Moreira, EEAD-CSIC, Zaragoza, Spain
 #           https://digital.csic.es/cris/rp/rp02661
 #
-#: PROJECT START: April 2017; This is this is a wrapper script to automate the whole process of marker selection and downstream analyses.
+#: PROJECT START: April 2017; This is a wrapper script to automate the whole process of marker selection and downstream analyses.
 #
 #: AIM: select optimal molecular markers for phylogenomics and population genomics from orthologous gene clusters computed by get_homologues
 #
@@ -15,57 +15,59 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.9.7.2_14Nov17' # 1.9.7.2_14Nov17 popGen dir cleanup + top_X_markers dir for -R 1 -t PROT
-                         #1.9.7.1_14Nov17: added strain composition check on f?aed files to make sure each one contains a single instance for the same number of strains
-                        #                 This is a critical check to avoid problems with inparalogues in some fastas if get_homologues.pl was run with -t X. Trees could
-			#                 be mislabeled in that case, and some alignments will most likely contain a different strain composition, generating a chimaeric
-			#                 concatenated file; A useful ERROR message is printed (run compare_clusters.pl with -t NUM_GENOMES.
-			#                 Also calls run_parallel_cmmds.pl with parallel --gnu; some code cleanup
-                       # 1.9.7_14Nov17: now using parallel instead of pexec binary, which failed in CentOS  
-                       # 1.9.6.4_12Nov17: prints total number of trees with < 1 internal branches; 
-                       # corrected regex so that all trees and alns with < 1 int br are removed (do not pass to downstream analyses)
-                       # 1.9.6.3_11Nov17:added -R${runmode} to dir_suffix
-                       # 1.9.6.2_11Nov17: all DEBUG|VERBOSE messages written to logfile
-                       # v1.9.6_11nov17: fixed code that writes Phi-test results to Phi_results_11nov17.tsv; 
-                       #                 prints the Warning: will remove file* because it has < 5 branches! to log file (no only STDOUT)
-                       # v1.9.5_8Nov17: the number of sequences in input FASTA files is checked upfront
-                       # v1.9.5_7Nov17: prints a logfile for FastTree runs and captures the lnL value of the corresponding tree; 
-                       #                more detailed info reported on alignments with too few informative sites for the Phi test to be work on
-                       # v1.9.4_6Nov17: added error checking for Phi run when sequences lack enough polymorphism for the test to work
-                       # v1.9.3_10Oct17: improved error message when kdetrees fail
-                       # v1.9.2_1Jun17: code cleanup > removed comments and print_development_notes(); append the $distrodir/lib/perl to PERL5LIB and export
-                       # v1.9.1_1Jun17: more sensible directory cleanup ...
-		       # v1.9_31May17: improved progress messages and directory cleanup ...
-                       # 1.8.4_30May17: prepended $ditrodir/ to perl scripts that use FindBin; so that it can find the required libs in $ditrodir/lib/perl
-                       # Added -n $n_cores flag, which is passed to run_parallel_cmmds.pl '' $n_cores, so that it runs on MacOSX!!! <<< Thanks Alfredo!
-		       #    automatically set n_cores=no_proc if [ -z $n_cores ]
-                       # v1.8.1_24May17 fixed problmes with @INC searching of rename.pl by prepending $distrodir/rename.pl
-                       #v1.8_23May17. Added R code in count_tree_branches() to use local_lib if ape is not installed systemwide; 
-                      #    searches and prints the number of available cores on HOSTNAME 
-		      #    exports R_LIBS="$R_LIBS:$distrodir/lib/R" to fix issues with library paths in R scripts
-                      # 1.7_17May17. Changed exit for Warning when pal2nal does not return a codon alignment! so that the pipeline can proceed
-                      # v1.6_15May17 added extensive debugging messages throughout the code for easier debugging; activated the -V flag
-                      # v1.5 fixed set_bindirs and check_homebinpath(), to export to PATH; 
-		      #      fully tested on a new linux account without $HOME/bin dir using freshly cloned distro; Note that R and Perl libs were already in ENV
-                      # v1.3 further refinement in set_bindirs() and check_homebinpath(), validated on yaxche; minor code cleanup
-                      # v1.2_13May17 refined the logic of set_bindirs(); added get_start_time(); improved error checking code, including get_script_PID()
-                      # fixed a bug in -t PROT 
-                      
-		      #v1.1_13May17; Major update to facilitate installation by users: added set_pipeline_environment(), check_homebinpath(), set_bindirs(), 
-                      #              which ckeck and setup the ENVIRONMENT for the pipeline. Added new bin/ and pop_gen_tables/ dirs for consistency. 
-		      #              The bin/linux dir contains the 2cnd party binaries compiled for 64bit linux machines. Need to compile for darwin
-		      
-                      #v1.0_11May17; git commited; first version on GitHub: https://github.com/vinuesa/get_phylomarkers
-                      # v0.9_10May17 important speed improvement due to running pal2nal.pl and run_parallel_molecClock_test_with_paup.sh
-                      #               in parallel with run_parallel_cmmds.pl 
-                     # v0.8_9May17, added -R 1|2, for Phylo|popGen, based on popGen_summStats.pl and pre-computed Tajima's D and Fu-Li crit value tables
-                     #        with missing values predicted by lm() in R, based on the original critical values in Tajima's 89 and  Fu and Li 1993 papers
-		     #        The critical CI values are gathered by get_critical_TajD_values() and get_critical_FuLi_values()
-                     # v0.7_2May17 added -e min_no_ext_branches -c $codontable and -C print_codontable() for pal2nal.pl, which is now run from within a loop
-                     #             runs compute_suppValStas_and_RF-dist.R in the top_X_markers dir
-                     # v0.6_1May17 added get_script_PID() and count_tree_branches(); added -t BOTH
-                     # v0.5_29April17 Added -t PROT
-                     # v0.4_27April17 Added print_usage_notes()
+VERSION='1.9.7.3_14Nov17' 
+    # 1.9.7.3_14Nov17 fixed bug/typo in get_script_PID()
+    # 1.9.7.2_14Nov17 popGen dir cleanup + top_X_markers dir for -R 1 -t PROT
+    #1.9.7.1_14Nov17: added strain composition check on f?aed files to make sure each one contains a single instance for the same number of strains
+    #		      This is a critical check to avoid problems with inparalogues in some fastas if get_homologues.pl was run with -t X. Trees could
+    #		      be mislabeled in that case, and some alignments will most likely contain a different strain composition, generating a chimaeric
+    #		      concatenated file; A useful ERROR message is printed (run compare_clusters.pl with -t NUM_GENOMES.
+    #		      Also calls run_parallel_cmmds.pl with parallel --gnu; some code cleanup
+    # 1.9.7_14Nov17: now using parallel instead of pexec binary, which failed in CentOS  
+    # 1.9.6.4_12Nov17: prints total number of trees with < 1 internal branches; 
+    # corrected regex so that all trees and alns with < 1 int br are removed (do not pass to downstream analyses)
+    # 1.9.6.3_11Nov17:added -R${runmode} to dir_suffix
+    # 1.9.6.2_11Nov17: all DEBUG|VERBOSE messages written to logfile
+    # v1.9.6_11nov17: fixed code that writes Phi-test results to Phi_results_11nov17.tsv; 
+    #		      prints the Warning: will remove file* because it has < 5 branches! to log file (no only STDOUT)
+    # v1.9.5_8Nov17: the number of sequences in input FASTA files is checked upfront
+    # v1.9.5_7Nov17: prints a logfile for FastTree runs and captures the lnL value of the corresponding tree; 
+    #		     more detailed info reported on alignments with too few informative sites for the Phi test to be work on
+    # v1.9.4_6Nov17: added error checking for Phi run when sequences lack enough polymorphism for the test to work
+    # v1.9.3_10Oct17: improved error message when kdetrees fail
+    # v1.9.2_1Jun17: code cleanup > removed comments and print_development_notes(); append the $distrodir/lib/perl to PERL5LIB and export
+    # v1.9.1_1Jun17: more sensible directory cleanup ...
+    # v1.9_31May17: improved progress messages and directory cleanup ...
+    # 1.8.4_30May17: prepended $ditrodir/ to perl scripts that use FindBin; so that it can find the required libs in $ditrodir/lib/perl
+    # Added -n $n_cores flag, which is passed to run_parallel_cmmds.pl '' $n_cores, so that it runs on MacOSX!!! <<< Thanks Alfredo!
+    #	 automatically set n_cores=no_proc if [ -z $n_cores ]
+    # v1.8.1_24May17 fixed problmes with @INC searching of rename.pl by prepending $distrodir/rename.pl
+    #v1.8_23May17. Added R code in count_tree_branches() to use local_lib if ape is not installed systemwide; 
+    #	 searches and prints the number of available cores on HOSTNAME 
+    #	 exports R_LIBS="$R_LIBS:$distrodir/lib/R" to fix issues with library paths in R scripts
+    # 1.7_17May17. Changed exit for Warning when pal2nal does not return a codon alignment! so that the pipeline can proceed
+    # v1.6_15May17 added extensive debugging messages throughout the code for easier debugging; activated the -V flag
+    # v1.5 fixed set_bindirs and check_homebinpath(), to export to PATH; 
+    #	   fully tested on a new linux account without $HOME/bin dir using freshly cloned distro; Note that R and Perl libs were already in ENV
+    # v1.3 further refinement in set_bindirs() and check_homebinpath(), validated on yaxche; minor code cleanup
+    # v1.2_13May17 refined the logic of set_bindirs(); added get_start_time(); improved error checking code, including get_script_PID()
+    # fixed a bug in -t PROT 
+    
+    #v1.1_13May17; Major update to facilitate installation by users: added set_pipeline_environment(), check_homebinpath(), set_bindirs(), 
+    #		   which ckeck and setup the ENVIRONMENT for the pipeline. Added new bin/ and pop_gen_tables/ dirs for consistency. 
+    #		   The bin/linux dir contains the 2cnd party binaries compiled for 64bit linux machines. Need to compile for darwin
+    
+    #v1.0_11May17; git commited; first version on GitHub: https://github.com/vinuesa/get_phylomarkers
+    # v0.9_10May17 important speed improvement due to running pal2nal.pl and run_parallel_molecClock_test_with_paup.sh
+    #		    in parallel with run_parallel_cmmds.pl 
+    # v0.8_9May17, added -R 1|2, for Phylo|popGen, based on popGen_summStats.pl and pre-computed Tajima's D and Fu-Li crit value tables
+   #	    with missing values predicted by lm() in R, based on the original critical values in Tajima's 89 and  Fu and Li 1993 papers
+   #	    The critical CI values are gathered by get_critical_TajD_values() and get_critical_FuLi_values()
+   # v0.7_2May17 added -e min_no_ext_branches -c $codontable and -C print_codontable() for pal2nal.pl, which is now run from within a loop
+   #		 runs compute_suppValStas_and_RF-dist.R in the top_X_markers dir
+   # v0.6_1May17 added get_script_PID() and count_tree_branches(); added -t BOTH
+   # v0.5_29April17 Added -t PROT
+   # v0.4_27April17 Added print_usage_notes()
 # Set GLOBALS
 DEBUG=0
 wkdir=$(pwd) #echo "# working in $wkdir"
@@ -220,9 +222,7 @@ function set_bindirs()
 {  
     # receives: $bindir $homebinpathflag
     bindir=$1
-
     not_in_path=0
-
     bins=( clustalo FastTree parallel Phi paup consense )
 
     for prog in "${bins[@]}" 
@@ -387,7 +387,7 @@ exit 0
 function get_script_PID()
 {
     # returns the PID of the script, run by USER
-    prog=${1%.*} # remove the script's .extension_name
+    prog=${0%.*} # remove the script's .extension_name
     #proc_ID=$(ps -eaf|grep "$prog"|grep -v grep|grep '-'|grep $USER|awk '{print $2}')
     proc_ID=$(ps aux|grep "$prog"|grep -v grep|grep '-'|grep $USER|awk '{print $2}')
     echo $proc_ID
