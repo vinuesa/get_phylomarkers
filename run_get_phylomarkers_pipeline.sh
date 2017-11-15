@@ -15,7 +15,8 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.9.7.4_15Nov17' 
+VERSION='1.9.7.5_15Nov17' 
+    # 1.9.7.4_15Nov17 fixed check for $HOME/bin in $PATH
     # 1.9.7.4_15Nov17 matched paths of results dir and log
     # 1.9.7.3_14Nov17 fixed bug/typo in get_script_PID()
     # 1.9.7.2_14Nov17 popGen dir cleanup + top_X_markers dir for -R 1 -t PROT
@@ -193,7 +194,9 @@ function check_scripts_in_path()
            homebinflag=1
        fi
     
-       if [ -d $(echo $PATH|sed 's/:/\n/g'|grep "$HOME/bin$") ] # be specific: should end in bin, excluding subdirs
+       # check if $HOME/bin is in $PATH
+       echo $PATH | sed 's/:/\n/g'| grep "$HOME/bin$" &> /dev/null
+       if [ $? -eq 0 ]
        then
              homebinpathflag=1
 
@@ -203,10 +206,7 @@ function check_scripts_in_path()
              ln -s $distrodir/*.R $HOME/bin &> /dev/null
              ln -s $distrodir/*.pl $HOME/bin &> /dev/null
              #ln -s $distrodir/rename.pl $HOME/bin &> /dev/null
-       fi
-      
-       if [ ! -d $(echo $PATH|sed 's/:/\n/g'|grep "$HOME/bin$") ] # be specific: should end in bin, excluding subdirs
-       then
+       else
            printf "${CYAN} Found the $HOME/bin for $USER, but it is NOT in \$PATH ...${NC}\n"
            printf "${CYAN} updating PATH=$PATH:$distrodir ${NC}\n"
            #export PATH=$PATH:$distrodir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)
@@ -793,9 +793,9 @@ export R_LIBS="$R_LIBS:$distrodir/lib/R"
 # 0.4 append the $distrodir/lib/perl to PERL5LIB and export
 export PERL5LIB="${PERL5LIB}:${distrodir}/lib/perl:${distrodir}/lib/perl/bioperl-1.5.2_102"
 
-#-------------------------------------#
-# >>>BLOCK 0.2 CHECK USER OPTIONS <<< #
-#-------------------------------------#
+#--------------------------------------#
+# >>> BLOCK 0.2 CHECK USER OPTIONS <<< #
+#--------------------------------------#
 
 # check for bare minimum dependencies: bash R perl awk cut grep sed sort uniq Rscript
 check_dependencies
@@ -945,6 +945,7 @@ run_parallel_cmmds.pl faaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores
 
 [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > run_parallel_cmmds.pl fnaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null" | \
 tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+[ $DEBUG -eq 1 ] && echo "$PATH"
 run_parallel_cmmds.pl fnaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null
 
 no_alns=$(ls *.fnaedno|wc -l)
