@@ -202,7 +202,7 @@ function check_scripts_in_path()
              ln -s $distrodir/*.sh $HOME/bin &> /dev/null
              ln -s $distrodir/*.R $HOME/bin &> /dev/null
              ln -s $distrodir/*.pl $HOME/bin &> /dev/null
-             ln -s $distrodir/rename.pl $HOME/bin &> /dev/null
+             #ln -s $distrodir/rename.pl $HOME/bin &> /dev/null
        fi
       
        if [ ! -d $(echo $PATH|sed 's/:/\n/g'|grep "$HOME/bin$") ] # be specific: should end in bin, excluding subdirs
