@@ -16,7 +16,8 @@
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
 VERSION='1.9.7.5_15Nov17' 
-    # 1.9.7.4_15Nov17 fixed check for $HOME/bin in $PATH
+    # 1.9.7.5_15Nov17 added check for minimal versions of clustalo FastTree parallel and paup
+    # 1.9.7.5_15Nov17 fixed check for $HOME/bin in $PATH
     # 1.9.7.4_15Nov17 matched paths of results dir and log
     # 1.9.7.3_14Nov17 fixed bug/typo in get_script_PID()
     # 1.9.7.2_14Nov17 popGen dir cleanup + top_X_markers dir for -R 1 -t PROT
@@ -73,6 +74,10 @@ VERSION='1.9.7.5_15Nov17'
 # Set GLOBALS
 DEBUG=0
 wkdir=$(pwd) #echo "# working in $wkdir"
+
+MIN_PARALLEL_VERS=2016
+MIN_CLUSTALO_VERS=121
+MIN_PAUP_VERS=157
 
 DATEFORMAT_SHORT="%d%b%y"
 TIMESTAMP_SHORT=$(date +${DATEFORMAT_SHORT})
@@ -218,6 +223,21 @@ function check_scripts_in_path()
     #echo "$homebinflag $homebinpathflag"
 }
 #----------------------------------------------------------------------------------------- 
+#function check_binary_vesions()
+#{
+#    
+#    # check if scripts are in path; if not, set flag
+#    parallel_vers=$(parallel --version | head -1 | awk '{print $3}')
+#    if [ "${parallel_vers:0:4}" -lt "2016" ] 
+#    then
+#       printf "${LRED}# WARNING: found an old version of parallel: v.${parallel_vers} \$PATH!${NC}\n"
+#    else
+#       printf "${GREEN}# will use local intallation of parallel v.${parallel_vers}${NC}\n"
+#    fi 
+#    
+#    
+#}    
+#----------------------------------------------------------------------------------------- 
 
 function set_bindirs()
 {  
@@ -236,6 +256,75 @@ function set_bindirs()
 	        not_in_path=1
        fi	  
    done	  
+ 
+   #>>> 2. Check that locally installed versions of key binaries are not too old
+   # 2.1 parallel
+    parallel_bin=$(type -P parallel)
+    if [ -n "$parallel_bin" ]
+    then
+        parallel_vers=$(parallel --version | head -1 | awk '{print $3}')
+        if [ "${parallel_vers:0:4}" -lt "$MIN_PARALLEL_VERS" ] 
+        then
+            printf "${RED}# ERROR: found an old version (${parallel_vers}) in $parallel_bin. Need to update parallel! ${NC}\n\n"
+	    exit 1
+	fi    
+    else
+            [ $DEBUG -eq 1 -o -$VERBOSE -eq 1 ] && printf "${GREEN}# will use $parallel_bin v.${parallel_vers}${NC}\n" | \
+	    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+    fi 
+
+   # 2.2 clustalo
+    clustalo_bin=$(type -P clustalo)
+    if [ -n "$clustalo_bin" ]
+    then
+        clustalo_vers=$(clustalo --version | sed 's/\.//g')
+	clustalo_vers_full=$(clustalo --version)
+        if [ "${clustalo_vers}" -lt "$MIN_CLUSTALO_VERS" ]  # 122
+        then
+            printf "${RED}# ERROR: found an old version (${clustalo_vers_full}) in $clustalo_bin. Need to update clustalo! ${NC}\n\n"
+	    exit 2
+	fi    
+    else
+            [ $DEBUG -eq 1 -o -$VERBOSE -eq 1 ] && printf "${GREEN}# will use $clustalo_bin v.${clustalo_vers}. ${NC}\n" | \
+	    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+    fi 
+
+   # 2.3 paup
+    paup_bin=$(type -P paup)
+    if [ -n "$paup_bin" ]
+    then
+        paup_vers=$(paup --version &> tmp.txt  &&  grep "^PAUP" tmp.txt | sed 's/PAUP\* .*build //; s#).*##')
+	rm tmp.txt
+        if [ "${paup_vers}" -lt "$MIN_PAUP_VERS" ]  # 157
+        then
+            printf "${RED}# ERROR: found an old build (${clustalo_vers_full}) in $paup_bin. Need to update paup! ${NC}\n\n"
+	    exit 3
+	fi    
+    else
+            [ $DEBUG -eq 1 -o -$VERBOSE -eq 1 ] && printf "${GREEN}# will use $paup_bin v.${clustalo_vers}${NC}\n" | \
+	    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+    fi 
+
+   # 2.3 FastTree
+    FT_bin=$(type -P FastTree)
+    if [ -n "$FT__bin" ]
+    then
+        FT_vers_orig=$(FastTree &> tmp.txt &&  grep version tmp.txt | awk '{print $5}')
+	FT_vers_short=$(echo $FT_vers_orig | sed 's/\.//g')
+	rm tmp.txt
+        if [ "${FT_vers_short}" -lt "$MIN_FT_VERS" ]  # 2110
+        then
+            printf "${RED}# ERROR: found an old build (${FT_vers_orig}) in $FT_bin. Need to update FastTree! ${NC}\n\n"
+	    exit 4
+	fi    
+    else
+            [ $DEBUG -eq 1 -o -$VERBOSE -eq 1 ] && printf "${GREEN}# will use $FT_bin v.${FT_vers_orig}${NC}\n" | \
+	    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+    fi 
+
+
+
+    # check if scripts are in path; if not, set flag
  
    if [ $not_in_path -eq 1 ]
    then
@@ -520,7 +609,6 @@ function count_tree_branches()
    
 RCMD
 
-#check_output $outfile 
 }
 #----------------------------------------------------------------------------------------- 
 
@@ -620,7 +708,6 @@ function check_output()
     fi
 }
 #----------------------------------------------------------------------------------------- 
-
 
 function print_help()
 {
