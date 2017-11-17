@@ -78,6 +78,7 @@ wkdir=$(pwd) #echo "# working in $wkdir"
 MIN_PARALLEL_VERS=2016
 MIN_CLUSTALO_VERS=121
 MIN_PAUP_VERS=157
+MIN_FT_VERS=2110
 
 DATEFORMAT_SHORT="%d%b%y"
 TIMESTAMP_SHORT=$(date +${DATEFORMAT_SHORT})
@@ -267,10 +268,9 @@ function set_bindirs()
         then
             printf "${RED}# ERROR: found an old version (${parallel_vers}) in $parallel_bin. Need to update parallel! ${NC}\n\n"
 	    exit 1
-	fi    
-    else
-            [ $DEBUG -eq 1 -o -$VERBOSE -eq 1 ] && printf "${GREEN}# will use $parallel_bin v.${parallel_vers}${NC}\n" | \
-	    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+        else
+            printf "${GREEN}# will use $parallel_bin v.${parallel_vers}${NC}\n"
+        fi
     fi 
 
    # 2.2 clustalo
@@ -283,31 +283,31 @@ function set_bindirs()
         then
             printf "${RED}# ERROR: found an old version (${clustalo_vers_full}) in $clustalo_bin. Need to update clustalo! ${NC}\n\n"
 	    exit 2
-	fi    
-    else
-            [ $DEBUG -eq 1 -o -$VERBOSE -eq 1 ] && printf "${GREEN}# will use $clustalo_bin v.${clustalo_vers}. ${NC}\n" | \
-	    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+        else
+            printf "${GREEN}# will use $clustalo_bin v.${clustalo_vers}. ${NC}\n"
+	fi
     fi 
 
-   # 2.3 paup
-    paup_bin=$(type -P paup)
-    if [ -n "$paup_bin" ]
-    then
-        paup_vers=$(paup --version &> tmp.txt  &&  grep "^PAUP" tmp.txt | sed 's/PAUP\* .*build //; s#).*##')
-	rm tmp.txt
-        if [ "${paup_vers}" -lt "$MIN_PAUP_VERS" ]  # 157
-        then
-            printf "${RED}# ERROR: found an old build (${clustalo_vers_full}) in $paup_bin. Need to update paup! ${NC}\n\n"
-	    exit 3
-	fi    
-    else
-            [ $DEBUG -eq 1 -o -$VERBOSE -eq 1 ] && printf "${GREEN}# will use $paup_bin v.${clustalo_vers}${NC}\n" | \
-	    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-    fi 
+   # 2.3 paup ==> NEED TO CONSIDER HAVING THE beta version!
+#    paup_bin=$(type -P paup)
+#    if [ -n "$paup_bin" ]
+#    then
+#        # Portable version 4.0b10 for Unix
+#       paup_vers=$(paup --version &> tmp.txt  &&  grep "^PAUP" tmp.txt | grep build | sed 's/PAUP\* .*build //; s#).*##')
+#	rm tmp.txt
+#        if [[ "${paup_vers}" -lt "$MIN_PAUP_VERS" ]]  # 157
+#        then
+#            printf "${RED}# ERROR: found an old build (${clustalo_vers_full}) in $paup_bin. Need to update paup! ${NC}\n\n"
+#	    exit 3
+#	fi    
+#    else
+#            [ $DEBUG -eq 1 -o -$VERBOSE -eq 1 ] && printf "${GREEN}# will use $paup_bin v.${clustalo_vers}${NC}\n" | \
+#	    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+#    fi 
 
    # 2.3 FastTree
     FT_bin=$(type -P FastTree)
-    if [ -n "$FT__bin" ]
+    if [ -n "$FT_bin" ]
     then
         FT_vers_orig=$(FastTree &> tmp.txt &&  grep version tmp.txt | awk '{print $5}')
 	FT_vers_short=$(echo $FT_vers_orig | sed 's/\.//g')
@@ -316,10 +316,9 @@ function set_bindirs()
         then
             printf "${RED}# ERROR: found an old build (${FT_vers_orig}) in $FT_bin. Need to update FastTree! ${NC}\n\n"
 	    exit 4
-	fi    
-    else
-            [ $DEBUG -eq 1 -o -$VERBOSE -eq 1 ] && printf "${GREEN}# will use $FT_bin v.${FT_vers_orig}${NC}\n" | \
-	    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+         else
+            printf "${GREEN}# will use $FT_bin v.${FT_vers_orig}. ${NC}\n"
+	 fi
     fi 
 
 
@@ -493,7 +492,7 @@ function install_Rlibs_msg()
    printf "${RED} ERROR: the expected outfile $outfile was not produced\n"  
    printf "       This may be because R package(s) $Rpackage are not properly installed.\n"
    printf "       Please run the script './install_R_deps.R' from within $distrodir to install them.\n"
-   printf "       Further installation tips can be found in file Rscript install_R_deps.R\n${NC}"  
+   printf "       Further installation tips can be found in file Rscript install_R_deps.R\n ${NC}"  
    
    R --no-save --quiet <<RCMD 2> /dev/null
    
@@ -885,6 +884,9 @@ export PERL5LIB="${PERL5LIB}:${distrodir}/lib/perl:${distrodir}/lib/perl/bioperl
 #--------------------------------------#
 
 # check for bare minimum dependencies: bash R perl awk cut grep sed sort uniq Rscript
+
+logdir=$(pwd)
+
 check_dependencies
 
 if [ -z $runmode ]
@@ -956,9 +958,8 @@ start_time=$(date +%s)
 parent_PID=$(get_script_PID $progname)
 [ $DEBUG -eq 1 ] && echo "parent_PID:$parent_PID"
 
-logdir=$(pwd)
-
 dir_suffix=R${runmode}t${mol_type}_k${kde_stringency}_m${min_supp_val}_s${spr}_l${spr_length}_T${search_thoroughness}
+
 
 printf "
  ${CYAN}>>> $(basename $0) vers. $VERSION run with the following parameters:${NC}
@@ -970,7 +971,7 @@ printf "
  kde_stringency=$kde_stringency|min_supp_val=$min_supp_val|spr=$spr|spr_length=$spr_length|search_thoroughness=$search_thoroughness
  DEBUG=$DEBUG|VERBOSITY=$VERBOSITY${NC}
 
-"|tee ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log 
+" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log 
 
 #----------------------------------------------------------------------------------------------------------------
 #>>>BLOCK 1. make a new subdirectory within the one holding core genome clusters generated by compare_clusters.pl
@@ -1032,10 +1033,9 @@ run_parallel_cmmds.pl faaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores
 
 [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > run_parallel_cmmds.pl fnaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null" | \
 tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-[ $DEBUG -eq 1 ] && echo "$PATH"
 run_parallel_cmmds.pl fnaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null
 
-no_alns=$(ls *.fnaedno|wc -l)
+no_alns=$(ls *.fnaedno | wc -l)
 
 [ $no_alns -eq 0 ] && printf "\n${RED} >>> ERROR: There are no codon alignments to work on! Something went wrong. Please check input and settings ...${NC}\n\n" | \
  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && exit 4
