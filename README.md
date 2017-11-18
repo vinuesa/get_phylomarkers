@@ -1,6 +1,6 @@
 # get_phylomarkers
 
-<!--Version June 1st, 2017.-->
+<!--Version November 17th, 2017.-->
 
 This repository hosts the code for the *get_phylomarkers* pipeline. This file describes its
 aim and basic usage notes. <!--See [INSTALL.md](INSTALL.md) for installation instructions.-->
