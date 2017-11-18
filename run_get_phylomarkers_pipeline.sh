@@ -15,7 +15,8 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.9.8_17Nov17' # to avoid problems with old versions of locally insalled binaries or scripts, we set $bindir and $distrodir in front of PATH
+VERSION='1.9.8.1_17Nov17' # fixed name of the add_labels2tree.pl in one of the calls with -R 1 -t PROT and code cleanup
+    # 1.9.8_17Nov17' to avoid problems with old versions of locally insalled binaries or scripts, we set $bindir and $distrodir in front of PATH
     # 1.9.7.5_15Nov17 added check for minimal versions of clustalo FastTree parallel and paup
     # 1.9.7.5_15Nov17 fixed check for $HOME/bin in $PATH
     # 1.9.7.4_15Nov17 matched paths of results dir and log
