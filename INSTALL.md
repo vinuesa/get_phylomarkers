@@ -97,8 +97,6 @@ NOTES:
 
 2. The required second-party binaries required by GET_PHYLOMARKERS are all freely available for download from the links provided below.
 
-* [paup*](https://people.sc.fsu.edu/~dswofford/paup_test/). Note that currently PAUP* is an alpha test version that automatically expires every 6 months.
-
 * [clustal omega](http://www.clustal.org/omega/). Multiple sequence alignment software. [Sievers et al. 2011](http://msb.embopress.org/content/7/1/539.long). On Ubuntu try: 'sudo apt-get install clustalo'
 * [parallel](https://www.gnu.org/software/parallel/). Executes processes in parallel on multicore machines. On Ubuntu try: 'sudo apt-get install parallel'
 <!--* [pexec](https://www.gnu.org/software/pexec/). Execute processes in parallel on multicore machines. On Ubuntu try: 'sudo apt-get install pexec'-->
