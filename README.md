@@ -35,7 +35,7 @@ the pipeline can be also run using protein instead of DNA sequences.
 1. The pipeline is run by executing the main script *run_get_phylomarkers_pipeline.sh* inside a folder containing twin \*.fna and \*.faa FASTA files for orthologous **single-copy** CDSs and translation products. <!-- computed by the *get_homologues.pl -e* or *compare_clusters.pl* scripts of the **GET_HOMOLOGUES** suite.-->
 2. There are two **runmodes**: -R 1 (for phylogenetics) and -R 2 (for population genetics).
 3. The pipeline can be run on two **molecular types**: DNA or protein sequences (-t DNA|PROT). The latter is intended for the analysis of more divergent genome sequences, above the genus level.
-4. The **global molecular-clock hypothesis** can be evaluated for DNA (codon) alignments. It is not yet implemented for protein sequences.
+4. The **global molecular-clock hypothesis** can be evaluated for DNA (codon) alignments (-R 1 -t DNA -K 1). It is not yet implemented for protein sequences.
 5. A **toy sequence dataset is provided** with the distribution in the test_sequences/ directory for easy and fast testing (~14 seconds on a commodity GNU/Linux desktop machine with 4 cores; see [INSTALL.md](INSTALL.md)). 
 
 ### Basic usage examples
@@ -60,10 +60,12 @@ subsequent intersection (OMCL,COGS,BDBH) clusters produced with *compare_cluster
 2. *run_get_phylomarkers_pipeline.sh* is intended to run on a collection of **single-copy** sequence clusters from 
 different species or strains.
 
-   NOTES: an absolute minimum of 4 distinct genomes are required. 
+   NOTES: an absolute minimum of 4 distinct haplotypes per cluster are required
+          for the cluster to be evaluated. Clustes with < 4 haplotypes are automatically
+	  discarded. This means that at least 4 distinct genomes should be used as input.
 	  However, the power of the pipeline for selecting optimal genome loci 
      	  for phylogenomics improves when a larger number of genomes are available 
-     	  for analysis. Reasonable numbers lie in the range of 10 to 100 clearly
+     	  for analysis. Reasonable numbers lie in the range of 10 to 200 clearly
      	  distinct genomes from multiple species of a genus, family, order or phylum.
      	  The pipeline may not perform satisfactorily with too distant genome sequences,
      	  particularly when sequences with significantly distinct nucleotide or aminoacid
@@ -79,7 +81,8 @@ different species or strains.
 ###   i) Detection of recombinant loci. 
 
 Codon or protein alignments (depending on runmode) are first screened with **Phi-test** 
-([Bruen et al. 2006](http://www.genetics.org/content/172/4/2665.long)) for the presence of potential recombinant sequences. It is a well established fact that recombinant sequences negatively impact phylogenetic inference when using algorithms that do not account for the effects of this evolutionary force. The permutation test with 1000 permutations is used to compute the *p*-values. These are considered significant if *p* < 0.05.
+([Bruen et al. 2006](http://www.genetics.org/content/172/4/2665.long)) for the presence of potential recombinant sequences. It is a well established fact that recombinant sequences negatively impact phylogenetic inference when using algorithms that do not account for the effects of this evolutionary force. The permutation test with 1000 permutations is used to compute the *p*-values. These are considered significant if *p* < 0.05. Some loci may not contain sufficient polymorphisms for the test to
+work. In that case, the main script assumes that the locus does not contain recombinant sites.
  
 ### ii) Detection of trees deviating from expectations of the (multispecies) coalescent.
 
@@ -99,7 +102,7 @@ infer the corresponding ML gene trees. Their **phylogenetic signal is computed f
 
       * Parameters controlling filtering based on mean support values.
       -m <real> min. average support value (0.7-0.8 are reasonable values) 
-     		for trees to be selected [default: 0.75]
+     		for trees/loci to be selected as informative [default: 0.75]
 
 ### iv) Evaluating the global molecular clock hypothesis.
 
@@ -143,7 +146,7 @@ Pablo Vinuesa and Bruno Contreras-Moreira 2017. Get_PhyloMarkers, a pipeline to 
 ## Acknowledgements
 
 ### Personal
-We thank Romualdo Zayas, Víctor del Moral and Alfredo J. Hernández at CCG-UNAM for technical support.
+We thank Alfredo J. Hernández and Víctor del Moral at CCG-UNAM for technical support.
 
 ### Funding
-We gratefully acknowledge the funding provided by [DGAPA-PAPIIT/UNAM](http://dgapa.unam.mx/index.php/impulso-a-la-investigacion/papiit) (grants IN201806-2 and IN211814) and [CONACyT-Mexico](http://www.conacyt.mx/) (grants P1-60071 and 179133) to [Pablo Vinuesa](http://www.ccg.unam.mx/~vinuesa/), as well as the Fundación ARAID, and Consejo  Superior  de Investigaciones Científicas (grant 200720I038) to [Bruno Conteras-Moreira](http://161.111.227.80/compbio/staff/bruno_contreras_moreira.html).
+We gratefully acknowledge the funding provided by [DGAPA-PAPIIT/UNAM](http://dgapa.unam.mx/index.php/impulso-a-la-investigacion/papiit) (grants IN201806-2, IN211814 and IN206318) and [CONACyT-Mexico](http://www.conacyt.mx/) (grants P1-60071 and 179133) to [Pablo Vinuesa](http://www.ccg.unam.mx/~vinuesa/), as well as the Fundación ARAID, and Consejo  Superior  de Investigaciones Científicas (grant 200720I038) to [Bruno Conteras-Moreira](http://161.111.227.80/compbio/staff/bruno_contreras_moreira.html).
