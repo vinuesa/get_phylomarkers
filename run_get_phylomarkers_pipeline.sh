@@ -15,7 +15,7 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.9.8_17Nov17' # to avoid problems with old versions of binaries locally insalled by the user, we set $bindir and $distrodir in front of PATH
+VERSION='1.9.8_17Nov17' # to avoid problems with old versions of locally insalled binaries or scripts, we set $bindir and $distrodir in front of PATH
     # 1.9.7.5_15Nov17 added check for minimal versions of clustalo FastTree parallel and paup
     # 1.9.7.5_15Nov17 fixed check for $HOME/bin in $PATH
     # 1.9.7.4_15Nov17 matched paths of results dir and log
@@ -162,65 +162,58 @@ function check_dependencies()
 function check_scripts_in_path()
 {
     distrodir=$1
-    export PATH="${distrodir}${PATH}"
-#    not_in_path=0
-#    homebinflag=0
-#    homebinpathflag=0
-#
-#    [ $DEGUB ] && echo "check_scripts_in_path() distrodir:$distrodir"
-#    
-#    bash_scripts=(run_parallel_molecClock_test_with_paup.sh )
-#    perl_scripts=( run_parallel_cmmds.pl add_nos2fasta_header.pl pal2nal.pl rename.pl concat_alignments.pl add_labels2tree.pl convert_aln_format_batch_bp.pl popGen_summStats.pl convert_aln_format_batch_bp.pl )
-#    R_scripts=( run_kdetrees.R compute_suppValStas_and_RF-dist.R )
-#    
-#    # check if scripts are in path; if not, set flag
-#    for prog in "${bash_scripts[@]}" "${perl_scripts[@]}" "${R_scripts[@]}"
-#    do
-#       bin=$(type -P $prog)
-#       if [ -z $bin ]; then
-#          echo
-#          printf "${LRED}# WARNING: script $prog is not in \$PATH!${NC}\n"
-#	        printf "${CYAN}  >>>  Will generate a symlink from $HOME/bin or add it to \$PATH ${NC}\n"
-#	        not_in_path=1
-#       fi
-#    done	  
-#    
-#    # if flag $not_in_path -eq 1, then either generate symlinks into $HOME/bin (if in $PATH) or export $distrodir to PATH
-#    if [ $not_in_path -eq 1 ]
-#    then
-#       if [ ! -d $HOME/bin ]
-#       then
-#            printf "${CYAN} found no $HOME/bin directory for $USER ...${NC}\n"
-#	          printf "${CYAN} ... will update PATH=$PATH:$distrodir ${NC}\n"
-#            #export PATH=$PATH:$distrodir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)
-#	          # we do not export, so that this PATH update lasts only for the run of the script, 
-#	          # avoiding a longer alteration of $ENV; by appending to the end of PATH, no user-preferences should be altered  
-#	          PATH=$PATH:$distrodir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)
-#       else
-#           homebinflag=1
-#       fi
-#    
-#       # check if $HOME/bin is in $PATH
-#       echo $PATH | sed 's/:/\n/g'| grep "$HOME/bin$" &> /dev/null
-#       if [ $? -eq 0 ]
-#       then
-#             homebinpathflag=1
-#
-#             printf "${CYAN} Found the $HOME/bin for $USER in \$PATH ...${NC}\n"
-#             printf "${CYAN} ... will generate symlinks in $HOME/bin to all scripts in $distrodir ...${NC}"
-#             ln -s $distrodir/*.sh $HOME/bin &> /dev/null
-#             ln -s $distrodir/*.R $HOME/bin &> /dev/null
-#             ln -s $distrodir/*.pl $HOME/bin &> /dev/null
-#             #ln -s $distrodir/rename.pl $HOME/bin &> /dev/null
-#       else
-#           printf "${CYAN} Found the $HOME/bin for $USER, but it is NOT in \$PATH ...${NC}\n"
-#           printf "${CYAN} updating PATH=$PATH:$distrodir ${NC}\n"
-#           #export PATH=$PATH:$distrodir # append $HOME/bin to $PATH, (at the end, to not interfere with the system PATH)
-#	   # we do not export, so that this PATH update lasts only for the run of the script, 
-#	   # avoiding a longer-lasting alteration of $ENV;  
-#	   export PATH="${distrodir}:${PATH}" # prepend $distrodir to $PATH
-#       fi
-#    fi
+    not_in_path=0
+    homebinflag=0
+    homebinpathflag=0
+
+    [ $DEGUB ] && echo "check_scripts_in_path() distrodir:$distrodir"
+    
+    bash_scripts=(run_parallel_molecClock_test_with_paup.sh )
+    perl_scripts=( run_parallel_cmmds.pl add_nos2fasta_header.pl pal2nal.pl rename.pl concat_alignments.pl add_labels2tree.pl convert_aln_format_batch_bp.pl popGen_summStats.pl convert_aln_format_batch_bp.pl )
+    R_scripts=( run_kdetrees.R compute_suppValStas_and_RF-dist.R )
+    
+    # check if scripts are in path; if not, set flag
+    for prog in "${bash_scripts[@]}" "${perl_scripts[@]}" "${R_scripts[@]}"
+    do
+       bin=$(type -P $prog)
+       if [ -z $bin ]; then
+          echo
+          printf "${LRED}# WARNING: script $prog is not in \$PATH!${NC}\n"
+	        printf "${CYAN}  >>>  Will generate a symlink from $HOME/bin or add it to \$PATH ${NC}\n"
+	        not_in_path=1
+       fi
+    done	  
+    
+    # if flag $not_in_path -eq 1, then either generate symlinks into $HOME/bin (if in $PATH) or export $distrodir to PATH
+    if [ $not_in_path -eq 1 ]
+    then
+       if [ ! -d $HOME/bin ]
+       then
+            printf "${CYAN} found no $HOME/bin directory for $USER ...${NC}\n"
+	    printf "${CYAN} ... will update PATH=$distrodir:$PATH ${NC}\n"
+	    export PATH="${distrodir}:${PATH}" # prepend $ditrodir to $PATH
+       else
+           homebinflag=1
+       fi
+    
+       # check if $HOME/bin is in $PATH
+       echo $PATH | sed 's/:/\n/g'| grep "$HOME/bin$" &> /dev/null
+       if [ $? -eq 0 ]
+       then
+             homebinpathflag=1
+
+             printf "${CYAN} Found the $HOME/bin for $USER in \$PATH ...${NC}\n"
+             printf "${CYAN} ... will generate symlinks in $HOME/bin to all scripts in $distrodir ...${NC}"
+             ln -s $distrodir/*.sh $HOME/bin &> /dev/null
+             ln -s $distrodir/*.R $HOME/bin &> /dev/null
+             ln -s $distrodir/*.pl $HOME/bin &> /dev/null
+             #ln -s $distrodir/rename.pl $HOME/bin &> /dev/null
+       else
+           printf "${CYAN} Found the $HOME/bin for $USER, but it is NOT in \$PATH ...${NC}\n"
+           printf "${CYAN} updating PATH=$PATH:$distrodir ${NC}\n"
+	   export PATH="${distrodir}:${PATH}" # prepend $distrodir to $PATH
+       fi
+    fi
     #echo "$homebinflag $homebinpathflag"
 }
 #----------------------------------------------------------------------------------------- 
@@ -229,8 +222,10 @@ function set_bindirs()
 {  
     # receives: $bindir $homebinpathflag
     bindir=$1
-#    not_in_path=1
-    export PATH="${bindir}:${PATH}" # prepend $bindir to $PATH to ensure that the script runs with the distributed binaries
+#   not_in_path=1
+
+#   # prepend $bindir to $PATH in any case, to ensure that the script runs with the distributed binaries in $bindir
+    export PATH="${bindir}:${PATH}" 
 
 #    bins=( clustalo FastTree parallel Phi paup consense )
 #
@@ -880,7 +875,7 @@ start_time=$(date +%s)
 parent_PID=$(get_script_PID $progname)
 [ $DEBUG -eq 1 ] && echo "parent_PID:$parent_PID"
 
-dir_suffix=R${runmode}t${mol_type}_k${kde_stringency}_m${min_supp_val}_s${spr}_l${spr_length}_T${search_thoroughness}
+dir_suffix=R${runmode}t${mol_type}_k${kde_stringency}_m${min_supp_val}_s${spr}_l${spr_length}_T${search_thoroughness}_K${eval_clock}
 
 
 printf "
@@ -919,9 +914,7 @@ ln -s ../*fna .
 
 # fix fasta file names with two and three dots
 $distrodir/rename.pl 's/\.\.\./\./g' *.faa
-#rename.pl 's/\.\.\./\./g' *.faa
 $distrodir/rename.pl 's/\.\.\./\./g' *.fna
-#rename.pl 's/\.\.\./\./g' *.fna
 
 # 1.0 check that all fasta files contain the same number of sequences
 FASTASIZES=$(grep -c "^>" *.f[na]a | cut -d":" -f 2 | sort | uniq)
@@ -949,11 +942,11 @@ fi
 
 
 # 1.2 add_nos2fasta_header.pl to avoid problems with duplicate labels
-[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > run_parallel_cmmds.pl faaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null" | \
+[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > ${distrodir}/run_parallel_cmmds.pl faaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null" | \
 tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 ${distrodir}/run_parallel_cmmds.pl faaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null
 
-[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > run_parallel_cmmds.pl fnaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null" | \
+[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > ${distrodir}/run_parallel_cmmds.pl fnaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null" | \
 tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 ${distrodir}/run_parallel_cmmds.pl fnaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null
 
@@ -991,15 +984,10 @@ fi
 
 # 2.2 generate the codon alignments (files with *_cdnAln.fasta extension) using pal2nal.pl, 
 #     excluding gaps, and mismatched codons, assuming a bacterial genetic code
-#for file in *faaln
-#do
-#   pal2nal.pl $file ${file%_cluo.faaln}.fnaedno -output fasta -nogap -nomismatch -codontable $codontable > ${file%_cluo.faaln}_cdnAln.fasta
-#done
-
 # NOTE: to execute run_parallel_cmmds.pl with a customized command, resulting from the interpolation of multiple varialbles,
 #       we have to first construct the command line in a variable and pipe its content into bash for execution
 faaln_ext=faaln
-command="${distrodir}/run_parallel_cmmds.pl $faaln_ext 'pal2nal.pl \$file \${file%_cluo.faaln}.fnaedno -output fasta -nogap -nomismatch -codontable $codontable > \${file%_cluo.faaln}_cdnAln.fasta' $n_cores"
+command="${distrodir}/run_parallel_cmmds.pl $faaln_ext '${distrodir}/pal2nal.pl \$file \${file%_cluo.faaln}.fnaedno -output fasta -nogap -nomismatch -codontable $codontable > \${file%_cluo.faaln}_cdnAln.fasta' $n_cores"
 
 # now we can execute run_parallel_cmmds.pl with a customized command, resulting from the interpolation of multiple varialbles
 [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > $command | bash &> /dev/null" | \
@@ -1295,10 +1283,10 @@ then
         # 4.8 remove uninformative sites from the concatenated alignment to speed up computation
         print_start_time && printf "${BLUE}# removing uninformative sites from concatenated alignment ...${NC}\n"| \
 	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-        [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > remove_uninformative_sites_from_aln.pl < concat_cdnAlns.fna > concat_cdnAlns.fnainf" | \
+        [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > ${distrodir}/remove_uninformative_sites_from_aln.pl < concat_cdnAlns.fna > concat_cdnAlns.fnainf" | \
 	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
         #$distrodir/remove_uninformative_sites_from_aln.pl < concat_cdnAlns.fna > concat_cdnAlns.fnainf
-	remove_uninformative_sites_from_aln.pl < concat_cdnAlns.fna > concat_cdnAlns.fnainf
+	${distrodir}/remove_uninformative_sites_from_aln.pl < concat_cdnAlns.fna > concat_cdnAlns.fnainf
         check_output concat_cdnAlns.fnainf $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	
 	[ ! -s concat_cdnAlns.fnainf ] && print_start_time && printf "\n${RED} >>> ERROR: The expected file concat_cdnAlns.fnainf was not produced! will exit now!${NC}\n\n" | \
@@ -1341,8 +1329,8 @@ then
 	fi
     
         print_start_time && printf "${BLUE}# Adding labels back to tree ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-        [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph &> /dev/null"
-        add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph &> /dev/null
+        [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph &> /dev/null"
+        ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph &> /dev/null
 
         if [ -s ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG_ed.ph ]
         then
@@ -1371,8 +1359,7 @@ then
 	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	     [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null" | \
 	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-             #$distrodir/convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null
-	     convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null
+             $distrodir/convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null
 	     
 	     # FIX the nexus file format produced by bioperl: (recent paup version error message provided below)
 	     # User-defined symbol 'A' conflicts with predefined DNA state symbol.
@@ -1487,13 +1474,13 @@ then
         [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null" | \
 	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	#$distrodir/
-	convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null 
+	${distrodir}/convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null 
 	  
         print_start_time && printf "${BLUE}# Running popGen_summStats.pl ...${NC}\n" | \
        	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u &> popGen_summStats_hs100.log"
 	#$distrodir/popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u &> popGen_summStats_hs100.log
-	popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u &> popGen_summStats_hs100.log
+	${distrodir}/popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u &> popGen_summStats_hs100.log
 	
 	check_output polymorphism_descript_stats.tab $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	
@@ -1586,9 +1573,9 @@ then
    
         print_start_time && printf "${BLUE}# labeling $no_kde_ok gene trees in dir kde_ok/ ...${NC}\n" | \
 	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-        [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > ${distrodir}/run_parallel_cmmds.pl ph 'faalnheader2treetag_PhyML_Consense_Topol_V03.pl ../../../tree_labels.list $file' $n_cores &> /dev/null"  | \
+        [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > ${distrodir}/run_parallel_cmmds.pl ph 'add_labels2tree.pl ../../../tree_labels.list $file' $n_cores &> /dev/null"  | \
 	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-        ${distrodir}/run_parallel_cmmds.pl ph 'faalnheader2treetag_PhyML_Consense_Topol_V03.pl ../../../tree_labels.list $file' $n_cores &> /dev/null
+        ${distrodir}/run_parallel_cmmds.pl ph 'add_labels2tree.pl ../../../tree_labels.list $file' $n_cores &> /dev/null
     
         # remove symbolic links to cleanup kde_ok/
         for f in $(ls *ph|grep -v '_ed\.ph'); do rm $f; done
@@ -1645,8 +1632,7 @@ then
 
     # 5.8 remove uninformative sites from the concatenated alignment to speed up computation
         print_start_time && printf "${BLUE}# removing uninformative sites from concatenated alignment ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-    #$distrodir/remove_uninformative_sites_from_aln.pl < concat_protAlns.faa > concat_protAlns.faainf
-    remove_uninformative_sites_from_aln.pl < concat_protAlns.faa > concat_protAlns.faainf
+    $distrodir/remove_uninformative_sites_from_aln.pl < concat_protAlns.faa > concat_protAlns.faainf
 
     check_output concat_protAlns.faainf $parent_PID|tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
@@ -1704,7 +1690,7 @@ then
     wkdir=$(pwd)
     [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > compute_suppValStas_and_RF-dist.R $wkdir 2 faaln ph 1 &> /dev/null" | \
     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-    compute_suppValStas_and_RF-dist.R $wkdir 2 faaln ph 1 &> /dev/null
+    ${distrodir}/compute_suppValStas_and_RF-dist.R $wkdir 2 faaln ph 1 &> /dev/null
     
    # 6. cleanup
    [ "$DEBUG" -eq "0" ] && rm list2concat Rplots.pdf sorted*perc.tab concat_nonRecomb_KdeFilt_protAlns_FT*.ph | \
