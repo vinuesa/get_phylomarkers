@@ -1,18 +1,18 @@
 # Installation and execution notes for the get_phylomarkers pipeline
 
-Version: Nov, 14 2017
+Version: Nov, 17 2017
  
 This file lists the software components of the *get_phylomarkers* pipeline and briefly describes how to install them.
 
 The pipeline runs on Linux (Ubuntu and RedHat distros) and Mac OS X environments.
 
 It assumes that recent versions of Bash, Perl and R are installed on a multicore (64bit) machine, ideally a server running Linux.
-The pipeline is designed to take advantage of modern multicore machines to parallelize all repetitive tasks that have to be performed on each entry sequence, like generating multiple sequence alignments, deriving codon alignments, inferring maximum likelihood gene phylogenies and testing their clock-likeness. Therefore, if your intention is to select optimal genome markers to infer genome phylogenies, you should run the pipeline on a multiprocessor/multicore server to speed up computations. 
+The pipeline is designed to take advantage of modern multicore machines to parallelize all repetitive tasks that have to be performed on each entry sequence, like tagging sequences, generating multiple sequence alignments, deriving codon alignments, runnig the Phi test on them and inferring maximum likelihood phylogenies from to markers. Therefore, if your intention is to select optimal genome markers to infer genome phylogenies, you should run the pipeline on a multiprocessor/multicore server to speed up computations. 
 
 
 ## Quick install and test notes
 
-1. clone the repository into a suitable directory (e.g. $HOME/src/gitHub/) using the command 'git clone https://github.com/vinuesa/get_phylomarkers.git'
+1. clone the repository into a suitable directory (e.g. $HOME/src/gitHub/) using the command 'git clone https://github.com/vinuesa/get_phylomarkers.git' from within $HOME/src/gitHub/
 
 2. Make sure R is configured in your system. If not, please install R package (r-base in linux). See CRAN packages for OSX [here](https://cran.r-project.org/bin/macosx/).
 
@@ -36,14 +36,14 @@ That's it, enjoy.
 NOTES: 
 
 1. The main script run_get_phylomarkers_pipeline.sh will automatically identify the directory
-on the local machine where the get_phylomarkers package was downloaded. It will also check if the host machine has a 
-\$HOME/bin dir included in \$PATH. If so, the main script will automatically generate 
-symlinks in \$HOME/bin to the package scripts, so that they become visible system-wide.
-Otherwise, it will append the distribution directory holding the scripts to the \$PATH variable, which is set from within the script, but not written down to .bash_profile to avoid any interference with user settings.
+on the local machine where the get_phylomarkers package was downloaded on its second invocation. 
+It will also check if the host machine has a \$HOME/bin dir included in \$PATH. If so, the main script will automatically generate 
+symlinks in \$HOME/bin to the package scripts, so that they become visible system-wide. **We highly encourage users to generate the \$HOME/bin directory, if not available**.
+Otherwise, it will prepend the distribution directory holding the scripts to the \$PATH variable, which is set from within the script, but not written down to .bash_profile to avoid any interference with user settings.
 
 2. The auxiliary scripts are called sequentially by the main script run_get_phylomarkers_pipeline.sh 
 according to predefined runmodes and on DNA or protein sequences. However, the auxiliary scripts all have
-their own user interface and may be useful to perform specific computations without having to run the pipeline.
+their own user interface and may be useful to perform specific computations without having to (re-)run the full pipeline.
 All scripts display usage instructions and describe their aims.
 
 ### Bash scripts
@@ -89,15 +89,15 @@ Please see examples in the source code of *install_R_deps.R* to solve problems t
 old versions of the, particularly *Rcpp*, are already in the system. Tips are also provided to install
 "ape" in Mac systems.
 
-## External dependencies: second party binaries to be installed by the user. 
+## External dependencies: second party binaries called by GET_PHYLOMARKERS scripts. 
 
 NOTES: 
 
-1. the corresponding binaries, after installation, shoud be found in on one of the directories listed in the $PATH variable.  On Linux machines this is typically /usr/local/bin (if you have superuser privileges) or \$HOME/bin if not. 
+1. The required binaries are provided as part of the distribution. The main script will determine the location of the statically compiled versions packaged in the distribution under bin/linux or bin/macosx-intel directories, as required for the local environment. The corresponding \$bindir is prepended to \$PATH and exported only for the duration of the run of the script to avoid polluting the user's ENVIRONMENT. This also ensures that the pipeline always gets access to tested versions of the binaries. Older, pre-installed versions available on the system may not work properly.
 
-2. If the required binaries are not found in \$PATH, the main script will automatically try to use the statically compiled versions packaged in the distribution under bin/linux or bin/macosx-intel directories, as required for the local environment. 
+2. The required second-party binaries required by GET_PHYLOMARKERS are all freely available for download from the links provided below.
 
-3. It is strongly recommended, howerver, that the user downloads the latest versions of the binaries from the links provided below. This is particularly important for [paup*](https://people.sc.fsu.edu/~dswofford/paup_test/), since the current version is a test version that automatically expires every 6 months:
+* [paup*](https://people.sc.fsu.edu/~dswofford/paup_test/). Note that currently PAUP* is an alpha test version that automatically expires every 6 months.
 
 * [clustal omega](http://www.clustal.org/omega/). Multiple sequence alignment software. [Sievers et al. 2011](http://msb.embopress.org/content/7/1/539.long). On Ubuntu try: 'sudo apt-get install clustalo'
 * [parallel](https://www.gnu.org/software/parallel/). Executes processes in parallel on multicore machines. On Ubuntu try: 'sudo apt-get install parallel'
@@ -106,4 +106,4 @@ NOTES:
 * [FastTree](http://microbesonline.org/fasttree/). Fast maximum-likelihood tree searching program. [Price et al. 2010](http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0009490). On Ubuntu try: 'sudo apt-get install fasttree'
 * [paup*](https://people.sc.fsu.edu/~dswofford/paup_test/). Multipurpose phylogenetics software package developed by David Swofford and colleagues. NOTE: This is a test version that expires every 6 months! So please update regularly.
 
-4. Source code and manual compilation instructions are also provided in case bundled binaries fail.
+3. Source code and manual compilation instructions are also provided in the corresponding \$bindir, in case bundled binaries fail.
