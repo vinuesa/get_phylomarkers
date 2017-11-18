@@ -15,7 +15,8 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.9.8.1_17Nov17' # fixed name of the add_labels2tree.pl in one of the calls with -R 1 -t PROT and code cleanup
+VERSION='1.9.8.2_17Nov17' # 1.9.8.2_17Nov17: another sanity check: make sure there are equal number of fna and faa files to start working on
+    # 1.9.8.1_17Nov17: fixed name of the add_labels2tree.pl in one of the calls with -R 1 -t PROT and code cleanup
     # 1.9.8_17Nov17' to avoid problems with old versions of locally insalled binaries or scripts, we set $bindir and $distrodir in front of PATH
     # 1.9.7.5_15Nov17 added check for minimal versions of clustalo FastTree parallel and paup
     # 1.9.7.5_15Nov17 fixed check for $HOME/bin in $PATH
@@ -904,14 +905,35 @@ then
     exit 2
 fi 
 
+# make sure we have *.faa and *.fna file pairs to work on
+nfna=$(ls *.fna) 
+if [ "$?" -gt "0" ]
+then
+   printf "\n${RED} >>> ERROR: there are no input fna files to work on!\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES -n]\n\tPlease check the GET_HOMOLOGUES manual${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log 
+   exit 2
+fi
+
+nfaa=$(ls *.faa) 
+if [ "$?" -gt "0" ]
+then
+   printf "\n${RED} >>> ERROR: there are no input faa files to work on!\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES]\n\tPlease check the GET_HOMOLOGUES manual${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log   
+   exit 2 
+fi
+
+if [ "$nfna" -ne "$nfaa" ]
+then
+ printf "\n${RED} >>> ERROR: there are no equal numbers of fna and faa input files to work on!\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES -n; and a second time: run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES]\n\tPlease check the GET_HOMOLOGUES manual${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log 
+ exit 3
+fi 
+
 mkdir get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT} && cd get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}
 top_dir=$(pwd)
 
 print_start_time && printf "${LBLUE}# processing source fastas in directory get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT} ...${NC}\n"| \
 tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
-ln -s ../*faa .
-ln -s ../*fna .
+ln -s ../*.faa .
+ln -s ../*.fna .
 
 # fix fasta file names with two and three dots
 $distrodir/rename.pl 's/\.\.\./\./g' *.faa
