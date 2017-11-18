@@ -15,7 +15,8 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.9.8.2_17Nov17' # 1.9.8.2_17Nov17: another sanity check: make sure there are equal number of fna and faa files to start working on
+VERSION='1.9.8.3_17Nov17' # 1.9.8.3_17Nov17: added get_homologues manual url to ERROR message to better assist users
+    # 1.9.8.2_17Nov17: another sanity check: make sure there are equal number of fna and faa files to start working on
     # 1.9.8.1_17Nov17: fixed name of the add_labels2tree.pl in one of the calls with -R 1 -t PROT and code cleanup
     # 1.9.8_17Nov17' to avoid problems with old versions of locally insalled binaries or scripts, we set $bindir and $distrodir in front of PATH
     # 1.9.7.5_15Nov17 added check for minimal versions of clustalo FastTree parallel and paup
@@ -909,20 +910,20 @@ fi
 nfna=$(ls *.fna) 
 if [ "$?" -gt "0" ]
 then
-   printf "\n${RED} >>> ERROR: there are no input fna files to work on!\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES -n]\n\tPlease check the GET_HOMOLOGUES manual${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log 
+   printf "\n${RED} >>> ERROR: there are no input fna files to work on!\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES -n]\n\tPlease check the GET_HOMOLOGUES manual${NC}\n${LBLUE}http://eead-csic-compbio.github.io/get_homologues/manual/${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log 
    exit 2
 fi
 
 nfaa=$(ls *.faa) 
 if [ "$?" -gt "0" ]
 then
-   printf "\n${RED} >>> ERROR: there are no input faa files to work on!\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES]\n\tPlease check the GET_HOMOLOGUES manual${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log   
+   printf "\n${RED} >>> ERROR: there are no input faa files to work on!\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES]\n\tPlease check the GET_HOMOLOGUES manual${NC}\n${LBLUE}http://eead-csic-compbio.github.io/get_homologues/manual/${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log   
    exit 2 
 fi
 
 if [ "$nfna" -ne "$nfaa" ]
 then
- printf "\n${RED} >>> ERROR: there are no equal numbers of fna and faa input files to work on!\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES -n; and a second time: run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES]\n\tPlease check the GET_HOMOLOGUES manual${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log 
+ printf "\n${RED} >>> ERROR: there are no equal numbers of fna and faa input files to work on!\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES -n; and a second time: run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES]\n\tPlease check the GET_HOMOLOGUES manual${NC}\n${LBLUE}http://eead-csic-compbio.github.io/get_homologues/manual/${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log 
  exit 3
 fi 
 
@@ -958,7 +959,7 @@ then
    printf "${GREEN} >>> Strain check OK: each f?aed file has the same number of strains and a single instance for each strain${NC}\n" | \
    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 else 
-     printf "\n${RED} >>> ERROR: Input f?aed files do not contain the same number of strains and a single instance for each strain...\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES]\n\tPlease check the GET_HOMOLOGUES manual${NC}\n" | \
+     printf "\n${RED} >>> ERROR: Input f?aed files do not contain the same number of strains and a single instance for each strain...\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES]\n\tPlease check the GET_HOMOLOGUES manual${NC}\n${LBLUE}http://eead-csic-compbio.github.io/get_homologues/manual/${NC}\n" | \
      tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log 
      exit 5
 fi
