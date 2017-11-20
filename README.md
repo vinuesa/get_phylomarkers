@@ -107,7 +107,7 @@ infer the corresponding ML gene trees. Their **phylogenetic signal is computed f
 ### iv) Evaluating the global molecular clock hypothesis.
 
 *run_get_phylomarkers_pipeline.sh* calls the auxiliary script *run_parallel_molecClock_test_with_paup.sh*
-to evaluate the **global molecular clock hypothesis** on the topo markers, selected according to the criteria explained in the three previous
+to evaluate the **global molecular clock hypothesis** on the top markers, selected according to the criteria explained in the three previous
 points. The script calls [paup*](https://people.sc.fsu.edu/~dswofford/paup_test/) 
 to evaluate the free-rates and clock hypothesis using likelihood ratio tests using R. Currently this is only performed on codon alignments. Future versions will implement the global clock hypothesis test also for protein alignments.
 
