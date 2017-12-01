@@ -11,7 +11,10 @@ at [CCG-UNAM, Mexico](http://www.ccg.unam.mx/) and
  
 ## Installation & dependencies
 
-For installation instructions and dependencies please check [INSTALL.md](INSTALL.md).
+For detailed instructions and dependencies please check [INSTALL.md](INSTALL.md).
+
+A [Docker image](https://hub.docker.com/r/eeadcsiccompbio/get_homologues) is available with GET_PHYLOMARKERS
+bundled with [GET_HOMOLOGUES](https://github.com/eead-csic-compbio/get_homologues), ready to use.
 
 ## Aim
 The pipeline selects markers with optimal phylogenetic attributes from the homologous gene 
