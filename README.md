@@ -1,6 +1,6 @@
 # get_phylomarkers
 
-<!--Version November 17th, 2017.-->
+<!--Version Dec. 22cnd, 2017.-->
 
 This repository hosts the code for the *get_phylomarkers* pipeline. This file describes its
 aim and basic usage notes. <!--See [INSTALL.md](INSTALL.md) for installation instructions.-->
@@ -38,16 +38,31 @@ the pipeline can be also run using protein instead of DNA sequences.
 1. The pipeline is run by executing the main script *run_get_phylomarkers_pipeline.sh* inside a folder containing twin \*.fna and \*.faa FASTA files for orthologous **single-copy** CDSs and translation products. <!-- computed by the *get_homologues.pl -e* or *compare_clusters.pl* scripts of the **GET_HOMOLOGUES** suite.-->
 2. There are two **runmodes**: -R 1 (for phylogenetics) and -R 2 (for population genetics).
 3. The pipeline can be run on two **molecular types**: DNA or protein sequences (-t DNA|PROT). The latter is intended for the analysis of more divergent genome sequences, above the genus level.
-4. The **global molecular-clock hypothesis** can be evaluated for DNA (codon) alignments (-R 1 -t DNA -K 1). It is not yet implemented for protein sequences.
-5. A **toy sequence dataset is provided** with the distribution in the test_sequences/ directory for easy and fast testing (~14 seconds on a commodity GNU/Linux desktop machine with 4 cores; see [INSTALL.md](INSTALL.md)). 
+4. FastTree is the tree searching algorithm used by default (-A F). This is the fastest maximum likelihood tree-searching algorithm available to date. The user can also choose to use the 
+significantly more accurate, but also much slower, IQ-TREE algorithm using option -A I. IQ-TREE is the best ML tree-searching algorithm available to date for datasets with no more than 100-200 sequences, as recently demonstrated in a large benchmark study with empirical phylogenomic datasets (Zhou et al. 2017. Mol Biol Evol. Nov 21. doi: 10.1093/molbev/msx302. [Epub ahead of print])[PMID:29177474](https://www.ncbi.nlm.nih.gov/pubmed/29177474).
+5. The **global molecular-clock hypothesis** can be evaluated for DNA (codon) alignments (-R 1 -t DNA -K 1). It is not yet implemented for protein sequences.
+6. A **toy sequence dataset is provided** with the distribution in the test_sequences/ directory for easy and fast testing (~14 seconds on a commodity GNU/Linux desktop machine with 4 cores; see [INSTALL.md](INSTALL.md)). 
 
 ### Basic usage examples
 
 ```
- run_get_phylomarkers_pipeline.sh -R 1 -t DNA                # default run
- run_get_phylomarkers_pipeline.sh -R 1 -t DNA -K 1 -M HKY    # add molecular-clock analysis assuming a HKY85+G substitution model
- run_get_phylomarkers_pipeline.sh -R 2 -t DNA                # population-genetics mode
- run_get_phylomarkers_pipeline.sh -R 1 -t PROT -k 1.2 -m 0.7 # protein alignments, user-defined kdetrees & mean branch support cutoff values
+ # default run
+ run_get_phylomarkers_pipeline.sh -R 1 -t DNA
+
+ # add molecular-clock analysis assuming a HKY85+G substitution model                
+ run_get_phylomarkers_pipeline.sh -R 1 -t DNA -K 1 -M HKY
+
+ # population-genetics mode   
+ run_get_phylomarkers_pipeline.sh -R 2 -t DNA                
+ 
+# protein alignments, user-defined kdetrees & mean branch support cutoff values
+ run_get_phylomarkers_pipeline.sh -R 1 -t PROT -k 1.2 -m 0.7 
+
+# To run the pipeline on a remote server, we recommend using the nohup command upfront, as shown below:
+#   in this case, calling also IQ-TREE, which will select among the (TNe,TVM,TVMe,GTR)+RATE models and do
+#   5 independent tree searches under the best-fit model, computing ultrafast bootstrapp and aproximate Bayes
+#   branch support values 
+ nohup run_get_phylomarkers_pipeline.sh -R 1 -t DNA -A I -S 'TNe,TVM,TVMe,GTR' -k 1.0 -m 0.7 -T high -N 5 &> /dev/null &
 ```
 
 ## Usage and design details
