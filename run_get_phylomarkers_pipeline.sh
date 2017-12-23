@@ -15,7 +15,8 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.9.9.0_22Dic17' # 1.9.9.0_22Dic17: added IQ-tree searching option for the concatenated alignment, controlled with new options -A, -N and -S
+VERSION='1.9.9.1_23Dic17'  # 1.9.9.1_23Dic17: renamed the iqtree binary to iqtree-omp to be explicit about the multicore version
+    # 1.9.9.0_22Dic17: added IQ-tree searching option for the concatenated alignment, controlled with new options -A, -N and -S
     # 1.9.8.4_17Nov17: improved/expanded -h help message; thorough and consistent tidying of directories; cleanup of code comments
     # 1.9.8.3_17Nov17: added get_homologues manual url to ERROR message to better assist users
     # 1.9.8.2_17Nov17: another sanity check: make sure there are equal number of fna and faa files to start working on
@@ -1418,14 +1419,14 @@ then
        then
 	  # 5.5 run IQ-tree in addition to FastTree, if requested
           echo
-	  printf "${YELLOW} >>>>>>>>>>>>>>> IQ-TREE + ModelFinder run <<<<<<<<<<<<<<< ${NC}\n" | \
+	  printf "${YELLOW} >>>>>>>>>>>>>>> ModelFinder + IQ-TREE run <<<<<<<<<<<<<<< ${NC}\n" | \
 	  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	  echo 
 
 	  print_start_time && printf "${BLUE}# running ModelFinder on the concatenated alignment with $IQT_models. This will take a while ...${NC}\n" | \
 	  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
            
-          iqtree -s concat_cdnAlns.fnainf -st DNA -mset "$IQT_models" -m MF -nt AUTO &> /dev/null 
+          iqtree-omp -s concat_cdnAlns.fnainf -st DNA -mset "$IQT_models" -m MF -nt AUTO &> /dev/null 
 	  
 	  check_output concat_cdnAlns.fnainf.log $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	  
@@ -1444,10 +1445,10 @@ then
 	     # run nrep IQ-TREE searches under the best-fit model found
 	     for ((rep=1;rep<=$nrep;rep++))
 	     do 
-	         print_start_time && printf "${LBLUE} > iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null${NC}\n" | \
+	         print_start_time && printf "${LBLUE} > iqtree-omp -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null${NC}\n" | \
 	         tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	        
-		  iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null 
+		 iqtree-omp -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null 
 	     done
              
 	     grep '^BEST SCORE' *log | sort -nrk5 > sorted_IQ-TREE_searches.out
@@ -1475,7 +1476,7 @@ then
 	     print_start_time && printf "${BLUE}# running IQ-tree on the concatenated alignment with best model ${best_model} -abayes -bb 1000. This will take a while ...${NC}\n" | \
 	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
-	     iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre iqtree_abayes &> /dev/null 
+	     iqtree-omp -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre iqtree_abayes &> /dev/null 
 	    
 	     best_tree_file=${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_iqtree_${best_model}.ph
 	     cp iqtree_abayes.treefile ${best_tree_file}
@@ -1862,7 +1863,7 @@ then
 	  print_start_time && printf "${BLUE}# running ModelFinder on the concatenated alignment with $IQT_models. This will take a while ...${NC}\n" | \
 	  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
            
-          iqtree -s concat_protAlns.faainf -st PROT -mset "$IQT_models" -m MF -nt AUTO &> /dev/null 
+          iqtree-omp -s concat_protAlns.faainf -st PROT -mset "$IQT_models" -m MF -nt AUTO &> /dev/null 
 	  
 	  check_output concat_protAlns.faainf.log $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	  
@@ -1881,10 +1882,10 @@ then
 	     # run nrep IQ-TREE searches under the best-fit model found
 	     for ((rep=1;rep<=$nrep;rep++))
 	     do 
-	         print_start_time && printf "${LBLUE} > iqtree -s concat_protAlns.faainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null${NC}\n" | \
+	         print_start_time && printf "${LBLUE} > iqtree-omp -s concat_protAlns.faainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null${NC}\n" | \
 	         tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	        
-		  iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null 
+		  iqtree-omp -s concat_protAlns.faainf -st PROT -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null 
 	     done
              
 	     grep '^BEST SCORE' *log | sort -nrk5 > sorted_IQ-TREE_searches.out
@@ -1911,9 +1912,9 @@ then
 	     print_start_time && printf "${BLUE}# running IQ-tree on the concatenated alignment with best model ${best_model} -abayes -bb 1000. This will take a while ...${NC}\n" | \
 	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
-	     print_start_time && printf "${BLUE}# running: iqtree -s concat_protAlns.faainf -st PROT -m $best_model -abayes -bb 1000 -nt AUTO -pre iqtree_abayes &> /dev/null  ...${NC}\n" | \
+	     print_start_time && printf "${BLUE}# running: iqtree-omp -s concat_protAlns.faainf -st PROT -m $best_model -abayes -bb 1000 -nt AUTO -pre iqtree_abayes &> /dev/null  ...${NC}\n" | \
 	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-	     iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" -abayes -bb 1000 -nt AUTO -pre iqtree_abayes &> /dev/null 
+	     iqtree-omp -s concat_protAlns.faainf -st PROT -m "$best_model" -abayes -bb 1000 -nt AUTO -pre iqtree_abayes &> /dev/null 
 	    
 	     best_tree_file=${tree_prefix}_nonRecomb_KdeFilt_protAlns_iqtree_${best_model}.ph
 	     cp iqtree_abayes.treefile ${best_tree_file}
