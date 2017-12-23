@@ -11,7 +11,10 @@ at [CCG-UNAM, Mexico](http://www.ccg.unam.mx/) and
  
 ## Installation & dependencies
 
-For installation instructions and dependencies please check [INSTALL.md](INSTALL.md).
+For detailed instructions and dependencies please check [INSTALL.md](INSTALL.md).
+
+A [Docker image](https://hub.docker.com/r/eeadcsiccompbio/get_homologues) is available with GET_PHYLOMARKERS
+bundled with [GET_HOMOLOGUES](https://github.com/eead-csic-compbio/get_homologues), ready to use.
 
 ## Aim
 The pipeline selects markers with optimal phylogenetic attributes from the homologous gene 
@@ -107,7 +110,7 @@ infer the corresponding ML gene trees. Their **phylogenetic signal is computed f
 ### iv) Evaluating the global molecular clock hypothesis.
 
 *run_get_phylomarkers_pipeline.sh* calls the auxiliary script *run_parallel_molecClock_test_with_paup.sh*
-to evaluate the **global molecular clock hypothesis** on the topo markers, selected according to the criteria explained in the three previous
+to evaluate the **global molecular clock hypothesis** on the top markers, selected according to the criteria explained in the three previous
 points. The script calls [paup*](https://people.sc.fsu.edu/~dswofford/paup_test/) 
 to evaluate the free-rates and clock hypothesis using likelihood ratio tests using R. Currently this is only performed on codon alignments. Future versions will implement the global clock hypothesis test also for protein alignments.
 
