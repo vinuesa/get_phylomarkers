@@ -2,9 +2,9 @@
 
 #: PROGRAM: run_get_phylomarkers_pipeline.sh
 #: AUTHORS: Pablo Vinuesa, Center for Genomic Sciences, UNAM, Mexico
-#:          http://www.ccg.unam.mx/~vinuesa
+#:          http://www.ccg.unam.mx/~vinuesa/
 #           Bruno Contreras Moreira, EEAD-CSIC, Zaragoza, Spain
-#           https://digital.csic.es/cris/rp/rp02661
+#           https://digital.csic.es/cris/rp/rp02661/
 #
 #: PROJECT START: April 2017; This is a wrapper script to automate the whole process of marker selection and downstream analyses.
 #
@@ -15,7 +15,8 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.9.8.4_17Nov17' # 1.9.8.4_17Nov17: improved/expanded -h help message; thorough and consistent tidying of directories; cleanup of code comments
+VERSION='1.9.9.0_22Dic17' # 1.9.9.0_22Dic17: added IQ-tree searching option for the concatenated alignment, controlled with new options -A, -N and -S
+    # 1.9.8.4_17Nov17: improved/expanded -h help message; thorough and consistent tidying of directories; cleanup of code comments
     # 1.9.8.3_17Nov17: added get_homologues manual url to ERROR message to better assist users
     # 1.9.8.2_17Nov17: another sanity check: make sure there are equal number of fna and faa files to start working on
     # 1.9.8.1_17Nov17: fixed name of the add_labels2tree.pl in one of the calls with -R 1 -t PROT and code cleanup
@@ -79,11 +80,6 @@ VERSION='1.9.8.4_17Nov17' # 1.9.8.4_17Nov17: improved/expanded -h help message; 
 DEBUG=0
 wkdir=$(pwd) #echo "# working in $wkdir"
 
-MIN_PARALLEL_VERS=2016
-MIN_CLUSTALO_VERS=121
-MIN_PAUP_VERS=157
-MIN_FT_VERS=2110
-
 DATEFORMAT_SHORT="%d%b%y"
 TIMESTAMP_SHORT=$(date +${DATEFORMAT_SHORT})
 
@@ -92,8 +88,7 @@ TIMESTAMP_HMS=$(date +${DATEFORMAT_HMS})
 
 TIMESTAMP_SHORT_HMS=$(date +${DATEFORMAT_SHORT}-${DATEFORMAT_HMS})
 
-#>>> set color in bash 
-#  SEE: echo http://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
+#>>> set colors in bash 
 # ANSI escape codes
 # Black        0;30     Dark Gray     1;30
 # Red          0;31     Light Red     1;31
@@ -244,7 +239,6 @@ function set_bindirs()
 #       fi	  
 #   done	  
 # 
-#
 #    # check if scripts are in path; if not, set flag 
 #   if [ $not_in_path -eq 1 ]
 #   then
@@ -642,6 +636,7 @@ function print_help()
     
    OPTIONAL:
      -h flag to print this short help notes
+     -A <string> Algorithm for tree searching: <F|I> [FastTree|IQ-TREE]                            [default:$search_algorithm]                            
      -H flag to print additional usage Notes
      -c <integer> NCBI codontable number (1-23) for pal2nal.pl to generate codon alignment         [default:$codontable] 
      -C flag to print codontables
@@ -653,21 +648,28 @@ function print_help()
      -m <real> min. average support value (0.7-0.8 are reasonable values) for trees to be selected [default: $min_supp_val]
      -M <string> base Model for clock test (use one of: GTR|TrN|HKY|K2P|F81); uses +G in all cases [default: $base_mod]
      -n <integer> number of cores/threads to use                                                   [default: all cores]
+     -N <integer> number of IQ-TREE searches to run [only active with -T high]                     [default: $nrep]
      -q <real> quantile (0.95|0.99) of Chi-square distribution for computing molec. clock p-value  [default: $q]
      -r <string> root method (midpoint|outgroup)                                                   [default: $root_method]
      -s <integer> number of spr rounds (4-20 are reasonable values) for FastTree tree searching    [default: $spr]
+     -S <string> quoted 'comma-separated list' of base models to be evaluated 
+              by ModelFinder for IQ-TREE, when -A I. IQ-TREE runs with the concatenated alignments
+              <'JC,F81,K2P,HKY,TrN,TNe,K3P,K81u,TPM2,TPM2u,TPM3,TPM3u,
+	      TIM,TIMe,TIM2,TIM2e,TIM3,TIM3e,TVM,TVMe,SYM,GTR'>              for DNA alignments    [default: $IQT_DNA_models] 
+              <'BLOSUM62,cpREV,Dayhoff,DCMut,FLU,HIVb,HIVw,JTT,JTTDCMut,LG,
+                mtART,mtMAM,mtREV,mtZOA,Poisson,PMB,rtREV,VT,WAG'>           for PROT alignments   [default: $IQT_PROT_models]       
      -T <string> tree search Thoroughness: high|medium|low|lowest                                  [default: $search_thoroughness]
      -V flag to activate verbose command execution lines                                           [default: $VERBOSITY]
      
    Invocation examples:
      1. default on DNA sequences: 
           $progname -R 1 -t DNA
-     2. thorough searching and molecular clock analysis on DNA sequences:
+     2. thorough FastTree searching and molecular clock analysis on DNA sequences:
           $progname -R 1 -t DNA -k 1.2 -m 0.7 -s 8 -l 10 -T high -K 1 -M HKY -q 0.95
-     3. fastest searching on a huge protein dataset
+     3. FastTree searching on a huge protein dataset
           $progname -R 1 -t PROT -m 0.6 -k 1.0 -T lowest
      4. To run the pipeline on a remote server, we recommend using the nohup command upfront, as shown below:
-        nohup $progname -R 1 -t DNA -k 1.0 -m 0.7 -s 8 -l 10 -T high -K 1 &> /dev/null &	  
+        nohup $progname -R 1 -t DNA -A I -S 'TNe,TVM,TVMe,GTR' -k 1.0 -m 0.7 -T high -N 5 &> /dev/null &	  
      
    NOTES
      1: run from within the directory holding core gene clusters generated by get_homologues.pl -e or
@@ -707,10 +709,18 @@ root_method=midpoint
 tree_prefix=concat 
 q=0.99
 
-while getopts 'c:e:k:K:l:m:M:n:p:q:r:s:t:T:R:hHCDV' OPTIONS
+search_algorithm=F
+IQT_DNA_models=GTR
+IQT_PROT_models=LG
+IQT_models=
+nrep=10
+
+while getopts 'c:e:k:K:l:m:M:n:N:p:q:r:s:t:A:T:R:S:hHCDV' OPTIONS
 do
    case $OPTIONS in
    h)   print_help
+        ;;
+   A)   search_algorithm=$OPTARG
         ;;
    k)   kde_stringency=$OPTARG
         ;;
@@ -732,6 +742,8 @@ do
         ;;
    n)   n_cores=$OPTARG
         ;;
+   N)   nrep=$OPTARG
+        ;;
    t)   mol_type=$OPTARG
         ;;
    T)   search_thoroughness=$OPTARG
@@ -743,6 +755,8 @@ do
    r)   root_method=$OPTARG
         ;;
    s)   spr=$OPTARG
+        ;;
+   S)   IQT_models=$OPTARG
         ;;
    R)   runmode=$OPTARG
         ;;
@@ -813,6 +827,13 @@ then
        exit 1    
 fi
 
+if [ "$search_algorithm" != "I" -a "$search_algorithm" != "F" ]
+then
+       echo "# ERROR: search_algorithm "$search_algorithm" is not recognized!"
+       print_help
+       exit 1    
+fi
+
 if [ $min_no_ext_branches -lt 4 ]
 then
     printf "${RED}>>> ERROR: -e has to be >= 4\n\n${NC}"
@@ -830,6 +851,12 @@ then
      printf "\n${RED}ERROR: -t must be DNA or PROT${NC}\n"
      print_help
      exit 1
+fi
+
+if [ -z $IQT_models ]
+then
+   [ "$mol_type" == "DNA" ] && $IQT_models = $IQT_DNA_models
+   [ "$mol_type" == "PROT" ] && $IQT_models = $IQT_PROT_models
 fi
 
 if [ "$search_thoroughness" != "high" -a "$search_thoroughness" != "medium" -a "$search_thoroughness" != "low" -a "$search_thoroughness" != "lowest" ]
@@ -879,8 +906,18 @@ printf "
  wkdir=$wkdir
  distrodir=$distrodir
  bindir=$bindir
- runmode=$runmode|mol_type=$mol_type|eval_clock=$eval_clock|root_method=$root_method|base_model=$base_mod|ChiSq_quantile=$q
- kde_stringency=$kde_stringency|min_supp_val=$min_supp_val|spr=$spr|spr_length=$spr_length|search_thoroughness=$search_thoroughness
+
+ > General run settings:
+      runmode=$runmode|mol_type=$mol_type|search_algorithm=$search_algorithm 
+ > Filtering parameters: 
+     kde_stringency=$kde_stringency|min_supp_val=$min_supp_val
+ > FastTree parameters: 
+     spr=$spr|spr_length=$spr_length|search_thoroughness=$search_thoroughness
+ > IQ-TREE parameters: 
+     IQT_models=$IQT_models|search_thoroughness=$search_thoroughness|nrep=$nrep
+ > Molecular Clock parmeters: 
+     eval_clock=$eval_clock|root_method=$root_method|base_model=$base_mod|ChiSq_quantile=$q
+
  DEBUG=$DEBUG|VERBOSITY=$VERBOSITY${NC}
 
 " | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log 
@@ -1313,68 +1350,156 @@ then
 	[ ! -s concat_cdnAlns.fnainf ] && print_start_time && printf "\n${RED} >>> ERROR: The expected file concat_cdnAlns.fnainf was not produced! will exit now!${NC}\n\n" | \
 	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && exit 3
 
-        # 5.4 run FasTree under the GTR+G model 
-        print_start_time && printf "${BLUE}# running FastTree on the concatenated alignment with $search_thoroughness thoroughness. This may take a while ...${NC}\n" | \
-	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+        
+	#if [ "$search_algorithm" == "F" ] # always run FastTree, ok
+	#then
+	  # 5.4 run FasTree under the GTR+G model 
+          print_start_time && printf "${BLUE}# running FastTree on the concatenated alignment with $search_thoroughness thoroughness. This may take a while ...${NC}\n" | \
+	  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
-        if [ "$search_thoroughness" == "high" ]
-        then
+          if [ "$search_thoroughness" == "high" ]
+          then
             FastTree -quiet -nt -gtr -bionj -slownni -gamma -mlacc 3 -spr $spr -sprlength $spr_length -log ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log < concat_cdnAlns.fnainf > ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
-        fi
+          fi
 
-        if [ "$search_thoroughness" == "medium" ]
-        then
+          if [ "$search_thoroughness" == "medium" ]
+          then
             FastTree -quiet -nt -gtr -bionj -slownni -gamma -mlacc 2 -spr $spr -sprlength $spr_length -log ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log < concat_cdnAlns.fnainf > ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
-        fi
+          fi
 
-        if [ "$search_thoroughness" == "low" ]
-        then
+          if [ "$search_thoroughness" == "low" ]
+          then
             FastTree -quiet -nt -gtr -bionj -gamma -spr $spr -sprlength $spr_length -log ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log < concat_cdnAlns.fnainf > ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
-        fi
+          fi
 
-        if [ "$search_thoroughness" == "lowest" ]
-        then
+          if [ "$search_thoroughness" == "lowest" ]
+          then
             FastTree -quiet -nt -gtr -gamma -mlnni 4 -log ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log < concat_cdnAlns.fnainf > ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
-        fi
+          fi
 
-        check_output ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+          check_output ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	
-	if [ -s "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log" -a -s "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph" ]
-	then
+	  if [ -s "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log" -a -s "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph" ]
+	  then
 	    lnL=$(grep ML_Lengths2 "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log" | grep TreeLogLk | sed 's/TreeLogLk[[:space:]]ML_Lengths2[[:space:]]//')
 	    printf "${GREEN} >>> lnL for ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph = $lnL ${NC}\n" | \
 	    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-	else
+	  else
 	    printf "${LRED} >>> WARNING: ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log could not be produced!${NC}\n" | \
 	    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-	fi
+	  fi
     
-        print_start_time && printf "${BLUE}# Adding labels back to tree ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-        [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph &> /dev/null"
-        ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph &> /dev/null
+          print_start_time && printf "${BLUE}# Adding labels back to tree ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+          [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph &> /dev/null"
+          ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph &> /dev/null
 
-        if [ -s ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG_ed.ph ]
-        then
+          if [ -s ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG_ed.ph ]
+          then
             mv ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG_ed.ph ${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}cdnAlns_FTGTRG_ed.sptree # for compute_suppValStats_and_RF-dist.R
             check_output ${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}cdnAlns_FTGTRG_ed.sptree $parent_PID | \
 	    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
             printf "${GREEN} >>> found in dir $top_markers_dir ...${NC}\n\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-        else
+          else
               printf "${LRED} >>> WARNING: ${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}cdnAlns_FTGTRG_ed.sptree could not be produced!${NC}"
-        fi 
-    
-        print_start_time && printf "${BLUE}# computing the mean support values and RF-distances of each gene tree to the concatenated tree   ...${NC}\n" | \
-	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-	[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > compute_suppValStas_and_RF-dist.R $top_markers_dir 2 fasta ph 1 &> /dev/null" | \
-	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-        compute_suppValStas_and_RF-dist.R $top_markers_dir 2 fasta ph 1 &> /dev/null
+          fi 
 	
-	# top100_median_support_values4loci.tab should probably not be written in the first instance
-	[ -s top100_median_support_values4loci.tab -a "${no_top_markers}" -lt 101 ] && rm top100_median_support_values4loci.tab
+          print_start_time && printf "${BLUE}# computing the mean support values and RF-distances of each gene tree to the concatenated tree   ...${NC}\n" | \
+	  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	  [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > compute_suppValStas_and_RF-dist.R $top_markers_dir 2 fasta ph 1 &> /dev/null" | \
+	  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+          compute_suppValStas_and_RF-dist.R $top_markers_dir 2 fasta ph 1 &> /dev/null
+	
+	  # top100_median_support_values4loci.tab should probably not be written in the first instance
+	  [ -s top100_median_support_values4loci.tab -a "${no_top_markers}" -lt 101 ] && rm top100_median_support_values4loci.tab
     
+       #fi # [ "$search_algorithm" == "F" ]
+       
+       if [ "$search_algorithm" == "I" ]
+       then
+	  # 5.5 run IQ-tree in addition to FastTree, if requested
+          echo
+	  printf "${YELLOW} >>>>>>>>>>>>>>> IQ-TREE + ModelFinder run <<<<<<<<<<<<<<< ${NC}\n" | \
+	  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	  echo 
+
+	  print_start_time && printf "${BLUE}# running ModelFinder on the concatenated alignment with $IQT_models. This will take a while ...${NC}\n" | \
+	  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+           
+          iqtree -s concat_cdnAlns.fnainf -st DNA -mset "$IQT_models" -m MF -nt AUTO &> /dev/null 
+	  
+	  check_output concat_cdnAlns.fnainf.log $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	  
+	  best_model=$(grep '^Best-fit model' concat_cdnAlns.fnainf.log | cut -d' ' -f 3)
+	  printf "${GREEN} >>> Best-fit model: ${best_model} ...${NC}\n" | \
+	  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	  
+	  mkdir iqtree_abayes && cd iqtree_abayes
+	  ln -s ../concat_cdnAlns.fnainf .
+	  
+	  if [ "$search_thoroughness" == "high" ]
+	  then
+	     print_start_time && printf "${BLUE}# running IQ-TREE on the concatenated alignment with best model ${best_model} -abayes -bb 1000, starting from $nrep random trees!. This will take a while ...${NC}\n" | \
+	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	     
+	     # run nrep IQ-TREE searches under the best-fit model found
+	     for ((rep=1;rep<=$nrep;rep++))
+	     do 
+	         print_start_time && printf "${LBLUE} > iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null${NC}\n" | \
+	         tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	        
+		  iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null 
+	     done
+             
+	     grep '^BEST SCORE' *log | sort -nrk5 > sorted_IQ-TREE_searches.out
+	     
+	     check_output sorted_IQ-TREE_searches.out $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	     best_search=$(head -1 sorted_IQ-TREE_searches.out)
+	     best_search_base_name=$(head -1 sorted_IQ-TREE_searches.out | cut -d\. -f 1)
+	     
+	     printf "${GREEN}# >>> Best IQ-TREE run was: $best_search ...${NC}\n" | \
+	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	     
+	     best_tree_file=${tree_prefix}_${best_search_base_name}_nonRecomb_KdeFilt_iqtree_${best_model}.ph
+	     cp ${best_search_base_name}.treefile ${best_tree_file}
+	     
+	     print_start_time && printf "${BLUE}# Adding labels back to ${best_tree_file} ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+             [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${best_tree_file} &> /dev/null"
+             ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${best_tree_file} &> /dev/null
+             
+	     check_output ${best_tree_file} $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	     
+	     cp *_ed.ph sorted_IQ-TREE_searches.out $top_markers_dir
+	     cd $top_markers_dir
+	     rm -rf iqtree_abayes concat_cdnAlns.fnainf.treefile concat_cdnAlns.fnainf.uniqueseq.phy concat_cdnAlns.fnainf.ckp.gz
+	  else
+	     print_start_time && printf "${BLUE}# running IQ-tree on the concatenated alignment with best model ${best_model} -abayes -bb 1000. This will take a while ...${NC}\n" | \
+	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+
+	     iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre iqtree_abayes &> /dev/null 
+	    
+	     best_tree_file=${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_iqtree_${best_model}.ph
+	     cp iqtree_abayes.treefile ${best_tree_file}
+	     
+	     print_start_time && printf "${BLUE}# Adding labels back to ${best_tree_file} ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+             [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${best_tree_file} &> /dev/null"
+             ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${best_tree_file} &> /dev/null
+             
+	     check_output ${best_tree_file} $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	     cp *_ed.ph $top_markers_dir
+	     cd $top_markers_dir
+	     rm -rf iqtree_abayes concat_cdnAlns.fnainf.treefile concat_cdnAlns.fnainf.uniqueseq.phy concat_cdnAlns.fnainf.ckp.gz
+	  fi
+
+       fi # if [ "$search_algorithm" == "I" ]
+       
         # NOTE: after v0.9 this process is prallelized with run_parallel_cmmds.pl
 	if [ $eval_clock -gt 0 ]
         then 
+	     echo
+	     printf "${YELLOW} >>>>>>>>>>>>>>> TESTING THE MOLECULAR CLOCK HYPOTHESIS <<<<<<<<<<<<<<< ${NC}\n" | \
+	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	     echo
+	     
  	     # 1. convert fasta2nexus
              print_start_time && printf "${BLUE}# converting fasta files to nexus files${NC}\n"| \
 	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
@@ -1459,8 +1584,8 @@ then
         [ -s codon_alignments.tgz ] && rm ./*_cdnAln.fasta clustalo.log
         tar -czf protein_alignments.tgz ./*.faaln
         [ -s protein_alignments.tgz ] && rm ./*.faaln
-
-        fi
+       
+      fi
     fi # if [ $runmode -eq 1 ]; then run phylo pipeline on DNA seqs
     
 
@@ -1719,14 +1844,93 @@ then
     check_output ${tree_prefix}_${no_top_markers}nonRecomb_KdeFilt_protAlns_FTlgG.spTree $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
      
     printf "${GREEN} >>> found in dir $wkdir ...${NC}\n\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-    
-    check_output ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log $parent_PID|tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-    
+       
     wkdir=$(pwd)
     [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > compute_suppValStas_and_RF-dist.R $wkdir 2 faaln ph 1 &> /dev/null" | \
     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
     ${distrodir}/compute_suppValStas_and_RF-dist.R $wkdir 2 faaln ph 1 &> /dev/null
     
+    
+       if [ "$search_algorithm" == "I" ]
+       then
+	  # 5.5 run IQ-tree in addition to FastTree, if requested
+          echo
+	  printf "${YELLOW} >>>>>>>>>>>>>>> IQ-TREE + ModelFinder run <<<<<<<<<<<<<<< ${NC}\n" | \
+	  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	  echo 
+
+	  print_start_time && printf "${BLUE}# running ModelFinder on the concatenated alignment with $IQT_models. This will take a while ...${NC}\n" | \
+	  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+           
+          iqtree -s concat_protAlns.faainf -st PROT -mset "$IQT_models" -m MF -nt AUTO &> /dev/null 
+	  
+	  check_output concat_protAlns.faainf.log $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	  
+	  best_model=$(grep '^Best-fit model' concat_protAlns.faainf.log | cut -d' ' -f 3)
+	  printf "${GREEN} >>> Best-fit model: ${best_model} ...${NC}\n" | \
+	  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	  
+	  mkdir iqtree_abayes && cd iqtree_abayes
+	  ln -s ../concat_protAlns.faainf .
+	  
+	  if [ "$search_thoroughness" == "high" ]
+	  then
+	     print_start_time && printf "${BLUE}# running IQ-TREE on the concatenated alignment with best model ${best_model} -abayes -bb 1000, starting from $nrep random trees!. This will take a while ...${NC}\n" | \
+	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	     
+	     # run nrep IQ-TREE searches under the best-fit model found
+	     for ((rep=1;rep<=$nrep;rep++))
+	     do 
+	         print_start_time && printf "${LBLUE} > iqtree -s concat_protAlns.faainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null${NC}\n" | \
+	         tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	        
+		  iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null 
+	     done
+             
+	     grep '^BEST SCORE' *log | sort -nrk5 > sorted_IQ-TREE_searches.out
+	     
+	     check_output sorted_IQ-TREE_searches.out $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	     best_search=$(head -1 sorted_IQ-TREE_searches.out)
+	     best_search_base_name=$(head -1 sorted_IQ-TREE_searches.out | cut -d\. -f 1)
+	     
+	     printf "${GREEN}# >>> Best IQ-TREE run was: $best_search ...${NC}\n" | \
+	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	     
+	     best_tree_file=${tree_prefix}_${best_search_base_name}_nonRecomb_KdeFilt_iqtree_${best_model}.ph
+	     cp ${best_search_base_name}.treefile ${best_tree_file}
+	     
+	     print_start_time && printf "${BLUE}# Adding labels back to ${best_tree_file} ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+             [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${best_tree_file} &> /dev/null"
+             ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${best_tree_file} &> /dev/null
+             
+	     check_output ${best_tree_file} $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	     cp *_ed.ph sorted_IQ-TREE_searches.out $wkdir
+	     cd $wkdir
+	     rm -rf iqtree_abayes concat_protAlns.faainf.treefile concat_protAlns.faainf.uniqueseq.phy *ckp.gz
+	  else
+	     print_start_time && printf "${BLUE}# running IQ-tree on the concatenated alignment with best model ${best_model} -abayes -bb 1000. This will take a while ...${NC}\n" | \
+	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+
+	     print_start_time && printf "${BLUE}# running: iqtree -s concat_protAlns.faainf -st PROT -m $best_model -abayes -bb 1000 -nt AUTO -pre iqtree_abayes &> /dev/null  ...${NC}\n" | \
+	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	     iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" -abayes -bb 1000 -nt AUTO -pre iqtree_abayes &> /dev/null 
+	    
+	     best_tree_file=${tree_prefix}_nonRecomb_KdeFilt_protAlns_iqtree_${best_model}.ph
+	     cp iqtree_abayes.treefile ${best_tree_file}
+	     
+	     print_start_time && printf "${BLUE}# Adding labels back to ${best_tree_file} ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+             [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${best_tree_file} &> /dev/null"
+             ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${best_tree_file} &> /dev/null
+	                  
+	     check_output ${best_tree_file} $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	     cp *_ed.ph $wkdir
+	     cd $wkdir
+	     rm -rf iqtree_abayes concat_protAlns.faainf.treefile concat_protAlns.faainf.uniqueseq.phy *ckp.gz
+	  fi
+
+       fi # if [ "$search_algorithm" == "I" ]
+       
+
    # >>> 6.9 CLEANUP <<< #
    [ "$DEBUG" -eq "0" ] && rm list2concat Rplots.pdf sorted*perc.tab concat_nonRecomb_KdeFilt_protAlns_FT*.ph | \
     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
