@@ -95,13 +95,14 @@ NOTES:
 
 1. The required binaries are provided as part of the distribution. The main script will determine the location of the statically compiled versions packaged in the distribution under bin/linux or bin/macosx-intel directories, as required for the local environment. The corresponding \$bindir is prepended to \$PATH and exported only for the duration of the run of the script to avoid polluting the user's ENVIRONMENT. This also ensures that the pipeline always gets access to tested versions of the binaries. Older, pre-installed versions available on the system may not work properly.
 
-2. The required second-party binaries required by GET_PHYLOMARKERS are all freely available for download from the links provided below.
+2. The required second-party binaries required by GET_PHYLOMARKERS are all freely available for download from the links provided below. However, the *run_get_phylomarkers_pipeline.sh* script will call the binaries provided with the distribution, which avoids problems with old versions that may be installed on the user's system.
 
 * [clustal omega](http://www.clustal.org/omega/). Multiple sequence alignment software. [Sievers et al. 2011](http://msb.embopress.org/content/7/1/539.long). On Ubuntu try: 'sudo apt-get install clustalo'
 * [parallel](https://www.gnu.org/software/parallel/). Executes processes in parallel on multicore machines. On Ubuntu try: 'sudo apt-get install parallel'
 <!--* [pexec](https://www.gnu.org/software/pexec/). Execute processes in parallel on multicore machines. On Ubuntu try: 'sudo apt-get install pexec'-->
 * [Phi test](https://www.maths.otago.ac.nz/~dbryant/software/PhiPack.tar.gz). Recombination test software. [Bruen et al. 2006](http://www.genetics.org/content/172/4/2665.long)
 * [FastTree](http://microbesonline.org/fasttree/). Fast maximum-likelihood tree searching program. [Price et al. 2010](http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0009490). On Ubuntu try: 'sudo apt-get install fasttree'
+* [IQ-TREE](http://www.iqtree.org/). Highly accurate maximum-likelihood tree searching program. [Nguyen et. al (2015)](https://academic.oup.com/mbe/article/32/1/268/2925592). On Ubuntu try: 'sudo apt-get install iqtree' 
 * [paup*](https://people.sc.fsu.edu/~dswofford/paup_test/). Multipurpose phylogenetics software package developed by David Swofford and colleagues. NOTE: This is a test version that expires every 6 months! So please update regularly.
 
 3. Source code and manual compilation instructions are also provided in the corresponding \$bindir, in case bundled binaries fail.
