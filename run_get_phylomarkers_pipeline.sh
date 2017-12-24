@@ -856,8 +856,8 @@ fi
 
 if [ -z $IQT_models ]
 then
-   [ "$mol_type" == "DNA" ] && $IQT_models = $IQT_DNA_models
-   [ "$mol_type" == "PROT" ] && $IQT_models = $IQT_PROT_models
+   [ "$mol_type" == "DNA" ] &&  IQT_models=$IQT_DNA_models
+   [ "$mol_type" == "PROT" ] && IQT_models=$IQT_PROT_models
 fi
 
 if [ "$search_thoroughness" != "high" -a "$search_thoroughness" != "medium" -a "$search_thoroughness" != "low" -a "$search_thoroughness" != "lowest" ]
