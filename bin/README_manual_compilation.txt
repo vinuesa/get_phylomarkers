@@ -2,7 +2,10 @@
 # FastTree [ http://microbesonline.org/fasttree/#Install ]
 
 cd FastTree_v2.1.10
-gcc -O3 -finline-functions -funroll-loops -Wall -o FastTree FastTree.c -lm
+
+# compile with double precision to resolve short branches!
+gcc -DUSE_DOUBLE -O3 -finline-functions -funroll-loops -Wall -o FastTree FastTree.c -lm
+#gcc -O3 -finline-functions -funroll-loops -Wall -o FastTree FastTree.c -lm
 # or if that fails
 gcc -DNO_SSE -O3 -finline-functions -funroll-loops -Wall -o FastTree FastTree.c -lm
 cd ..
