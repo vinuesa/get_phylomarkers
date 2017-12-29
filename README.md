@@ -1,6 +1,6 @@
 # get_phylomarkers
 
-<!--Version Dec. 22cnd, 2017.-->
+<!--Version Dec. 29cnd, 2017.-->
 
 This repository hosts the code for the *get_phylomarkers* pipeline. This file describes its
 aim and basic usage notes. <!--See [INSTALL.md](INSTALL.md) for installation instructions.-->
@@ -13,7 +13,7 @@ at [CCG-UNAM, Mexico](http://www.ccg.unam.mx/) and
 
 For detailed instructions and dependencies please check [INSTALL.md](INSTALL.md).
 
-A [Docker image](https://hub.docker.com/r/eeadcsiccompbio/get_homologues) is available with GET_PHYLOMARKERS
+A [Docker image](https://hub.docker.com/r/csicunam/get_homologues) is available with GET_PHYLOMARKERS
 bundled with [GET_HOMOLOGUES](https://github.com/eead-csic-compbio/get_homologues), ready to use.
 
 ## Aim
