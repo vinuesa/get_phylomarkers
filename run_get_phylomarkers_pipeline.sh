@@ -1384,7 +1384,7 @@ then
 	  if [ -s "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log" -a -s "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph" ]
 	  then
 	    #lnL=$(grep ML_Lengths2 "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log" | grep TreeLogLk | sed 's/TreeLogLk[[:space:]]ML_Lengths2[[:space:]]//')
-	    lnL=$(grep '^Gamma20LogLk' "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log" |awk '{print $2}'
+	    lnL=$(grep '^Gamma20LogLk' "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log" |awk '{print $2}')
 	    printf "${GREEN} >>> lnL for ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph = $lnL ${NC}\n" | \
 	    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	  else
