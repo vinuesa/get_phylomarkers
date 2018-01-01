@@ -15,7 +15,8 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.9.9.1_23Dic17'  # 1.9.9.1_23Dic17: renamed the iqtree binary to iqtree-omp to be explicit about the multicore version
+VERSION='1.9.9.2_31Dic17' # grep '^Gamma20LogLk' instead of ML_Lengths2 to print the FastTree lnL score to STDOUT
+    # '1.9.9.1_23Dic17'  # 1.9.9.1_23Dic17: renamed the iqtree binary to iqtree-omp to be explicit about the multicore version
     # 1.9.9.0_22Dic17: added IQ-tree searching option for the concatenated alignment, controlled with new options -A, -N and -S
     # 1.9.8.4_17Nov17: improved/expanded -h help message; thorough and consistent tidying of directories; cleanup of code comments
     # 1.9.8.3_17Nov17: added get_homologues manual url to ERROR message to better assist users
@@ -1382,7 +1383,8 @@ then
 	
 	  if [ -s "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log" -a -s "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph" ]
 	  then
-	    lnL=$(grep ML_Lengths2 "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log" | grep TreeLogLk | sed 's/TreeLogLk[[:space:]]ML_Lengths2[[:space:]]//')
+	    #lnL=$(grep ML_Lengths2 "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log" | grep TreeLogLk | sed 's/TreeLogLk[[:space:]]ML_Lengths2[[:space:]]//')
+	    lnL=$(grep '^Gamma20LogLk' "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log" |awk '{print $2}'
 	    printf "${GREEN} >>> lnL for ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph = $lnL ${NC}\n" | \
 	    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	  else
