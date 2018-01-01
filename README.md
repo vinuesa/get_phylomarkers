@@ -141,7 +141,8 @@ using by default (-A F) the [FastTree](http://microbesonline.org/fasttree/) prog
 - Given its outstanding speed, low RAM requirements, acceptance of DNA and protein sequence alignments and on-the-fly computation ofthe above-mentioned Shimodaria-Hasegawa-like likelihood ratio test of branch support, we use it as the default algorithm for fast exploration of large datasets.
 - A limitation though, is that it implements only very few substitution models. However, for divergent sequences of different species within a bacterial taxonomic genus or family, our experience has shown that almost invariably the GTR+G model is selected by jmodeltest2, particularly when there is base frequency heterogeneity. The GTR+G+CAT is the substitution model used by *run_get_phylomarkers_pipeline.sh* 
 calls of FastTree on codon alignments. 
-- To maximize accuracy, the gene trees are computed by performing a thorough tree search, as hardcoded in the following FastTree call, which performs a significantly more intense tree search than the default setting used by [Zhou et al. (2017)](https://www.ncbi.nlm.nih.gov/pubmed/29177474). 
+- To maximize accuracy, it is important to compile FastTree with double precission enabled in order to obtain the highest *lnL* scores possible. This is particularly critical when highly similar sequences are present in the dataset.
+- To further enhance accuracy, the gene trees are computed by performing a thorough tree search, as hardcoded in the following FastTree call, which performs a significantly more intense tree search than the default setting used by [Zhou et al. (2017)](https://www.ncbi.nlm.nih.gov/pubmed/29177474). 
 
 ```      
      	-nt -gtr -gamma -bionj -slownni -mlacc 3 -spr 8 -sprlength 8 
