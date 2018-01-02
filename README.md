@@ -38,10 +38,11 @@ the pipeline can be also run using protein instead of DNA sequences.
 1. The pipeline is run by executing the main script *run_get_phylomarkers_pipeline.sh* inside a folder containing twin \*.fna and \*.faa FASTA files for orthologous **single-copy** CDSs and translation products. <!-- computed by the *get_homologues.pl -e* or *compare_clusters.pl* scripts of the **GET_HOMOLOGUES** suite.-->
 2. There are two **runmodes**: -R 1 (for phylogenetics) and -R 2 (for population genetics).
 3. The pipeline can be run on two **molecular types**: DNA or protein sequences (-t DNA|PROT). The latter is intended for the analysis of more divergent genome sequences, above the genus level.
-4. FastTree is the tree searching algorithm used by default (-A F). This is the fastest maximum likelihood tree-searching algorithm available to date. The user can also choose to use the 
-significantly more accurate, but also much slower, IQ-TREE algorithm using option -A I. IQ-TREE is the best ML tree-searching algorithm available to date for datasets with no more than 100-200 sequences, as recently demonstrated in a large benchmark study with empirical phylogenomic datasets (Zhou et al. 2017. Mol Biol Evol. Nov 21. doi: 10.1093/molbev/msx302.) [PMID:29177474](https://www.ncbi.nlm.nih.gov/pubmed/29177474).
-5. The **global molecular-clock hypothesis** can be evaluated for DNA (codon) alignments (-R 1 -t DNA -K 1). It is not yet implemented for protein sequences.
-6. A **toy sequence dataset is provided** with the distribution in the test_sequences/ directory for easy and fast testing (~14 seconds on a commodity GNU/Linux desktop machine with 4 cores; see [INSTALL.md](INSTALL.md)). 
+4. FastTree is the tree searching algorithm used by default (-A F). This is the fastest maximum likelihood tree-searching algorithm available to date. 
+5. The user can also choose to use the significantly more accurate, but somewhat slower, IQ-TREE algorithm using option -A I. IQ-TREE is the best ML tree-searching algorithm available to date for datasets with no more than 100-200 sequences, as recently demonstrated in a large benchmark study with empirical phylogenomic datasets (Zhou et al. 2017. Mol Biol Evol. Nov 21. doi: 10.1093/molbev/msx302.) [PMID:29177474](https://www.ncbi.nlm.nih.gov/pubmed/29177474).
+6. As of version 1.9.10 (Jan, 1st, 2018), GET_PHYLOMARKERS uses IQ-TREE version 1.6.1 (released Dec. 23rd, 2017) which implements a fast search option, which almost matches the speed of FastTree, but rataining the accuracy of IQ-TREE 1.5.* Model-selection is performed with the -fast flag to for maximal speed.
+7. The **global molecular-clock hypothesis** can be evaluated for DNA (codon) alignments (-R 1 -t DNA -K 1). It is not yet implemented for protein sequences.
+8. A **toy sequence dataset is provided** with the distribution in the test_sequences/ directory for easy and fast testing (~14 seconds on a commodity GNU/Linux desktop machine with 4 cores; see [INSTALL.md](INSTALL.md)). 
 
 ### Basic usage examples
 
@@ -62,7 +63,7 @@ significantly more accurate, but also much slower, IQ-TREE algorithm using optio
  #   in this case, calling also IQ-TREE, which will select among the (TNe,TVM,TVMe,GTR)+RATE models and do
  #   5 independent tree searches under the best-fit model, computing ultrafast bootstrapp and aproximate Bayes
  #   branch support values 
- nohup run_get_phylomarkers_pipeline.sh -R 1 -t DNA -A I -S 'TNe,TVM,TVMe,GTR' -k 1.0 -m 0.7 -T high -N 5 &> /dev/null &
+ nohup run_get_phylomarkers_pipeline.sh -R 1 -t DNA -A I -S 'HKY,TN,TVM,TIM,SYM,GTR' -k 1.0 -m 0.7 -T high -N 5 &> /dev/null &
 ```
 
 ## Usage and design details
@@ -145,15 +146,15 @@ calls of FastTree on codon alignments.
 - To further enhance accuracy, the gene trees are computed by performing a thorough tree search, as hardcoded in the following FastTree call, which performs a significantly more intense tree search than the default setting used by [Zhou et al. (2017)](https://www.ncbi.nlm.nih.gov/pubmed/29177474). 
 
 ```      
-     	-nt -gtr -gamma -bionj -slownni -mlacc 3 -spr 8 -sprlength 8 
+     	-nt -gtr -gamma -bionj -slownni -mlacc 3 -spr 8 -sprlength 10 
 ```    
 
 For concatenated codon alignments, which may take a considerable time (up to several hours) or
 for large datasets (~ 100 taxa and > 300 concatenated genes) the user can choose to run FastTree with at different **levels of tree-search thoroughness**: high|medium|low|lowest 
 ```      
-      high:   -nt -gtr -bionj -slownni -gamma -mlacc 3 -spr 4 -sprlength 8
-      medium: -nt -gtr -bionj -slownni -gamma -mlacc 2 -spr 4 -sprlength 8 
-      low:    -nt -gtr -bionj -slownni -gamma -spr 4 -sprlength 8 
+      high:   -nt -gtr -bionj -slownni -gamma -mlacc 3 -spr 4 -sprlength 10
+      medium: -nt -gtr -bionj -slownni -gamma -mlacc 2 -spr 4 -sprlength 10 
+      low:    -nt -gtr -bionj -slownni -gamma -spr 4 -sprlength 10 
       lowest: -nt -gtr -gamma -mlnni 4
 ```      
 where -s $spr and -l $spr_length can be set by the user. The lines above show their default values.
@@ -161,7 +162,7 @@ where -s $spr and -l $spr_length can be set by the user. The lines above show th
 For protein alignments, the search parameters are the same, only the model changes to lg
 
 ```      
-      high: -lg -bionj -slownni -gamma -mlacc 3 -spr 4 -sprlength 8
+      high: -lg -bionj -slownni -gamma -mlacc 3 -spr 4 -sprlength 10
 ```
 
 Please refer to the FastTree manual for the details.
@@ -172,7 +173,7 @@ Please refer to the FastTree manual for the details.
 - If the **-T high** option is used, **-N 10 ** independent IQ-TREE searches with branch support estimation will be launched. 
 - Note that a FastTree run will be also launched (before the IQ-TREE run), so that the user can obtain a first tree as rapidly as permitted by the current state of the art.
 
-The following are example *run_get_phylomarkers_pipeline.sh* invocations to perform IQ-TREE searches
+The following are example *run_get_phylomarkers_pipeline.sh* invocations to perform IQ-TREE searches. Note that as of version 1.9.10 (January 1st, 2018), the script calls IQ-TREE 1.6.1 with the -fasta flag enabled for maximal speed.
 
 ```    
 # 1. Default IQ-TREEE run on a concatenated DNA supermatrix, using a single search and evaluating only the GTR base model
@@ -182,10 +183,10 @@ run_get_phylomarkers_pipeline.sh -R 1 -t DNA -A I
 run_get_phylomarkers_pipeline.sh -R 1 -t DNA -A I -S 'TN,TIM,TVM,GTR' -k 0.9 -m 0.8 -T high -N 10 &> /dev/null &
 
 # 3. Run 5 independent IQ-TREEE runs on a concatenated PROT supermatrix, evaluating the LG,WAG,JTT matrices 
-run_get_phylomarkers_pipeline.sh -R 1 -t PROT -A I -S 'LG,WAG,JTT' -k 1.0 -m 0.7 -T high -N 5 &> /dev/null &
+run_get_phylomarkers_pipeline.sh -R 1 -t PROT -A I -S 'LG,WAG,JTT,VT' -k 1.0 -m 0.7 -T high -N 5 &> /dev/null &
  
 # 4. To run the pipeline on a remote server, we recommend using the nohup command upfront, as shown below:
-nohup run_get_phylomarkers_pipeline.sh -R 1 -t DNA -A I -S 'TNe,TVM,TVMe,GTR' -k 1.0 -m 0.7 -T high -N 5 &> /dev/null &	  
+nohup run_get_phylomarkers_pipeline.sh -R 1 -t DNA -A I -S 'HKY,TN,TVM,TIM,SYM,GTR' -k 1.0 -m 0.7 -T high -N 5 &> /dev/null &	  
 
 ```
 
