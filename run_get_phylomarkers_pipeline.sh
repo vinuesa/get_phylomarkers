@@ -15,7 +15,10 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.9.9.2_31Dic17' # grep '^Gamma20LogLk' instead of ML_Lengths2 to print the FastTree lnL score to STDOUT
+VERSION='1.9.10_1Jan18' # added functions check_IQT_DNA_models() check_IQT_PROT_models() to check -S strings passed by user to IQ-TREE
+                        #   changed iqtree-omp v 1.5.6 to iqtree (v. 1.6.1); added -fast flag to the model selection calls of IQ-TREE!!!
+			#   grep '^Gamma20LogLk' instead of ML_Lengths2 also for protein data
+    # '1.9.9.2_31Dic17' # grep '^Gamma20LogLk' instead of ML_Lengths2 to print the FastTree lnL score to STDOUT
     # '1.9.9.1_23Dic17'  # 1.9.9.1_23Dic17: renamed the iqtree binary to iqtree-omp to be explicit about the multicore version
     # 1.9.9.0_22Dic17: added IQ-tree searching option for the concatenated alignment, controlled with new options -A, -N and -S
     # 1.9.8.4_17Nov17: improved/expanded -h help message; thorough and consistent tidying of directories; cleanup of code comments
@@ -623,6 +626,75 @@ function check_output()
 	kill -9 $pPID
     fi
 }
+
+#----------------------------------------------------------------------------------------- 
+function check_IQT_DNA_models
+{
+    # https://unix.stackexchange.com/questions/299217/grepping-array-from-file-and-reusing-search-pattern
+    # https://stackoverflow.com/questions/21058210/use-grep-on-array-to-find-words
+    # https://www.linuxquestions.org/questions/linux-newbie-8/split-a-string-into-array-in-bash-869196/
+
+    # NOTE: DNA substitution models changed substantially between IQ-TREE version 1.5.6 and 1.6.1
+    model_string="$1"
+    modelOK=0
+    usr_models=($(echo $model_string | tr "," " "))
+    dna_models=(HKY JC F81 K2P K3P K81uf TN TrN TNef TIM TIMef TVM TVMef SYM GTR)
+      
+    for u in ${usr_models[*]}
+    do
+        for m in ${dna_models[*]}
+	do
+	    if match=$(echo "$u" | grep "$m")
+	    then
+		 modelOK=1
+		 break
+	    fi
+	done  
+       
+        if [ "$modelOK" -ne "1" ]
+        then
+           echo "ERROR: model $u is not available in IQ-TREE"
+	   print_help
+	   exit 1
+        fi
+	modelOK=0
+    done
+}
+
+#----------------------------------------------------------------------------------------- 
+function check_IQT_PROT_models
+{
+    # https://unix.stackexchange.com/questions/299217/grepping-array-from-file-and-reusing-search-pattern
+    # https://stackoverflow.com/questions/21058210/use-grep-on-array-to-find-words
+    # https://www.linuxquestions.org/questions/linux-newbie-8/split-a-string-into-array-in-bash-869196/
+    
+    # NOTE: protein matrixes changed substantially between IQ-TREE version 1.5.6 and 1.6.1
+    model_string="$1"
+    modelOK=0
+    usr_models=($(echo $model_string | tr "," " "))
+    dna_models=(LG Poisson cpREV mtREV Dayhoff mtMAM JTT WAG mtART mtZOA VT rtREV DCMut PMB HIVb HIVw JTTDCMut FLU Blosum62 GTR20 mtMet mtVer mtInv)
+      
+    for u in ${usr_models[*]}
+    do
+        for m in ${dna_models[*]}
+	do
+	    if match=$(echo "$u" | grep "$m")
+	    then
+		 modelOK=1
+		 break
+	    fi
+	done  
+       
+        if [ "$modelOK" -ne "1" ]
+        then
+           echo "ERROR: model $u is not available in IQ-TREE"
+	   print_help
+	   exit 1
+        fi
+	modelOK=0
+    done
+}
+
 #----------------------------------------------------------------------------------------- 
 
 function print_help()
@@ -861,6 +933,17 @@ then
    [ "$mol_type" == "PROT" ] && IQT_models=$IQT_PROT_models
 fi
 
+if [ "$search_algorithm" == "I" -a "$mol_type" == "DNA" ]
+then
+     check_IQT_DNA_models "$IQT_models"  
+fi
+
+if [ "$search_algorithm" == "I" -a "$mol_type" == "PROT" ]
+then
+     check_IQT_PROT_models "$IQT_models"  
+fi
+
+
 if [ "$search_thoroughness" != "high" -a "$search_thoroughness" != "medium" -a "$search_thoroughness" != "low" -a "$search_thoroughness" != "lowest" ]
 then
      printf "\n${RED}ERROR: -T must be lowest|low|medium|high${NC}\n"
@@ -940,14 +1023,14 @@ fi
 
 # make sure we have *.faa and *.fna file pairs to work on
 nfna=$(ls *.fna | wc -l) 
-if [ "$?" -gt "0" ]
+if [ "$?" -ne "0" ]
 then
    printf "\n${RED} >>> ERROR: there are no input fna files to work on!\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES -n]\n\tPlease check the GET_HOMOLOGUES manual${NC}\n${LBLUE}http://eead-csic-compbio.github.io/get_homologues/manual/${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log 
    exit 2
 fi
 
 nfaa=$(ls *.faa | wc -l) 
-if [ "$?" -gt "0" ]
+if [ "$?" -ne "0" ]
 then
    printf "\n${RED} >>> ERROR: there are no input faa files to work on!\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES]\n\tPlease check the GET_HOMOLOGUES manual${NC}\n${LBLUE}http://eead-csic-compbio.github.io/get_homologues/manual/${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log   
    exit 2 
@@ -1428,7 +1511,7 @@ then
 	  print_start_time && printf "${BLUE}# running ModelFinder on the concatenated alignment with $IQT_models. This will take a while ...${NC}\n" | \
 	  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
            
-          iqtree-omp -s concat_cdnAlns.fnainf -st DNA -mset "$IQT_models" -m MF -nt AUTO &> /dev/null 
+          iqtree -s concat_cdnAlns.fnainf -st DNA -mset "$IQT_models" -m MF -nt AUTO &> /dev/null 
 	  
 	  check_output concat_cdnAlns.fnainf.log $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	  
@@ -1447,10 +1530,10 @@ then
 	     # run nrep IQ-TREE searches under the best-fit model found
 	     for ((rep=1;rep<=$nrep;rep++))
 	     do 
-	         print_start_time && printf "${LBLUE} > iqtree-omp -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null${NC}\n" | \
+	         print_start_time && printf "${LBLUE} > iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null${NC}\n" | \
 	         tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	        
-		 iqtree-omp -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null 
+		 iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null 
 	     done
              
 	     grep '^BEST SCORE' *log | sort -nrk5 > sorted_IQ-TREE_searches.out
@@ -1478,7 +1561,7 @@ then
 	     print_start_time && printf "${BLUE}# running IQ-tree on the concatenated alignment with best model ${best_model} -abayes -bb 1000. This will take a while ...${NC}\n" | \
 	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
-	     iqtree-omp -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre iqtree_abayes &> /dev/null 
+	     iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre iqtree_abayes &> /dev/null 
 	    
 	     best_tree_file=${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_iqtree_${best_model}.ph
 	     cp iqtree_abayes.treefile ${best_tree_file}
@@ -1828,7 +1911,8 @@ then
     
    if [ -s "${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.log" -a -s "${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph" ]
    then
-       lnL=$(grep ML_Lengths2 "${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.log" | grep TreeLogLk | sed 's/TreeLogLk[[:space:]]ML_Lengths2[[:space:]]//')
+     # lnL=$(grep ML_Lengths2 "${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.log" | grep TreeLogLk | sed 's/TreeLogLk[[:space:]]ML_Lengths2[[:space:]]//')
+       lnL=$(grep '^Gamma20LogLk' "${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.log" |awk '{print $2}')
        printf "${GREEN} >>> lnL for ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph = $lnL ${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
    else
        printf "${LRED} >>> WARNING: ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.log could not be produced!${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
@@ -1865,7 +1949,7 @@ then
 	  print_start_time && printf "${BLUE}# running ModelFinder on the concatenated alignment with $IQT_models. This will take a while ...${NC}\n" | \
 	  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
            
-          iqtree-omp -s concat_protAlns.faainf -st PROT -mset "$IQT_models" -m MF -nt AUTO &> /dev/null 
+          iqtree -s concat_protAlns.faainf -st PROT -mset "$IQT_models" -m MF -nt AUTO &> /dev/null 
 	  
 	  check_output concat_protAlns.faainf.log $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	  
@@ -1884,10 +1968,10 @@ then
 	     # run nrep IQ-TREE searches under the best-fit model found
 	     for ((rep=1;rep<=$nrep;rep++))
 	     do 
-	         print_start_time && printf "${LBLUE} > iqtree-omp -s concat_protAlns.faainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null${NC}\n" | \
+	         print_start_time && printf "${LBLUE} > iqtree -s concat_protAlns.faainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null${NC}\n" | \
 	         tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	        
-		  iqtree-omp -s concat_protAlns.faainf -st PROT -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null 
+		  iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null 
 	     done
              
 	     grep '^BEST SCORE' *log | sort -nrk5 > sorted_IQ-TREE_searches.out
@@ -1914,9 +1998,9 @@ then
 	     print_start_time && printf "${BLUE}# running IQ-tree on the concatenated alignment with best model ${best_model} -abayes -bb 1000. This will take a while ...${NC}\n" | \
 	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
-	     print_start_time && printf "${BLUE}# running: iqtree-omp -s concat_protAlns.faainf -st PROT -m $best_model -abayes -bb 1000 -nt AUTO -pre iqtree_abayes &> /dev/null  ...${NC}\n" | \
+	     print_start_time && printf "${BLUE}# running: iqtree -s concat_protAlns.faainf -st PROT -m $best_model -abayes -bb 1000 -nt AUTO -pre iqtree_abayes &> /dev/null  ...${NC}\n" | \
 	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-	     iqtree-omp -s concat_protAlns.faainf -st PROT -m "$best_model" -abayes -bb 1000 -nt AUTO -pre iqtree_abayes &> /dev/null 
+	     iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" -abayes -bb 1000 -nt AUTO -pre iqtree_abayes &> /dev/null 
 	    
 	     best_tree_file=${tree_prefix}_nonRecomb_KdeFilt_protAlns_iqtree_${best_model}.ph
 	     cp iqtree_abayes.treefile ${best_tree_file}
