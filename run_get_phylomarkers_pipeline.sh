@@ -15,9 +15,10 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.9.10_1Jan18' # added functions check_IQT_DNA_models() check_IQT_PROT_models() to check -S strings passed by user to IQ-TREE
+VERSION='1.9.10.1_1Jan18' # added functions check_IQT_DNA_models() check_IQT_PROT_models() to check -S strings passed by user to IQ-TREE
                         #   changed iqtree-omp v 1.5.6 to iqtree (v. 1.6.1); added -fast flag to the model selection calls of IQ-TREE!!!
 			#   grep '^Gamma20LogLk' instead of ML_Lengths2 also for protein data
+			#   Changed spr_length=8 to  spr_length=10 to match the default value of FastTree 2.1.10
     # '1.9.9.2_31Dic17' # grep '^Gamma20LogLk' instead of ML_Lengths2 to print the FastTree lnL score to STDOUT
     # '1.9.9.1_23Dic17'  # 1.9.9.1_23Dic17: renamed the iqtree binary to iqtree-omp to be explicit about the multicore version
     # 1.9.9.0_22Dic17: added IQ-tree searching option for the concatenated alignment, controlled with new options -A, -N and -S
@@ -774,7 +775,7 @@ min_supp_val=0.75
 min_no_ext_branches=4
 n_cores=
 VERBOSITY=0
-spr_length=8
+spr_length=10
 spr=4
 codontable=11 # bacterial by default, sorry for the bias ;)
 base_mod=GTR
@@ -1511,7 +1512,7 @@ then
 	  print_start_time && printf "${BLUE}# running ModelFinder on the concatenated alignment with $IQT_models. This will take a while ...${NC}\n" | \
 	  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
            
-          iqtree -s concat_cdnAlns.fnainf -st DNA -mset "$IQT_models" -m MF -nt AUTO &> /dev/null 
+          iqtree -s concat_cdnAlns.fnainf -st DNA -mset "$IQT_models" -m MF -nt AUTO -fast &> /dev/null 
 	  
 	  check_output concat_cdnAlns.fnainf.log $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	  
@@ -1949,7 +1950,7 @@ then
 	  print_start_time && printf "${BLUE}# running ModelFinder on the concatenated alignment with $IQT_models. This will take a while ...${NC}\n" | \
 	  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
            
-          iqtree -s concat_protAlns.faainf -st PROT -mset "$IQT_models" -m MF -nt AUTO &> /dev/null 
+          iqtree -s concat_protAlns.faainf -st PROT -mset "$IQT_models" -m MF -nt AUTO -fast &> /dev/null 
 	  
 	  check_output concat_protAlns.faainf.log $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	  
