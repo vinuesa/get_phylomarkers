@@ -192,7 +192,7 @@ nohup run_get_phylomarkers_pipeline.sh -R 1 -t DNA -A I -S 'HKY,TN,TVM,TIM,SYM,G
 
 ## Citation.
 
-We are preparing a publication describing the implementation get_phylomarkers pipeline and its use in genomic taxonomy and population genomics of *Stenotrophomonas* bacteria, which will be submitted in Jaunary 2018 to the [Research Topic of Frontiers in Microbiology: Microbial Taxonomy, Phylogeny and Biodiversity](http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity).
+We are preparing a publication describing the implementation get_phylomarkers pipeline and its use in genomic taxonomy and population genomics of *Stenotrophomonas* bacteria, which was submitted in Jaunary 15th 2018 to the [Research Topic of Frontiers in Microbiology: Microbial Taxonomy, Phylogeny and Biodiversity](http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity).
 
 Meanwhile, if you find the code useful for your academic work, please use the following citation:
 Pablo Vinuesa and Bruno Contreras-Moreira 2017. Get_PhyloMarkers, a pipeline to select optimal markers for microbial phylogenomics, systematics and genomic taxomy. Available at https://github.com/vinuesa/get_phylomarkers and released under the GNU GPLv3 license.
@@ -203,4 +203,4 @@ Pablo Vinuesa and Bruno Contreras-Moreira 2017. Get_PhyloMarkers, a pipeline to 
 We thank Alfredo J. Hernández and Víctor del Moral at CCG-UNAM for technical support.
 
 ### Funding
-We gratefully acknowledge the funding provided by [DGAPA-PAPIIT/UNAM](http://dgapa.unam.mx/index.php/impulso-a-la-investigacion/papiit) (grants IN201806-2, IN211814 and IN206318) and [CONACyT-Mexico](http://www.conacyt.mx/) (grants P1-60071 and 179133) to [Pablo Vinuesa](http://www.ccg.unam.mx/~vinuesa/), as well as the Fundación ARAID,Consejo  Superior  de Investigaciones Científicas (grant 200720I038 and Spanish MINECO (AGL2013-48756-R) to [Bruno Contreras-Moreira](https://digital.csic.es/cris/rp/rp02661).
+We gratefully acknowledge the funding provided by [DGAPA-PAPIIT/UNAM](http://dgapa.unam.mx/index.php/impulso-a-la-investigacion/papiit) (grants IN201806-2, IN211814 and IN206318) and [CONACyT-Mexico](http://www.conacyt.mx/) (grants P1-60071, 179133 and FC-2015-2-879) to [Pablo Vinuesa](http://www.ccg.unam.mx/~vinuesa/), as well as the Fundación ARAID,Consejo  Superior  de Investigaciones Científicas (grant 200720I038 and Spanish MINECO (AGL2013-48756-R) to [Bruno Contreras-Moreira](https://digital.csic.es/cris/rp/rp02661).
