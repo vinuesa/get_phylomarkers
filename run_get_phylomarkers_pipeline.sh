@@ -15,73 +15,8 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.9.10.1_1Jan18' # added functions check_IQT_DNA_models() check_IQT_PROT_models() to check -S strings passed by user to IQ-TREE
-                        #   changed iqtree-omp v 1.5.6 to iqtree (v. 1.6.1); added -fast flag to the model selection calls of IQ-TREE!!!
-			#   grep '^Gamma20LogLk' instead of ML_Lengths2 also for protein data
-			#   Changed spr_length=8 to  spr_length=10 to match the default value of FastTree 2.1.10
-    # '1.9.9.2_31Dic17' # grep '^Gamma20LogLk' instead of ML_Lengths2 to print the FastTree lnL score to STDOUT
-    # '1.9.9.1_23Dic17'  # 1.9.9.1_23Dic17: renamed the iqtree binary to iqtree-omp to be explicit about the multicore version
-    # 1.9.9.0_22Dic17: added IQ-tree searching option for the concatenated alignment, controlled with new options -A, -N and -S
-    # 1.9.8.4_17Nov17: improved/expanded -h help message; thorough and consistent tidying of directories; cleanup of code comments
-    # 1.9.8.3_17Nov17: added get_homologues manual url to ERROR message to better assist users
-    # 1.9.8.2_17Nov17: another sanity check: make sure there are equal number of fna and faa files to start working on
-    # 1.9.8.1_17Nov17: fixed name of the add_labels2tree.pl in one of the calls with -R 1 -t PROT and code cleanup
-    # 1.9.8_17Nov17' to avoid problems with old versions of locally insalled binaries or scripts, we set $bindir and $distrodir in front of PATH
-    # 1.9.7.5_15Nov17 added check for minimal versions of clustalo FastTree parallel and paup
-    # 1.9.7.5_15Nov17 fixed check for $HOME/bin in $PATH
-    # 1.9.7.4_15Nov17 matched paths of results dir and log
-    # 1.9.7.3_14Nov17 fixed bug/typo in get_script_PID()
-    # 1.9.7.2_14Nov17 popGen dir cleanup + top_X_markers dir for -R 1 -t PROT
-    #1.9.7.1_14Nov17: added strain composition check on f?aed files to make sure each one contains a single instance for the same number of strains
-    #		      This is a critical check to avoid problems with inparalogues in some fastas if get_homologues.pl was run with -t X and without -e.
-    #         Trees could be mislabeled in that case, and some alignments will most likely contain a different strain composition, 
-    #         generating a chimaeric concatenated file; A useful ERROR message is printed (run compare_clusters.pl with -t NUM_GENOMES.
-    #		      Also calls run_parallel_cmmds.pl with parallel --gnu; some code cleanup
-    # 1.9.7_14Nov17: now using parallel instead of pexec binary, which failed in CentOS  
-    # 1.9.6.4_12Nov17: prints total number of trees with < 1 internal branches; 
-    # corrected regex so that all trees and alns with < 1 int br are removed (do not pass to downstream analyses)
-    # 1.9.6.3_11Nov17:added -R${runmode} to dir_suffix
-    # 1.9.6.2_11Nov17: all DEBUG|VERBOSE messages written to logfile
-    # v1.9.6_11nov17: fixed code that writes Phi-test results to Phi_results_11nov17.tsv; 
-    #		      prints the Warning: will remove file* because it has < 5 branches! to log file (no only STDOUT)
-    # v1.9.5_8Nov17: the number of sequences in input FASTA files is checked upfront
-    # v1.9.5_7Nov17: prints a logfile for FastTree runs and captures the lnL value of the corresponding tree; 
-    #		     more detailed info reported on alignments with too few informative sites for the Phi test to be work on
-    # v1.9.4_6Nov17: added error checking for Phi run when sequences lack enough polymorphism for the test to work
-    # v1.9.3_10Oct17: improved error message when kdetrees fail
-    # v1.9.2_1Jun17: code cleanup > removed comments and print_development_notes(); append the $distrodir/lib/perl to PERL5LIB and export
-    # v1.9.1_1Jun17: more sensible directory cleanup ...
-    # v1.9_31May17: improved progress messages and directory cleanup ...
-    # 1.8.4_30May17: prepended $ditrodir/ to perl scripts that use FindBin; so that it can find the required libs in $ditrodir/lib/perl
-    # Added -n $n_cores flag, which is passed to run_parallel_cmmds.pl '' $n_cores, so that it runs on MacOSX!!! <<< Thanks Alfredo!
-    #	 automatically set n_cores=no_proc if [ -z $n_cores ]
-    # v1.8.1_24May17 fixed problmes with @INC searching of rename.pl by prepending $distrodir/rename.pl
-    #v1.8_23May17. Added R code in count_tree_branches() to use local_lib if ape is not installed systemwide; 
-    #	 searches and prints the number of available cores on HOSTNAME 
-    #	 exports R_LIBS="$R_LIBS:$distrodir/lib/R" to fix issues with library paths in R scripts
-    # 1.7_17May17. Changed exit for Warning when pal2nal does not return a codon alignment! so that the pipeline can proceed
-    # v1.6_15May17 added extensive debugging messages throughout the code for easier debugging; activated the -V flag
-    # v1.5 fixed set_bindirs and check_homebinpath(), to export to PATH; 
-    #	   fully tested on a new linux account without $HOME/bin dir using freshly cloned distro; Note that R and Perl libs were already in ENV
-    # v1.3 further refinement in set_bindirs() and check_homebinpath(), validated on yaxche; minor code cleanup
-    # v1.2_13May17 refined the logic of set_bindirs(); added get_start_time(); improved error checking code, including get_script_PID()
-    # fixed a bug in -t PROT 
-    
-    #v1.1_13May17; Major update to facilitate installation by users: added set_pipeline_environment(), check_homebinpath(), set_bindirs(), 
-    #		   which ckeck and setup the ENVIRONMENT for the pipeline. Added new bin/ and pop_gen_tables/ dirs for consistency. 
-    #		   The bin/linux dir contains the 2cnd party binaries compiled for 64bit linux machines. Need to compile for darwin
-    
-    #v1.0_11May17; git commited; first version on GitHub: https://github.com/vinuesa/get_phylomarkers
-    # v0.9_10May17 important speed improvement due to running pal2nal.pl and run_parallel_molecClock_test_with_paup.sh
-    #		    in parallel with run_parallel_cmmds.pl 
-    # v0.8_9May17, added -R 1|2, for Phylo|popGen, based on popGen_summStats.pl and pre-computed Tajima's D and Fu-Li crit value tables
-   #	    with missing values predicted by lm() in R, based on the original critical values in Tajima's 89 and  Fu and Li 1993 papers
-   #	    The critical CI values are gathered by get_critical_TajD_values() and get_critical_FuLi_values()
-   # v0.7_2May17 added -e min_no_ext_branches -c $codontable and -C print_codontable() for pal2nal.pl, which is now run from within a loop
-   #		 runs compute_suppValStas_and_RF-dist.R in the top_X_markers dir
-   # v0.6_1May17 added get_script_PID() and count_tree_branches(); added -t BOTH
-   # v0.5_29April17 Added -t PROT
-   # v0.4_27April17 Added print_usage_notes()
+VERSION='1.9.10.2_14Jan18' 
+
 # Set GLOBALS
 DEBUG=0
 wkdir=$(pwd) #echo "# working in $wkdir"
@@ -697,6 +632,35 @@ function check_IQT_PROT_models
 }
 
 #----------------------------------------------------------------------------------------- 
+function msg()
+{
+    msg=$1
+    mtype=$2
+    col=$3
+    
+    NC='\033[0m'
+    
+    case $col in
+       RED) col='\033[0;31m';;
+       LRED) col='\033[1;31m';;
+       GREEN) col='\033[0;32m';;
+       YELLOW) col='\033[1;33m';;
+       BLUE) col='\033[0;34m';;
+       LBLUE) col='\033[1;34m';;
+       CYAN) col='\033[0;36m';;
+       NC) col='\033[0m';;
+    esac
+    
+    case $mtype in
+       HELP)  printf "\n${col}%s${NC}\n\n" "$msg" >&2;;
+       ERROR)  printf "\n${col}%s${NC}\n\n" "$msg" >&2 | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log;;
+       WARNING) printf "${col}%s${NC}\n" "$msg" >&1 | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log;;
+       PROGR)  printf "${col}%s${NC}\n" "$msg" >&1 | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log;;
+       DEBUG)  printf "${col}%s${NC}\n" "$msg" >&1 | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log;;
+       VERBOSE)  printf "${col}%s${NC}\n" "$msg" >&1 | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log;;
+    esac
+}
+#----------------------------------------------------------------------------------------- 
 
 function print_help()
 {
@@ -839,7 +803,7 @@ do
         ;;
    V)   VERBOSITY=1
         ;;
-   \:)   printf "argument missing from -%s option\n" $OPTARG
+   \:)   msg "argument missing from -%s option\n" $OPTARG
    	 print_help
      	 exit 2 
      	 ;;
@@ -870,7 +834,7 @@ bindir=$(echo $env_vars|awk '{print $2}')
 OS=$(echo $env_vars|awk '{print $3}')
 no_proc=$(echo $env_vars|awk '{print $4}')
 
-[ $DEBUG -eq 1 ] && echo "distrodir:$distrodir|bindir:$bindir|OS:$OS|no_proc:$no_proc"
+[ $DEBUG -eq 1 ] && msg "distrodir:$distrodir|bindir:$bindir|OS:$OS|no_proc:$no_proc" DEBUG LBLUE
 
 # 0.1 Determine if pipeline scripts are in $PATH; 
 # if not, add symlinks from ~/bin, if available
@@ -897,21 +861,21 @@ check_dependencies
 
 if [ -z $runmode ]
 then
-       echo "# ERROR: no runmode defined!"
+       msg "# ERROR: no runmode defined!" HELP RED
        print_help
        exit 1    
 fi
 
 if [ "$search_algorithm" != "I" -a "$search_algorithm" != "F" ]
 then
-       echo "# ERROR: search_algorithm "$search_algorithm" is not recognized!"
+       msg "# ERROR: search_algorithm $search_algorithm is not recognized!" ERROR RED
        print_help
        exit 1    
 fi
 
 if [ $min_no_ext_branches -lt 4 ]
 then
-    printf "${RED}>>> ERROR: -e has to be >= 4\n\n${NC}"
+    msg ">>> ERROR: -e has to be >= 4" HELP RED
     print_help
     exit 1
 fi
@@ -923,7 +887,7 @@ fi
 
 if [ "$mol_type" != "DNA" -a "$mol_type" != "PROT" ] # "$mol_type" == "BOTH" not implemented yet
 then
-     printf "\n${RED}ERROR: -t must be DNA or PROT${NC}\n"
+     msg "ERROR: -t must be DNA or PROT" ERROR RED
      print_help
      exit 1
 fi
@@ -947,28 +911,28 @@ fi
 
 if [ "$search_thoroughness" != "high" -a "$search_thoroughness" != "medium" -a "$search_thoroughness" != "low" -a "$search_thoroughness" != "lowest" ]
 then
-     printf "\n${RED}ERROR: -T must be lowest|low|medium|high${NC}\n"
+     msg "ERROR: -T must be lowest|low|medium|high" HELP RED
      print_help
      exit 1
 fi
 
 if [ "$base_mod" != "GTR" -a "$base_mod" != "TrN" -a "$base_mod" != "HKY" -a "$base_mod" != "K2P" -a "$base_mod" != "F81" ]
 then
-     printf "\n${RED}ERROR: -M must be one of: GTR|TrN|HKY|K2P|F81${NC}\n"
+     msg "ERROR: -M must be one of: GTR|TrN|HKY|K2P|F81" HELP RED
      print_help
      exit 1
 fi
 
 if [ $eval_clock -gt 0 -a "$mol_type" != "DNA" ] # MolClock currently only with DNA
 then
-     printf "\n${RED}ERROR: -K 1 (evaluate clock) must be run on codon alignments with -t DNA${NC}\n"
+     msg "-K 1 (evaluate clock) must be run on codon alignments with -t DNA" HELP RED
      print_help
      exit 1
 fi
 
 if [ $runmode -gt 1 -a "$mol_type" != "DNA" ] # PopGen analysis currently only with DNA
 then
-     printf "\n${RED}ERROR: runmode $runmode must be run on codon alignments with -t DNA${NC}\n"
+     msg "ERROR: runmode $runmode must be run on codon alignments with -t DNA" HELP RED
      print_help
      exit 1
 fi
@@ -977,12 +941,12 @@ fi
 # >>>> MAIN CODE <<<< #
 #---------------------#
 
-[ $DEBUG -eq 1 ] && echo "running on $OSTYPE" && echo "path contains: " && echo $PATH|sed 's/:/\n/g' 
+[ $DEBUG -eq 1 ] && msg "running on $OSTYPE" && echo "path contains: " DEBUG LBLUE && echo $PATH|sed 's/:/\n/g' 
 
 start_time=$(date +%s)
 
 parent_PID=$(get_script_PID $progname)
-[ $DEBUG -eq 1 ] && echo "parent_PID:$parent_PID"
+[ $DEBUG -eq 1 ] && msg "parent_PID:$parent_PID" DEBUG LBLUE
 
 dir_suffix=R${runmode}t${mol_type}_k${kde_stringency}_m${min_supp_val}_s${spr}_l${spr_length}_T${search_thoroughness}_K${eval_clock}
 
@@ -1017,8 +981,7 @@ printf "
 
 if [ -d get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT} ]
 then
-    printf "${RED} >>> Found and older get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}/ directory. Please remove or rename and re-run!${NC}\n\n"| \
-    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+    msg "  >>> ERROR Found and older get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}/ directory. Please remove or rename and re-run!" ERROR RED
     exit 2
 fi 
 
@@ -1026,28 +989,28 @@ fi
 nfna=$(ls *.fna | wc -l) 
 if [ "$?" -ne "0" ]
 then
-   printf "\n${RED} >>> ERROR: there are no input fna files to work on!\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES -n]\n\tPlease check the GET_HOMOLOGUES manual${NC}\n${LBLUE}http://eead-csic-compbio.github.io/get_homologues/manual/${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log 
+   msg " >>> ERROR: there are no input fna files to work on!\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES -n]\n\tPlease check the GET_HOMOLOGUES manual" ERROR RED
+msg "http://eead-csic-compbio.github.io/get_homologues/manual/" ERROR BLUE 
    exit 2
 fi
 
 nfaa=$(ls *.faa | wc -l) 
 if [ "$?" -ne "0" ]
 then
-   printf "\n${RED} >>> ERROR: there are no input faa files to work on!\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES]\n\tPlease check the GET_HOMOLOGUES manual${NC}\n${LBLUE}http://eead-csic-compbio.github.io/get_homologues/manual/${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log   
+   msg " >>> ERROR: there are no input faa files to work on!\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES]\n\tPlease check the GET_HOMOLOGUES manual" ERROR RED
+   msg "http://eead-csic-compbio.github.io/get_homologues/manual/" ERROR BLUE    
    exit 2 
 fi
 
 if [ "$nfna" -ne "$nfaa" ]
 then
- printf "\n${RED} >>> ERROR: there are no equal numbers of fna and faa input files to work on!\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES -n; and a second time: run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES]\n\tPlease check the GET_HOMOLOGUES manual${NC}\n${LBLUE}http://eead-csic-compbio.github.io/get_homologues/manual/${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log 
- exit 3
+ msg " >>> ERROR: there are no equal numbers of fna and faa input files to work on!\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES -n; and a second time: run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES]\n\tPlease check the GET_HOMOLOGUES manual${NC}\n${LBLUE}http://eead-csic-compbio.github.io/get_homologues/manual/" ERROR RED
 fi 
 
 mkdir get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT} && cd get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}
 top_dir=$(pwd)
 
-print_start_time && printf "${LBLUE}# processing source fastas in directory get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT} ...${NC}\n"| \
-tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+print_start_time && msg "# processing source fastas in directory get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT} ..." PROGR BLUE
 
 ln -s ../*.faa .
 ln -s ../*.fna .
@@ -1059,7 +1022,7 @@ $distrodir/rename.pl 's/\.\.\./\./g' *.fna
 # 1.0 check that all fasta files contain the same number of sequences
 FASTASIZES=$(grep -c "^>" *.f[na]a | cut -d":" -f 2 | sort | uniq)
 NSEQSFASTA=$(grep -c "^>" *.f[na]a | cut -d":" -f 2 | sort | uniq | wc -l)
-[ $NSEQSFASTA -gt 1 ] && printf "\n${RED} >>> ERROR: Input FASTA files do not contain the same number of sequences...${NC}\n$FASTASIZES\n" && exit 4
+[ $NSEQSFASTA -gt 1 ] && msg " >>> ERROR: Input FASTA files do not contain the same number of sequences...${NC}\n$FASTASIZES\n" ERROR RED && exit 4
 
 # 1.1 fix fastaheaders of the source protein and DNA fasta files
 for file in *faa; do awk 'BEGIN {FS = "|"}{print $1, $2, $3}' $file|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > ${file}ed; done
@@ -1072,39 +1035,34 @@ fnaed_strain_intersection_check=$(grep '>' *fnaed | cut -d: -f2 | sort | uniq -c
 # check that each file has the same number of strains and a single instance for each strain
 if [ $faaed_strain_intersection_check -eq 1 -a $fnaed_strain_intersection_check -eq 1 ]
 then 
-   printf "${GREEN} >>> Strain check OK: each f?aed file has the same number of strains and a single instance for each strain${NC}\n" | \
-   tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+   msg " >>> Strain check OK: each f?aed file has the same number of strains and a single instance for each strain" PROGR GREEN
 else 
-     printf "\n${RED} >>> ERROR: Input f?aed files do not contain the same number of strains and a single instance for each strain...\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES]\n\tPlease check the GET_HOMOLOGUES manual${NC}\n${LBLUE}http://eead-csic-compbio.github.io/get_homologues/manual/${NC}\n" | \
-     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log 
+     msg " >>> ERROR: Input f?aed files do not contain the same number of strains and a single instance for each strain...\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES]\n\tPlease check the GET_HOMOLOGUES manual" ERROR RED
+     msg "http://eead-csic-compbio.github.io/get_homologues/manual" ERROR BLUE 
      exit 5
 fi
 
 
 # 1.2 add_nos2fasta_header.pl to avoid problems with duplicate labels
-[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > ${distrodir}/run_parallel_cmmds.pl faaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null" | \
-tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg " > ${distrodir}/run_parallel_cmmds.pl faaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null" DEBUG NC
 ${distrodir}/run_parallel_cmmds.pl faaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null
 
-[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > ${distrodir}/run_parallel_cmmds.pl fnaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null" | \
-tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg " > ${distrodir}/run_parallel_cmmds.pl fnaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null" DEBUG NC
 ${distrodir}/run_parallel_cmmds.pl fnaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null
 
 no_alns=$(ls *.fnaedno | wc -l)
 
 [ $no_alns -eq 0 ] && printf "\n${RED} >>> ERROR: There are no codon alignments to work on! Something went wrong. Please check input and settings ...${NC}\n\n" | \
  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && exit 4
-print_start_time && printf "${BLUE}# Total number of alignments to be computed $no_alns ${NC}\n" | \
- tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+print_start_time && msg "# Total number of alignments to be computed $no_alns" PROGR BLUE
 
 # 1.3 generate a tree_labels.list file for later tree labeling
-print_start_time && printf "${BLUE}# generating the labels file for tree-labeling ...${NC}\n" | \
- tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+print_start_time && msg "# generating the labels file for tree-labeling ..." PROGR BLUE
+
 tree_labels_dir=$(pwd)
 grep '>' $(ls *fnaedno|head -1) > tree_labels.list
 
-[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > perl -pe '$c++; s/>/$c\t/; s/\h\[/_[/' tree_labels.list > ed && mv ed tree_labels.list" | \
-tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg " > perl -pe '$c++; s/>/$c\t/; s/\h\[/_[/' tree_labels.list > ed && mv ed tree_labels.list" DEBUG NC
 perl -pe '$c++; s/>/$c\t/; s/\h\[/_[/' tree_labels.list > ed && mv ed tree_labels.list
 
 #------------------------------------------------------------------------------------------------------#
@@ -1112,14 +1070,12 @@ perl -pe '$c++; s/>/$c\t/; s/\h\[/_[/' tree_labels.list > ed && mv ed tree_label
 #------------------------------------------------------------------------------------------------------#
 
 # 2.1 generate the protein alignments using clustalo
-print_start_time &&  printf "${BLUE}# generating $no_alns codon alignments ...${NC}\n"|tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > '${distrodir}/run_parallel_cmmds.pl faaedno clustalo -i $file -o ${file%.*}_cluo.faaln --output-order input-order' $n_cores &> /dev/null" | \
-tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+print_start_time &&  msg "# generating $no_alns codon alignments ..." PROGR BLUE
+[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg " > '${distrodir}/run_parallel_cmmds.pl faaedno clustalo -i $file -o ${file%.*}_cluo.faaln --output-order input-order' $n_cores &> /dev/null" DEBUG NC
 ${distrodir}/run_parallel_cmmds.pl faaedno 'clustalo -i $file -o ${file%.*}_cluo.faaln --output-order input-order' $n_cores &> clustalo.log
 
 if grep -q "Thread creation failed" clustalo.log; then
-	printf "\n${RED} >>> ERROR: This system cannot launch too many threads, please use option -n and re-run ...${NC}\n" | \
-		tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && exit 4
+   msg " >>> ERROR: This system cannot launch too many threads, please use option -n and re-run ..." ERROR RED && exit 4
 fi
 
 # 2.2 generate the codon alignments (files with *_cdnAln.fasta extension) using pal2nal.pl, 
@@ -1130,8 +1086,7 @@ faaln_ext=faaln
 command="${distrodir}/run_parallel_cmmds.pl $faaln_ext '${distrodir}/pal2nal.pl \$file \${file%_cluo.faaln}.fnaedno -output fasta -nogap -nomismatch -codontable $codontable > \${file%_cluo.faaln}_cdnAln.fasta' $n_cores"
 
 # now we can execute run_parallel_cmmds.pl with a customized command, resulting from the interpolation of multiple varialbles
-[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > $command | bash &> /dev/null" | \
-tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg " > $command | bash &> /dev/null" DEBUG NC
 echo "$command" | bash &> /dev/null
 
 # check we got non-empty *cdnAln.fasta files
@@ -1139,8 +1094,8 @@ for f in *cdnAln.fasta
 do
      if [ ! -s $f ] 
      then
-           printf "\n${LRED} >>> Warning: produced empty codon alignment $f!\n     ... Will skip this locus and move it to problematic_alignments/ ...\n\n${NC}" | \
-	   tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+           msg " >>> Warning: produced empty codon alignment $f!" WARNING LRED
+	   msg "    ... Will skip this locus and move it to problematic_alignments ..." WARNING LRED
 	   [ ! -d problematic_alignments ] && mkdir problematic_alignments 
 	   locus_base=${f%_cdnAln.fasta}
 	   mv $f problematic_alignments
@@ -1150,9 +1105,9 @@ done
 
 # 2.3 cleanup: remove the source faa, fna, fnaed and faaed files; make numbered_fna_files.tgz and numbered_faa_files.tgz; rm *aedno
 rm *fnaed *faaed *faa *fna
-[ "$DEBUG" -eq "1" -o "$VERBOSITY" -eq "1" ] && echo " > tar -czf numbered_fna_files.tgz *fnaedno" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+[ "$DEBUG" -eq "1" -o "$VERBOSITY" -eq "1" ] && msg " > tar -czf numbered_fna_files.tgz *fnaedno" DEBUG NC
 tar -czf numbered_fna_files.tgz *fnaedno
-[ "$DEBUG" -eq "1" -o "$VERBOSITY" -eq "1" ] && echo " > tar -czf numbered_fna_files.tgz *faaedno" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+[ "$DEBUG" -eq "1" -o "$VERBOSITY" -eq "1" ] && msg " > tar -czf numbered_fna_files.tgz *faaedno" DEBUG NC
 tar -czf numbered_faa_files.tgz *faaedno
 rm ./*aedno
 
@@ -1168,12 +1123,11 @@ ln -s ../*fasta .
 # 3.1.2 check that we have codon alignments before proceeding
 no_fasta_files=$(ls *.fasta | wc -l)
 
-[ $no_fasta_files -lt 1 ] && print_start_time && printf "\n${RED} >>> ERROR: there are no codon alignments to run Phi on. Will exit now!${NC}\n\n" | \
-tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && exit 3
+[ $no_fasta_files -lt 1 ] && print_start_time && msg " >>> ERROR: there are no codon alignments to run Phi on. Will exit now!" ERROR RED && exit 3
 
 # 3.2 run Phi from the PhiPack in parallel
-print_start_time && printf "${LBLUE}# running Phi recombination test in PhiPack dir ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > ${distrodir}/run_parallel_cmmds.pl fasta 'Phi -f $file -p 1000 > ${file%.*}_Phi.log' $n_cores &> /dev/null"
+print_start_time && msg "# running Phi recombination test in PhiPack dir ..." PROGR LBLUE
+[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg " > ${distrodir}/run_parallel_cmmds.pl fasta 'Phi -f $file -p 1000 > ${file%.*}_Phi.log' $n_cores &> /dev/null" DEBUG NC
 ${distrodir}/run_parallel_cmmds.pl fasta 'Phi -f $file -p 1000 > ${file%.*}_Phi.log' $n_cores &> /dev/null
 
 # 3.3 process the *_Phi.log files generated by Phi to write a summary table and print short overview to STDOUT
@@ -1214,29 +1168,25 @@ total_no_cdn_alns=$(ls *_cdnAln.fasta | wc -l)
 # 3.4 Check the number of non-recombinant alignments remaining
 if [ ${#nonInfoAln[@]} == 0 ]
 then 
-  print_start_time && printf "${GREEN} >>> Phi test result: there are $no_non_recomb_alns_perm_test non-recombinant alignments out of $total_no_cdn_alns input alignments${NC}\n" | \
-  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+  print_start_time && msg " >>> Phi test result: there are $no_non_recomb_alns_perm_test non-recombinant alignments out of $total_no_cdn_alns input alignments" PROGR GREEN
 fi
 
 if [ ${#nonInfoAln[@]} -gt 0 ]
 then
-  print_start_time && printf "${LRED} >>> Phi test WARNING: there ${#nonInfoAln[@]} alignments with too few informative sites for the Phi test to work on ... ${NC} \n"| \
-  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+  print_start_time && msg " >>> Phi test WARNING: there ${#nonInfoAln[@]} alignments with too few informative sites for the Phi test to work on ... " WARNING LRED
 
   # print the names of the alignments with too few informative sites for the Phi test to be work on
   if [ "$VERBOSITY" -eq "1" -o  "$DEBUG" -eq "1" ]
   then
-      printf "${LRED} >>> The alignments with too few informative sites for the Phi test to be work on are:${NC} \n"| \
-      tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+      msg " >>> The alignments with too few informative sites for the Phi test to be work on are:" WARNING LRED
       for f in "${nonInfoAln[@]}"
       do
-           printf "${LRED} >>> ${f}${NC}\n"| tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+           msg " >>> ${f}" WARNING LRED
       done
   fi
 fi
 
-[ $no_non_recomb_alns_perm_test -lt 1 ] && print_start_time && printf "\n${LRED} >>> Warning: All alignments seem to have recombinant sequences. will exit now!${NC}\n\n" | \
-tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && exit 3
+[ $no_non_recomb_alns_perm_test -lt 1 ] && print_start_time && msg " >>> ERROR: All alignments seem to have recombinant sequences. will exit now!" ERROR RED && exit 3
 
 #3.5 cleanup dir
 tar -czf Phi_test_log_files.tgz *Phi.log
@@ -1283,24 +1233,18 @@ then
     cd non_recomb_cdn_alns
     non_recomb_cdn_alns_dir=$(pwd)
 
-    print_start_time && printf "${LBLUE}# working in dir non_recomb_cdn_alns ...${NC}\n" | \
-    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+    print_start_time && msg "# working in dir non_recomb_cdn_alns ..." PROGR LBLUE
 
-    print_start_time && printf "${BLUE}# estimating $no_non_recomb_alns_perm_test gene trees from non-recombinant sequences ...${NC}\n"| \
-    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-    [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > ${distrodir}/run_parallel_cmmds.pl fasta 'FastTree -quiet -nt -gtr -gamma -bionj -slownni -mlacc 3 -spr 8 -sprlength 8 < $file > ${file%.*}_allFTGTRG.ph' $n_cores &> /dev/null"  | \
-    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log   
-    ${distrodir}/run_parallel_cmmds.pl fasta 'FastTree -quiet -nt -gtr -gamma -bionj -slownni -mlacc 3 -spr 8 -sprlength 8 < $file > ${file%.*}_allFTGTRG.ph' $n_cores &> /dev/null
+    print_start_time && msg "# estimating $no_non_recomb_alns_perm_test gene trees from non-recombinant sequences ..." PROGR LBLUE
+    [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg " > ${distrodir}/run_parallel_cmmds.pl fasta 'FastTree -quiet -nt -gtr -gamma -bionj -slownni -mlacc 3 -spr 8 -sprlength 10 < $file > ${file%.*}_allFTGTRG.ph' $n_cores &> /dev/null" DEBUG NC   
+    ${distrodir}/run_parallel_cmmds.pl fasta 'FastTree -quiet -nt -gtr -gamma -bionj -slownni -mlacc 3 -spr 8 -sprlength 10 < $file > ${file%.*}_allFTGTRG.ph' $n_cores &> /dev/null
     
     no_gene_trees=$(ls *allFTGTRG.ph|wc -l)
-    [ $no_gene_trees -lt 1 ] && print_start_time && printf "\n${LRED} >>> Warning: There are no gene tree to work on in non_recomb_cdn_alns/. will exit now!${NC}\n\n" | \
-    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && exit 3
+    [ $no_gene_trees -lt 1 ] && print_start_time && msg " >>> ERROR: There are no gene tree to work on in non_recomb_cdn_alns/. will exit now!" ERROR RED && exit 3
     
     #remove trees with < 5 branches
-    print_start_time && printf "${BLUE}# counting branches on $no_non_recomb_alns_perm_test gene trees ...${NC}\n" | \
-    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-    [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > count_tree_branches ph no_tree_branches.list &> /dev/null" | \
-    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+    print_start_time && msg "# counting branches on $no_non_recomb_alns_perm_test gene trees ..." PROGR BLUE
+    [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg " > count_tree_branches ph no_tree_branches.list &> /dev/null" DEBUG NC
 
     count_tree_branches ph no_tree_branches.list # &> /dev/null
     [ ! -s no_tree_branches.list ] && install_Rlibs_msg no_tree_branches.list ape
@@ -1308,33 +1252,29 @@ then
     check_output no_tree_branches.list $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
     
     # remove trees with < 5 external branches (leaves)
-     [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " >  removing trees with < 5 external branches (leaves)" | \
-     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+     [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg " >  removing trees with < 5 external branches (leaves)" DEBUG NC
     
     no_tree_counter=0
     for phy in $(grep -v '^#Tree' no_tree_branches.list | awk -v min_no_ext_branches=$min_no_ext_branches 'BEGIN{FS="\t"; OFS="\t"}$7 < min_no_ext_branches' |cut -f1)
     do
          base=$(echo $phy | sed 's/_allFT.*ph//')
-	 print_start_time && printf "${LRED} >>> will remove ${base}* because it has < 5 branches!${NC}\n" | \
-	 tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log 
+	 print_start_time && msg " >>> will remove ${base}* because it has < 5 branches" WARNING LRED
 	 rm ${base}*
 	 let no_tree_counter++
     done
 
-    printf "${LRED} >>> WARNING: there are $no_tree_counter trees with < 1 internal branches (no real trees) that will be discarded ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+    msg " >>> WARNING: there are $no_tree_counter trees with < 1 internal branches (no real trees) that will be discarded ..." WARNING LRED
     
     # 4.1 generate the all_GTRG_trees.tre holding all source trees, which is required by kdetrees
     #     Make a check for the existence of the file to interrupt the pipeline if something has gone wrong
-    [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > cat *allFTGTRG.ph > all_GTRG_trees.tre" | \
-    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+    [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg " > cat *allFTGTRG.ph > all_GTRG_trees.tre" DEBUG NC
     cat *allFTGTRG.ph > all_GTRG_trees.tre
     check_output all_GTRG_trees.tre $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
     [ ! -s all_GTRG_trees.tre ] && exit 3
 
     # 4.2 run_kdetrees.R at desired stringency 
-    print_start_time && printf "${BLUE}# running kde test ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-    [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > run_kdetrees.R ph all_GTRG_trees.tre $kde_stringency &> /dev/null" | \
-    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+    print_start_time && msg "# running kde test ..." PROGR BLUE
+    [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg " > run_kdetrees.R ph all_GTRG_trees.tre $kde_stringency &> /dev/null" DEBUG NC
     run_kdetrees.R ph all_GTRG_trees.tre $kde_stringency &> /dev/null
     [ ! -s kde_dfr_file_all_GTRG_trees.tre.tab ] && install_Rlibs_msg kde_dfr_file_all_GTRG_trees.tre.tab kdetrees,ape
     check_output kde_dfr_file_all_GTRG_trees.tre.tab $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
@@ -1346,27 +1286,22 @@ then
     # 4.4 Check how many cdnAlns passed the test and separate into two subirectories those passing and failing the test
     if [ $no_kde_outliers -gt 0 ]
     then
-        print_start_time && printf "${BLUE}# making dir kde_outliers/ and moving $no_kde_outliers outlier files into it ...${NC}\n" | \
-	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+        print_start_time && msg "# making dir kde_outliers/ and moving $no_kde_outliers outlier files into it ..." PROGR BLUE
         mkdir kde_outliers
         for f in $(grep outlier kde_dfr_file_all_GTRG_trees.tre.tab|cut -f1|sed 's/_allFTGTRG.ph//'); do mv ${f}* kde_outliers; done
     else
-        print_start_time && printf "${GREEN} >>> there are no kde-test outliers ...${NC}\n" | \
-	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+        print_start_time && msg " >>> there are no kde-test outliers ...${NC}\n" PROGR GREEN
     fi
 
     if [ $no_kde_ok -gt 0 ]
     then
-        print_start_time && printf "${BLUE}# making dir kde_ok/ and linking $no_kde_ok selected files into it ...${NC}\n" | \
-	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+        print_start_time && msg "# making dir kde_ok/ and linking $no_kde_ok selected files into it ..." PROGR BLUE
         mkdir kde_ok
         cd kde_ok
         ln -s ../*ph .
    
-        print_start_time && printf "${BLUE}# labeling $no_kde_ok gene trees in dir kde_ok/ ...${NC}\n" | \
-	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-        [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > ${distrodir}/run_parallel_cmmds.pl ph 'add_labels2tree.pl ../../../tree_labels.list $file' $n_cores &> /dev/null" | \
-	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+        print_start_time && msg "# labeling $no_kde_ok gene trees in dir kde_ok/ ..." PROGR BLUE
+        [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg " > ${distrodir}/run_parallel_cmmds.pl ph 'add_labels2tree.pl ../../../tree_labels.list $file' $n_cores &> /dev/null" DEBUG NC
         ${distrodir}/run_parallel_cmmds.pl ph 'add_labels2tree.pl ../../../tree_labels.list $file' $n_cores &> /dev/null
         
 	# remove symbolic links to cleanup kde_ok/
@@ -1374,9 +1309,8 @@ then
     
         cd ..
     else
-        print_start_time &&  printf "${RED}# There are $no_kde_ok gene trees producing non-significant kde-test results! Increase the actual -k $kde_stringency value. Will stop here. ...${NC}\n" | \
-	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-	 exit 5
+        print_start_time && msg "# ERROR There are $no_kde_ok gene trees producing non-significant kde-test results! Increase the actual -k $kde_stringency value. Will stop here!" ERROR RED
+	exit 5
     fi
 
 #===============================================#
@@ -1389,12 +1323,11 @@ then
         # 5.1 compute average bipartition support values for each gene tree
         wkdir=$(pwd) 
         
-        print_start_time && printf "${BLUE}# computing tree support values ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-        [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > compute_suppValStas_and_RF-dist.R $wkdir 1 fasta ph 1 &> /dev/null" | \
-	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+        print_start_time && msg "# computing tree support values ..." PROGR BLUE
+        [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg " > compute_suppValStas_and_RF-dist.R $wkdir 1 fasta ph 1 &> /dev/null" DEBUG NC
         compute_suppValStas_and_RF-dist.R $wkdir 1 fasta ph 1 &> /dev/null
 	
-        print_start_time && printf "${BLUE}# writing summary tables ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+        print_start_time && msg "# writing summary tables ..." PROGR BLUE
         min_supp_val_perc=${min_supp_val#0.}
         no_digits=${#min_supp_val_perc}
         [ $no_digits -eq 1 ] && min_supp_val_perc=${min_supp_val_perc}0
@@ -1407,55 +1340,48 @@ then
         top_markers_dir="top_${no_top_markers}_markers_ge${min_supp_val_perc}perc"
         top_markers_tab=$(ls sorted_aggregated_support_values4loci_ge${min_supp_val_perc}perc.tab)
     
-        print_start_time && printf "${LBLUE}# making dir $top_markers_dir and moving $no_top_markers top markers into it ...${NC}\n" | \
-	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+        print_start_time && msg "# making dir $top_markers_dir and moving $no_top_markers top markers into it ..." PROGR LBLUE
         mkdir $top_markers_dir && cd $top_markers_dir
         top_markers_dir=$(pwd)
         ln -s ../$top_markers_tab .
         for base in $(awk '{print $1}' $top_markers_tab|grep -v loci|sed 's/"//g'); do ln -s ../${base}* .; done
    
-        [ $no_top_markers -lt 2 ] && print_start_time && printf "\n${LRED} >>> Warning: There are less than 2 top markers. Relax your filtering thresholds. will exit now!${NC}\n\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && exit 3
+        [ $no_top_markers -lt 2 ] && print_start_time && msg " >>> Warning: There are less than 2 top markers. Relax your filtering thresholds. will exit now!" ERROR LRED && exit 3
 
 
         # 5.2 generate supermatrix (concatenated alignment) 
-        print_start_time && printf "${BLUE}# concatenating $no_top_markers top markers into supermatrix ...${NC}\n" | \
-	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-        [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > concat_alns fasta $parent_PID &> /dev/null" | \
-	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+        print_start_time && msg "# concatenating $no_top_markers top markers into supermatrix ..." PROGR BLUE
+        [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg " > concat_alns fasta $parent_PID &> /dev/null" DEBUG NC
         concat_alns fasta $parent_PID &> /dev/null
 	
         # 5.3 remove uninformative sites from the concatenated alignment to speed up computation
-        print_start_time && printf "${BLUE}# removing uninformative sites from concatenated alignment ...${NC}\n"| \
-	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-        [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > ${distrodir}/remove_uninformative_sites_from_aln.pl < concat_cdnAlns.fna > concat_cdnAlns.fnainf" | \
-	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+        print_start_time && msg "# removing uninformative sites from concatenated alignment ..." PROGR BLUE
+        [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg " > ${distrodir}/remove_uninformative_sites_from_aln.pl < concat_cdnAlns.fna > concat_cdnAlns.fnainf" DEBUG NC
         #$distrodir/remove_uninformative_sites_from_aln.pl < concat_cdnAlns.fna > concat_cdnAlns.fnainf
 	${distrodir}/remove_uninformative_sites_from_aln.pl < concat_cdnAlns.fna > concat_cdnAlns.fnainf
         check_output concat_cdnAlns.fnainf $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	
-	[ ! -s concat_cdnAlns.fnainf ] && print_start_time && printf "\n${RED} >>> ERROR: The expected file concat_cdnAlns.fnainf was not produced! will exit now!${NC}\n\n" | \
-	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && exit 3
+	[ ! -s concat_cdnAlns.fnainf ] && print_start_time && msg " >>> ERROR: The expected file concat_cdnAlns.fnainf was not produced! will exit now!" ERROR RED && exit 3
 
         
 	#if [ "$search_algorithm" == "F" ] # always run FastTree, ok
 	#then
 	  # 5.4 run FasTree under the GTR+G model 
-          print_start_time && printf "${BLUE}# running FastTree on the concatenated alignment with $search_thoroughness thoroughness. This may take a while ...${NC}\n" | \
-	  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+          print_start_time && msg "# running FastTree on the concatenated alignment with $search_thoroughness thoroughness. This may take a while ..." PROGR BLUE
 
           if [ "$search_thoroughness" == "high" ]
           then
-            FastTree -quiet -nt -gtr -bionj -slownni -gamma -mlacc 3 -spr $spr -sprlength $spr_length -log ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log < concat_cdnAlns.fnainf > ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
+            FastTree -quiet -nt -gtr -gamma -bionj -slow -slownni -mlacc 3 -spr $spr -sprlength $spr_length -log ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log < concat_cdnAlns.fnainf > ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
           fi
 
           if [ "$search_thoroughness" == "medium" ]
           then
-            FastTree -quiet -nt -gtr -bionj -slownni -gamma -mlacc 2 -spr $spr -sprlength $spr_length -log ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log < concat_cdnAlns.fnainf > ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
+            FastTree -quiet -nt -gtr -gamma -bionj -slownni -mlacc 2 -spr $spr -sprlength $spr_length -log ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log < concat_cdnAlns.fnainf > ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
           fi
 
           if [ "$search_thoroughness" == "low" ]
           then
-            FastTree -quiet -nt -gtr -bionj -gamma -spr $spr -sprlength $spr_length -log ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log < concat_cdnAlns.fnainf > ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
+            FastTree -quiet -nt -gtr -gamma -bionj -spr $spr -sprlength $spr_length -log ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log < concat_cdnAlns.fnainf > ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
           fi
 
           if [ "$search_thoroughness" == "lowest" ]
@@ -1469,15 +1395,16 @@ then
 	  then
 	    #lnL=$(grep ML_Lengths2 "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log" | grep TreeLogLk | sed 's/TreeLogLk[[:space:]]ML_Lengths2[[:space:]]//')
 	    lnL=$(grep '^Gamma20LogLk' "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log" |awk '{print $2}')
-	    printf "${GREEN} >>> lnL for ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph = $lnL ${NC}\n" | \
-	    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	    msg " >>> lnL for ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph = $lnL" PROGR GREEN
 	  else
-	    printf "${LRED} >>> WARNING: ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log could not be produced!${NC}\n" | \
-	    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	    msg " >>> ERROR: ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log could not be produced, will stop here" ERROR LRED
+	    exit 5
 	  fi
     
-          print_start_time && printf "${BLUE}# Adding labels back to tree ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-          [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph &> /dev/null"
+          print_start_time && msg "# Adding labels back to tree ..." PROGR BLUE
+	  
+	  longmsg=" > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph &> /dev/null"
+          [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg "$longmsg" DEBUG NC
           ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph &> /dev/null
 
           if [ -s ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG_ed.ph ]
@@ -1485,15 +1412,13 @@ then
             mv ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG_ed.ph ${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}cdnAlns_FTGTRG_ed.sptree # for compute_suppValStats_and_RF-dist.R
             check_output ${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}cdnAlns_FTGTRG_ed.sptree $parent_PID | \
 	    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-            printf "${GREEN} >>> found in dir $top_markers_dir ...${NC}\n\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+            msg " >>> found in dir $top_markers_dir ..." PROGR GREEN
           else
-              printf "${LRED} >>> WARNING: ${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}cdnAlns_FTGTRG_ed.sptree could not be produced!${NC}"
+              msg " >>> WARNING: ${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}cdnAlns_FTGTRG_ed.sptree could not be produced" WARNING LRED
           fi 
 	
-          print_start_time && printf "${BLUE}# computing the mean support values and RF-distances of each gene tree to the concatenated tree   ...${NC}\n" | \
-	  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-	  [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > compute_suppValStas_and_RF-dist.R $top_markers_dir 2 fasta ph 1 &> /dev/null" | \
-	  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+          print_start_time && msg "# computing the mean support values and RF-distances of each gene tree to the concatenated tree ..." PROGR BLUE
+	  [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg " > compute_suppValStas_and_RF-dist.R $top_markers_dir 2 fasta ph 1 &> /dev/null" DEBUG NC
           compute_suppValStas_and_RF-dist.R $top_markers_dir 2 fasta ph 1 &> /dev/null
 	
 	  # top100_median_support_values4loci.tab should probably not be written in the first instance
@@ -1504,35 +1429,31 @@ then
        if [ "$search_algorithm" == "I" ]
        then
 	  # 5.5 run IQ-tree in addition to FastTree, if requested
-          echo
-	  printf "${YELLOW} >>>>>>>>>>>>>>> ModelFinder + IQ-TREE run <<<<<<<<<<<<<<< ${NC}\n" | \
-	  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-	  echo 
+          msg "" PROGR NC
+	  msg " >>>>>>>>>>>>>>> ModelFinder + IQ-TREE run <<<<<<<<<<<<<<< " PROGR YELLOW
+	  msg "" PROGR NC
 
-	  print_start_time && printf "${BLUE}# running ModelFinder on the concatenated alignment with $IQT_models. This will take a while ...${NC}\n" | \
-	  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	  print_start_time && msg "# running ModelFinder on the concatenated alignment with $IQT_models. This will take a while ..." PROGR BLUE
            
           iqtree -s concat_cdnAlns.fnainf -st DNA -mset "$IQT_models" -m MF -nt AUTO -fast &> /dev/null 
 	  
 	  check_output concat_cdnAlns.fnainf.log $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	  
 	  best_model=$(grep '^Best-fit model' concat_cdnAlns.fnainf.log | cut -d' ' -f 3)
-	  printf "${GREEN} >>> Best-fit model: ${best_model} ...${NC}\n" | \
-	  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	  msg " >>> Best-fit model: ${best_model} ..." PROGR GREEN
 	  
 	  mkdir iqtree_abayes && cd iqtree_abayes
 	  ln -s ../concat_cdnAlns.fnainf .
 	  
 	  if [ "$search_thoroughness" == "high" ]
 	  then
-	     print_start_time && printf "${BLUE}# running IQ-TREE on the concatenated alignment with best model ${best_model} -abayes -bb 1000, starting from $nrep random trees!. This will take a while ...${NC}\n" | \
-	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	     lmsg="# running IQ-TREE on the concatenated alignment with best model ${best_model} -abayes -bb 1000, starting from $nrep random trees!. This will take a while ..."
+	     print_start_time && msg "$lmsg" PROGR BLUE
 	     
 	     # run nrep IQ-TREE searches under the best-fit model found
 	     for ((rep=1;rep<=$nrep;rep++))
 	     do 
-	         print_start_time && printf "${LBLUE} > iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null${NC}\n" | \
-	         tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	         print_start_time && msg " > iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null" PROGR LBLUE
 	        
 		 iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null 
 	     done
@@ -1543,14 +1464,13 @@ then
 	     best_search=$(head -1 sorted_IQ-TREE_searches.out)
 	     best_search_base_name=$(head -1 sorted_IQ-TREE_searches.out | cut -d\. -f 1)
 	     
-	     printf "${GREEN}# >>> Best IQ-TREE run was: $best_search ...${NC}\n" | \
-	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	     msg "# >>> Best IQ-TREE run was: $best_search ..." PROGR GREEN
 	     
 	     best_tree_file=${tree_prefix}_${best_search_base_name}_nonRecomb_KdeFilt_iqtree_${best_model}.ph
 	     cp ${best_search_base_name}.treefile ${best_tree_file}
 	     
-	     print_start_time && printf "${BLUE}# Adding labels back to ${best_tree_file} ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-             [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${best_tree_file} &> /dev/null"
+	     print_start_time && msg "# Adding labels back to ${best_tree_file} ..." PROGR BLUE
+             [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg " > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${best_tree_file} &> /dev/null" DEBUG NC
              ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${best_tree_file} &> /dev/null
              
 	     check_output ${best_tree_file} $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
@@ -1559,16 +1479,15 @@ then
 	     cd $top_markers_dir
 	     rm -rf iqtree_abayes concat_cdnAlns.fnainf.treefile concat_cdnAlns.fnainf.uniqueseq.phy concat_cdnAlns.fnainf.ckp.gz
 	  else
-	     print_start_time && printf "${BLUE}# running IQ-tree on the concatenated alignment with best model ${best_model} -abayes -bb 1000. This will take a while ...${NC}\n" | \
-	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	     print_start_time && msg "# running IQ-tree on the concatenated alignment with best model ${best_model} -abayes -bb 1000. This will take a while ..." PROGR BLUE
 
 	     iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre iqtree_abayes &> /dev/null 
 	    
 	     best_tree_file=${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_iqtree_${best_model}.ph
 	     cp iqtree_abayes.treefile ${best_tree_file}
 	     
-	     print_start_time && printf "${BLUE}# Adding labels back to ${best_tree_file} ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-             [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${best_tree_file} &> /dev/null"
+	     print_start_time && msg "# Adding labels back to ${best_tree_file} ..." PRGR BLUE
+             [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg " > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${best_tree_file} &> /dev/null" DEBUG NC
              ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${best_tree_file} &> /dev/null
              
 	     check_output ${best_tree_file} $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
@@ -1582,16 +1501,13 @@ then
         # NOTE: after v0.9 this process is prallelized with run_parallel_cmmds.pl
 	if [ $eval_clock -gt 0 ]
         then 
-	     echo
-	     printf "${YELLOW} >>>>>>>>>>>>>>> TESTING THE MOLECULAR CLOCK HYPOTHESIS <<<<<<<<<<<<<<< ${NC}\n" | \
-	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-	     echo
+	     msg "" PROGR NC
+	     msg " >>>>>>>>>>>>>>> TESTING THE MOLECULAR CLOCK HYPOTHESIS <<<<<<<<<<<<<<< " PROGR YELLOW
+	     msg "" PROGR NC
 	     
  	     # 1. convert fasta2nexus
-             print_start_time && printf "${BLUE}# converting fasta files to nexus files${NC}\n"| \
-	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-	     [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null" | \
-	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+             print_start_time && msg "# converting fasta files to nexus files" PROGR BLUE
+	     [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg " > convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null" DEBUG NC
              $distrodir/convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null
 	     
 	     # FIX the nexus file format produced by bioperl: (recent paup version error message provided below)
@@ -1603,8 +1519,7 @@ then
 	       perl -pe 'if(/^format /){ s/symbols.*$/;/}' $nexusf > ed && mv ed $nexusf
 	     done
 	     
-	     print_start_time && printf "${BLUE}# Will test the molecular clock hypothesis for $no_top_markers top markers. This will take some time ...${NC}\n" | \
-	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	     print_start_time && msg "# Will test the molecular clock hypothesis for $no_top_markers top markers. This will take some time ..." PROGR BLUE
              #run_molecClock_test_jmodeltest2_paup.sh -R 1 -M $base_mod -t ph -e fasta -b molec_clock -q $q &> /dev/null
 	     
 	     
@@ -1615,16 +1530,14 @@ then
             echo -e "#nexfile\tlnL_unconstr\tlnL_clock\tLRT\tX2_crit_val\tdf\tp-val\tmol_clock" > $results_table
 	    
 	     cmd="${distrodir}/run_parallel_cmmds.pl nex 'run_parallel_molecClock_test_with_paup.sh -R 1 -f \$file -M $base_mod -t ph -b global_mol_clock -q $q' $n_cores"
-	     [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo "run_parallel_molecClock.cmd: $cmd" | \
-	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	     [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg "run_parallel_molecClock.cmd: $cmd" DEBUG NC
 	     echo $cmd | bash &> /dev/null
 	     
 	     mol_clock_tab=$(ls *_ClockTest.tab)
 
        	     if [ -s $mol_clock_tab ] 
 	     then
-	        printf "${GREEN} >>> generated the molecular clock results file $mol_clock_tab ...${NC}\n" | \
-		tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	        msg " >>> generated the molecular clock results file $mol_clock_tab ..." PROGR GREEN
 	    
                # Paste filoinfo and clocklikeness tables
                cut -f1 gene_trees2_concat_tree_RF_distances.tab | grep -v loci | sed 's/"//; s/"$/_/' > list2grep.tmp
@@ -1643,10 +1556,9 @@ then
 	       check_output phylogenetic_attributes_of_top${no_top_markers}_gene_trees.tab $parent_PID | \
 	       tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
            
-	       printf "${GREEN} >>> Top markers and associated stats are found in:\n$top_markers_dir ...${NC}\n\n" | \
-	       tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	       msg " >>> Top markers and associated stats are found in: $top_markers_dir ..." PROGR GREEN
             else
-	          printf "${RED} >>> ${mol_clock_tab} not found" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	       msg " >>> ${mol_clock_tab} not found" ERROR RED
 	    fi
 
 	 # 5.4 cleanup
@@ -1685,17 +1597,15 @@ then
         mkdir popGen && cd popGen
 	popGen_dir=$(pwd)
 
-        print_start_time && printf "${LBLUE}# Moved into dir popGen ...${NC}\n" | \
-	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+        print_start_time && msg "# Moved into dir popGen ..." PROGR LBLUE
 	
 	ln -s ../*fasta .
 	no_top_markers=$(ls *fasta | wc -l)
 	tmpf=$(ls -1 *fasta | head -1)
 	no_seqs=$(grep -c '>' $tmpf)
-	[ $DEBUG -eq 1 ] && echo "no_seqs:$no_seqs"  | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	[ $DEBUG -eq 1 ] && msg "no_seqs:$no_seqs" DEBUG NC
 
-        print_start_time && printf "${BLUE}# Will run descriptive DNA polymorphism statistics for $no_top_markers top markers. This will take some time ...${NC}\n"| \
-	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+        print_start_time && msg "# Will run descriptive DNA polymorphism statistics for $no_top_markers top markers. This will take some time ..." PROGR BLUE
 	
 	TajD_crit_vals=$(get_critical_TajD_values $no_seqs)
 	TajD_l=$(echo $TajD_crit_vals|awk '{print $1}')
@@ -1705,26 +1615,22 @@ then
 	FuLi_l=$(echo "$FuLi_crit_vals"|awk '{print $1}')
 	FuLi_u=$(echo "$FuLi_crit_vals"|awk '{print $2}')
 	
-	[ $DEBUG -eq 1 ] && echo "TajD_crit_vals:$TajD_crit_vals|TajD_l:$TajD_l|TajD_u:$TajD_u|FuLi_crit_vals:$FuLi_crit_vals|FuLi_l:$FuLi_l|FuLi_u:$FuLi_u" | \
-	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	[ $DEBUG -eq 1 ] && msg "TajD_crit_vals:$TajD_crit_vals|TajD_l:$TajD_l|TajD_u:$TajD_u|FuLi_crit_vals:$FuLi_crit_vals|FuLi_l:$FuLi_l|FuLi_u:$FuLi_u" DEBUG NC
 	
-        print_start_time && printf "${BLUE}# converting $no_top_markers fasta files to nexus format ...${NC}\n" | \
-	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-        [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null" | \
-	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+        print_start_time && msg "# converting $no_top_markers fasta files to nexus format ..." PROGR BLUE
+        [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg " > convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null" DEBUG NC
 	#$distrodir/
 	${distrodir}/convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null 
 	  
-        print_start_time && printf "${BLUE}# Running popGen_summStats.pl ...${NC}\n" | \
-       	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-	[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u &> popGen_summStats_hs100.log"
+        print_start_time && msg "# Running popGen_summStats.pl ..." PROGR BLUE
+	lmsg=" > popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u &> popGen_summStats_hs100.log"
+	[ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg "$lmsg" DEBUG NC
 	#$distrodir/popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u &> popGen_summStats_hs100.log
 	${distrodir}/popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u &> popGen_summStats_hs100.log
 	
 	check_output polymorphism_descript_stats.tab $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	
-	printf "${GREEN} >>> descriptive DNA polymorphism stats are found in:\n$popGen_dir ...${NC}\n\n" | \
-	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	msg " >>> descriptive DNA polymorphism stats are found in:\n$popGen_dir ..." PROGR GREEN
 	
 	
 	#>>> CLEANUP <<<#
@@ -1757,42 +1663,37 @@ then
     cd non_recomb_FAA_alns
     non_recomb_FAA_alns_dir=$(pwd)
 
-    print_start_time && printf "${BLUE}# estimating $no_non_recomb_alns_perm_test gene trees from non-recombinant sequences ...${NC}\n" | \
-    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-    [ "$DEBUG" -eq 1 -o "$VERBOSITY" -eq 1 ] && echo " > ${distrodir}/run_parallel_cmmds.pl faaln 'FastTree -quiet -lg -gamma -bionj -slownni -mlacc 3 -spr 8 -sprlength 8 < $file > ${file%.*}_allFTlgG.ph'  $n_cores &> /dev/null"
+    print_start_time && msg "# estimating $no_non_recomb_alns_perm_test gene trees from non-recombinant sequences ..." PROGR BLUE
+    lmsg=" > ${distrodir}/run_parallel_cmmds.pl faaln 'FastTree -quiet -lg -gamma -bionj -slownni -mlacc 3 -spr 8 -sprlength 8 < $file > ${file%.*}_allFTlgG.ph'  $n_cores &> /dev/null"
+    [ "$DEBUG" -eq 1 -o "$VERBOSITY" -eq 1 ] && msg "$lmsg" DEBUG NC
     ${distrodir}/run_parallel_cmmds.pl faaln 'FastTree -quiet -lg -gamma -bionj -slownni -mlacc 3 -spr 8 -sprlength 8 < $file > ${file%.*}_allFTlgG.ph' $n_cores &> /dev/null
     
     #remove trees with < 5 branches
-    print_start_time && printf "${BLUE}# counting branches on $no_non_recomb_alns_perm_test gene trees ...${NC}\n" | \
-    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-    [ "$DEBUG" -eq 1 -o "$VERBOSITY" -eq 1 ] && echo " > count_tree_branches ph no_tree_branches.list &> /dev/null"  | \
-    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+    print_start_time && msg "# counting branches on $no_non_recomb_alns_perm_test gene trees ..." PROGR BLUE
+    [ "$DEBUG" -eq 1 -o "$VERBOSITY" -eq 1 ] && msg " > count_tree_branches ph no_tree_branches.list &> /dev/null" DEBUG NC
     count_tree_branches ph no_tree_branches.list #&> /dev/null
    
     check_output no_tree_branches.list "$parent_PID" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
     
     # remove trees with < 5 external branches (leaves)
-    [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > removing trees with < 5 external branches (leaves)" | \
-    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+    [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg " > removing trees with < 5 external branches (leaves)" DEBUG NC
     for phy in $(grep -v '^#Tree' no_tree_branches.list|awk -v min_no_ext_branches=$min_no_ext_branches 'BEGIN{FS="\t"; OFS="\t"}$7 < min_no_ext_branches'|cut -f1)
     do
          base=$(echo $phy|sed 's/_allFTlgG\.ph//')
-	 printf "${LRED} >>> will remove ${base}* because it has < 5 branches!${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	 msg " >>> will remove ${base}* because it has < 5 branches!" WARNING LRED
 	 rm ${base}*
     done
 
     # 6.1 generate the all_GTRG_trees.tre holding all source trees. This is required for run_kdetrees.R ph
     #     Make a check for the existence of the file to interrupt the pipeline if something has gone wrong
-    [ "$DEBUG" -eq 1 -o "$VERBOSITY" -eq 1 ] && echo " > cat *_allFTlgG.ph > all_FTlgG_trees.tre" | \
-    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+    [ "$DEBUG" -eq 1 -o "$VERBOSITY" -eq 1 ] && msg " > cat *_allFTlgG.ph > all_FTlgG_trees.tre" DEBUG NC
     cat *_allFTlgG.ph > all_FTlgG_trees.tre
     check_output all_FTlgG_trees.tre "$parent_PID" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
     [ ! -s all_FTlgG_trees.tre ] && exit 5
     
     # 6.2 run_kdetrees.R at desired stringency 
-    print_start_time && printf "${BLUE}# running kde test ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-    [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > run_kdetrees.R ph all_FTlgG_trees.tre $kde_stringency &> /dev/null" | \
-    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+    print_start_time && msg "# running kde test ..." PROGR BLUE
+    [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg " > run_kdetrees.R ph all_FTlgG_trees.tre $kde_stringency &> /dev/null" DEBUG NC
     run_kdetrees.R ph all_FTlgG_trees.tre $kde_stringency &> /dev/null
     check_output kde_dfr_file_all_FTlgG_trees.tre.tab $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
@@ -1802,26 +1703,23 @@ then
 
     if [ "$no_kde_outliers" -gt "0" ]
     then
-        print_start_time && printf "${BLUE}# making dir kde_outliers/ and moving $no_kde_outliers outlier files into it ...${NC}\n" | \
-	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+        print_start_time && msg "# making dir kde_outliers/ and moving $no_kde_outliers outlier files into it ..." PROGR BLUE
         mkdir kde_outliers
         for f in $(grep outlier kde_dfr_file_all_FTlgG_trees.tre.tab|cut -f1|sed 's/_allFTlgG.ph//'); do mv ${f}* kde_outliers; done
     else
-        printf "${GREEN} >>> there are no kde-test outliers ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+        msg " >>> there are no kde-test outliers ..." PROGR GREEN
     fi
 
     if [ $no_kde_ok -gt 0 ]
     then
-        print_start_time && printf "${BLUE}# making dir kde_ok/ and linking $no_kde_ok selected files into it ...${NC}\n" | \
-	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+        print_start_time && msg "# making dir kde_ok/ and linking $no_kde_ok selected files into it ..." PROGR BLUE
         mkdir kde_ok
         cd kde_ok
         ln -s ../*ph .
    
-        print_start_time && printf "${BLUE}# labeling $no_kde_ok gene trees in dir kde_ok/ ...${NC}\n" | \
-	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-        [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > ${distrodir}/run_parallel_cmmds.pl ph 'add_labels2tree.pl ../../../tree_labels.list $file' $n_cores &> /dev/null"  | \
-	tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+        print_start_time && msg "# labeling $no_kde_ok gene trees in dir kde_ok/ ..." PROGR BLUE
+	lmsg=" > ${distrodir}/run_parallel_cmmds.pl ph 'add_labels2tree.pl ../../../tree_labels.list $file' $n_cores &> /dev/null"
+        [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg "$lmsg" DEBUG NC
         ${distrodir}/run_parallel_cmmds.pl ph 'add_labels2tree.pl ../../../tree_labels.list $file' $n_cores &> /dev/null
     
         # remove symbolic links to cleanup kde_ok/
@@ -1829,8 +1727,7 @@ then
     
         cd ..
     else
-         printf "${RED}# There are $no_kde_ok gene trees producing non-significant kde-test results! Increase the actual -k $kde_stringency value. Will stop here. ...${NC}\n" | \
-	 tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+         msg "# There are $no_kde_ok gene trees producing non-significant kde-test results! Increase the actual -k $kde_stringency value. Will stop here. ..." ERROR RED
 	 exit 5
     fi
     
@@ -1848,12 +1745,11 @@ then
     #     and their RF-fistance to the consensus tree computed with consense
     wkdir=$(pwd) 
         
-    print_start_time && printf "${BLUE}# computing tree support values ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-    [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > compute_suppValStas_and_RF-dist.R $wkdir 1 faaln ph 1 &> /dev/null"  | \
-    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+    print_start_time && msg "# computing tree support values ..." PROGR BLUE
+    [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg " > compute_suppValStas_and_RF-dist.R $wkdir 1 faaln ph 1 &> /dev/null" DEBUG NC
     compute_suppValStas_and_RF-dist.R $wkdir 1 faaln ph 1 &> /dev/null
     
-    print_start_time && printf "${BLUE}# writing summary tables ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+    print_start_time && msg "# writing summary tables ..." DEBUG NC
     min_supp_val_perc=${min_supp_val#0.}
     no_digits=${#min_supp_val_perc}
     [ $no_digits -eq 1 ] && min_supp_val_perc=${min_supp_val_perc}0
@@ -1865,31 +1761,28 @@ then
     top_markers_dir="top_${no_top_markers}_markers_ge${min_supp_val_perc}perc"
     top_markers_tab=$(ls sorted_aggregated_support_values4loci_ge${min_supp_val_perc}perc.tab)
     
-    print_start_time && printf "${LBLUE}# making dir $top_markers_dir and moving $no_top_markers top markers into it ...${NC}\n" | \
-    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+    print_start_time && msg "# making dir $top_markers_dir and moving $no_top_markers top markers into it ..." PROGR LBLUE
     mkdir $top_markers_dir && cd $top_markers_dir
     ln -s ../$top_markers_tab .
     for base in $(awk '{print $1}' $top_markers_tab|grep -v loci|sed 's/"//g'); do ln -s ../${base}* .; done
 
     # 6.7 generate supermatrix (concatenated alignment) 
-    print_start_time && printf "${BLUE}# concatenating $no_top_markers top markers into supermatrix ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-    [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > concat_alns faaln $parent_PID &> /dev/null" | \
-    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+    print_start_time && msg "# concatenating $no_top_markers top markers into supermatrix ..." PROGR BLUE
+    [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg " > concat_alns faaln $parent_PID &> /dev/null" DEBUG NC
     concat_alns faaln $parent_PID &> /dev/null
 
     # 6.8 remove uninformative sites from the concatenated alignment to speed up computation
-        print_start_time && printf "${BLUE}# removing uninformative sites from concatenated alignment ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+        print_start_time && msg "# removing uninformative sites from concatenated alignment ..." PROGR BLUE
     $distrodir/remove_uninformative_sites_from_aln.pl < concat_protAlns.faa > concat_protAlns.faainf
 
     check_output concat_protAlns.faainf $parent_PID|tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
     # 6.9 run FasTree under the GTR+G model 
-    print_start_time && printf "${BLUE}# running FastTree on the concatenated alignment with $search_thoroughness thoroughness. This may take a while ...${NC}\n" | \
-    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+    print_start_time && msg "# running FastTree on the concatenated alignment with $search_thoroughness thoroughness. This may take a while ..." PROGR BLUE
     
     if [ "$search_thoroughness" == "high" ]
     then
-        FastTree -quiet -lg -bionj -slownni -gamma -mlacc 3 -spr $spr -sprlength $spr_length -log ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.log < concat_protAlns.faainf > ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph
+        FastTree -quiet -lg -bionj -slow -slownni -gamma -mlacc 3 -spr $spr -sprlength $spr_length -log ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.log < concat_protAlns.faainf > ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph
     fi
 
     if [ "$search_thoroughness" == "medium" ]
@@ -1914,15 +1807,14 @@ then
    then
      # lnL=$(grep ML_Lengths2 "${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.log" | grep TreeLogLk | sed 's/TreeLogLk[[:space:]]ML_Lengths2[[:space:]]//')
        lnL=$(grep '^Gamma20LogLk' "${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.log" |awk '{print $2}')
-       printf "${GREEN} >>> lnL for ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph = $lnL ${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+       msg " >>> lnL for ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph = $lnL" PROGR GREEN
    else
-       printf "${LRED} >>> WARNING: ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.log could not be produced!${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+       msg " >>> WARNING: ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.log could not be produced!" WARNING LRED
    fi
-
     
-    print_start_time && printf "${BLUE}# Adding labels back to tree ...${NC}\n"|tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-    [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph &> /dev/null" | \
-    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+    print_start_time && msg "# Adding labels back to tree ..." PROGR LBLUE
+    lmsg=" > add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph &> /dev/null"
+    [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg "$lmsg" DEBUG NC
     add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph &> /dev/null
     
     [ -s ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG_ed.ph ] && \
@@ -1931,31 +1823,27 @@ then
     
     check_output ${tree_prefix}_${no_top_markers}nonRecomb_KdeFilt_protAlns_FTlgG.spTree $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
      
-    printf "${GREEN} >>> found in dir $wkdir ...${NC}\n\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+   msg " >>> found in dir $wkdir ..." PROGR GREEN
        
     wkdir=$(pwd)
-    [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > compute_suppValStas_and_RF-dist.R $wkdir 2 faaln ph 1 &> /dev/null" | \
-    tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+    [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg " > compute_suppValStas_and_RF-dist.R $wkdir 2 faaln ph 1 &> /dev/null" DEBUG NC
     ${distrodir}/compute_suppValStas_and_RF-dist.R $wkdir 2 faaln ph 1 &> /dev/null
-    
     
        if [ "$search_algorithm" == "I" ]
        then
 	  # 5.5 run IQ-tree in addition to FastTree, if requested
-          echo
-	  printf "${YELLOW} >>>>>>>>>>>>>>> IQ-TREE + ModelFinder run <<<<<<<<<<<<<<< ${NC}\n" | \
-	  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-	  echo 
+          msg "" PROGR NC
+	  msg " >>>>>>>>>>>>>>> IQ-TREE + ModelFinder run <<<<<<<<<<<<<<< " PROGR YELLOW
+	  msg "" PROGR NC 
 
-	  print_start_time && printf "${BLUE}# running ModelFinder on the concatenated alignment with $IQT_models. This will take a while ...${NC}\n" | \
-	  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	  print_start_time && msg "# running ModelFinder on the concatenated alignment with $IQT_models. This will take a while ..." PROGR BLUE
            
           iqtree -s concat_protAlns.faainf -st PROT -mset "$IQT_models" -m MF -nt AUTO -fast &> /dev/null 
 	  
 	  check_output concat_protAlns.faainf.log $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	  
 	  best_model=$(grep '^Best-fit model' concat_protAlns.faainf.log | cut -d' ' -f 3)
-	  printf "${GREEN} >>> Best-fit model: ${best_model} ...${NC}\n" | \
+	  msg " >>> Best-fit model: ${best_model} ..." PROGR GREEN
 	  tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	  
 	  mkdir iqtree_abayes && cd iqtree_abayes
@@ -1963,14 +1851,14 @@ then
 	  
 	  if [ "$search_thoroughness" == "high" ]
 	  then
-	     print_start_time && printf "${BLUE}# running IQ-TREE on the concatenated alignment with best model ${best_model} -abayes -bb 1000, starting from $nrep random trees!. This will take a while ...${NC}\n" | \
-	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	     lmsg="# running IQ-TREE on the concatenated alignment with best model ${best_model} -abayes -bb 1000, starting from $nrep random trees!. This will take a while ..."
+	     print_start_time && msg "$lmsg" PROGR BLUE
 	     
 	     # run nrep IQ-TREE searches under the best-fit model found
 	     for ((rep=1;rep<=$nrep;rep++))
 	     do 
-	         print_start_time && printf "${LBLUE} > iqtree -s concat_protAlns.faainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null${NC}\n" | \
-	         tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	         lmsg=" > iqtree -s concat_protAlns.faainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null"
+	         print_start_time && msg "$lmsg" PROGR LBLUE
 	        
 		  iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null 
 	     done
@@ -1981,14 +1869,13 @@ then
 	     best_search=$(head -1 sorted_IQ-TREE_searches.out)
 	     best_search_base_name=$(head -1 sorted_IQ-TREE_searches.out | cut -d\. -f 1)
 	     
-	     printf "${GREEN}# >>> Best IQ-TREE run was: $best_search ...${NC}\n" | \
-	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	     msg "# >>> Best IQ-TREE run was: $best_search ..." PROGR GREEN
 	     
 	     best_tree_file=${tree_prefix}_${best_search_base_name}_nonRecomb_KdeFilt_iqtree_${best_model}.ph
 	     cp ${best_search_base_name}.treefile ${best_tree_file}
 	     
-	     print_start_time && printf "${BLUE}# Adding labels back to ${best_tree_file} ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-             [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${best_tree_file} &> /dev/null"
+	     print_start_time && msg "# Adding labels back to ${best_tree_file} ..." PROGR BLUE
+             [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg " > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${best_tree_file} &> /dev/null" DEBUG NC
              ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${best_tree_file} &> /dev/null
              
 	     check_output ${best_tree_file} $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
@@ -1996,18 +1883,16 @@ then
 	     cd $wkdir
 	     rm -rf iqtree_abayes concat_protAlns.faainf.treefile concat_protAlns.faainf.uniqueseq.phy *ckp.gz
 	  else
-	     print_start_time && printf "${BLUE}# running IQ-tree on the concatenated alignment with best model ${best_model} -abayes -bb 1000. This will take a while ...${NC}\n" | \
-	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	     print_start_time && msg "# running IQ-tree on the concatenated alignment with best model ${best_model} -abayes -bb 1000. This will take a while ..." PROGR BLUE
 
-	     print_start_time && printf "${BLUE}# running: iqtree -s concat_protAlns.faainf -st PROT -m $best_model -abayes -bb 1000 -nt AUTO -pre iqtree_abayes &> /dev/null  ...${NC}\n" | \
-	     tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+	     print_start_time && msg "# running: iqtree -s concat_protAlns.faainf -st PROT -m $best_model -abayes -bb 1000 -nt AUTO -pre iqtree_abayes &> /dev/null  ..." PROGR BLUE
 	     iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" -abayes -bb 1000 -nt AUTO -pre iqtree_abayes &> /dev/null 
 	    
 	     best_tree_file=${tree_prefix}_nonRecomb_KdeFilt_protAlns_iqtree_${best_model}.ph
 	     cp iqtree_abayes.treefile ${best_tree_file}
 	     
-	     print_start_time && printf "${BLUE}# Adding labels back to ${best_tree_file} ...${NC}\n" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
-             [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && echo " > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${best_tree_file} &> /dev/null"
+	     print_start_time && msg "# Adding labels back to ${best_tree_file} ..." PROGR BLUE
+             [ $DEBUG -eq 1 -o $VERBOSITY -eq 1 ] && msg " > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${best_tree_file} &> /dev/null" DEBUG NC
              ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${best_tree_file} &> /dev/null
 	                  
 	     check_output ${best_tree_file} $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
@@ -2048,7 +1933,8 @@ end_time=`date +%s`
 secs=$(($end_time-$start_time))
 
 #printf '%dh:%dm:%ds\n' $(($secs/3600)) $(($secs%3600/60)) $(($secs%60))
-printf "\n${LBLUE} >>> Total runtime of $progname: ${NC}" 
+msg "" PROGR NC
+msg " >>> Total runtime of $progname:" PROGR LBLUE
 printf '%dh:%dm:%ds\n' $(($secs/3600)) $(($secs%3600/60)) $(($secs%60))
 echo
 
@@ -2061,8 +1947,8 @@ Pablo Vinuesa and Bruno Contreras-Moreira 2017. Get_PhyloMarkers, a pipeline to 
 optimal markers for microbial phylogenomics, population genetics and genomic taxomy. 
 Available at https://github.com/vinuesa/get_phylomarkers 
 
-A publication is in preparation. The abstract was accepted in Frontiers in Microbiology, 
-for the Research topic on "microbial taxonomy, phylogeny and biodiversity" 
+A publication was submitted to Frontiers in Microbiology on January 15th 2018, 
+to be considered for its publication in the Research topic on "microbial taxonomy, phylogeny and biodiversity" 
 http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity
 
 * NOTES: 
