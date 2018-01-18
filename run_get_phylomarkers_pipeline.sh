@@ -15,7 +15,7 @@
 #          
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.9.10.2_14Jan18' 
+VERSION='1.9.11_17Jan18' 
 
 # Set GLOBALS
 DEBUG=0
@@ -1935,7 +1935,7 @@ secs=$(($end_time-$start_time))
 #printf '%dh:%dm:%ds\n' $(($secs/3600)) $(($secs%3600/60)) $(($secs%60))
 msg "" PROGR NC
 msg " >>> Total runtime of $progname:" PROGR LBLUE
-printf '%dh:%dm:%ds\n' $(($secs/3600)) $(($secs%3600/60)) $(($secs%60))
+printf '%dh:%dm:%ds\n' $(($secs/3600)) $(($secs%3600/60)) $(($secs%60)) | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 echo
 
 cat <<REF
