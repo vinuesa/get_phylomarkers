@@ -1950,7 +1950,7 @@ and inference of pan-genome phylogenies: identification of cryptic species in
 the Stenotrophomonas maltophilia complex. 
 Available at https://github.com/vinuesa/get_phylomarkers
 
-A publication was submitted to Frontiers in Microbiology on January 15th 2018,
+The manuscript was submitted to Frontiers in Microbiology on January 15th 2018,
 to be considered for its publication in the Research Topic on "Microbial Taxonomy, Phylogeny and Biodiversity"
 http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity
 
