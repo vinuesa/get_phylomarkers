@@ -1,3 +1,4 @@
+v1.9.12_19Jan18 changed -K 1 to -K (flag) to run mol-clock; replaced echo for msg within functions; changed all file globings like *.fasta for ./*fasta ... so names with dashes won't become options
 v1.9.11_17Jan18 added -slow to FastTree with -T high (supermatrix); added msg function to cleanup code; updated citation message at end; moved changes messages from top of script to this file
 v1.9.10.1_1Jan18 added functions check_IQT_DNA_models() check_IQT_PROT_models() to check -S strings passed by user to IQ-TREE
 	    changed iqtree-omp v 1.5.6 to iqtree (v. 1.6.1); added -fast flag to the model selection calls of IQ-TREE!!!
