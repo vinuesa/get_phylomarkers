@@ -15,7 +15,7 @@
 #
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.pl
-VERSION='1.9.12_19Jan18'
+VERSION='1.9.13_20Jan18'
 
 # Set GLOBALS
 DEBUG=0
@@ -1630,7 +1630,7 @@ then
 
 	check_output polymorphism_descript_stats.tab $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
-	msg " >>> descriptive DNA polymorphism stats are found in:\n$popGen_dir ..." PROGR GREEN
+	msg " >>> descriptive DNA polymorphism stats are found in: $popGen_dir ..." PROGR GREEN
 
 
 	#>>> CLEANUP <<<#
@@ -1943,8 +1943,11 @@ cat <<REF
 * PROVISIONAL CITATION:
 
 If you find the code useful for your academic work, please use the following citation:
-Pablo Vinuesa and Bruno Contreras-Moreira 2017. Get_PhyloMarkers, a pipeline to select
-optimal markers for microbial phylogenomics, population genetics and genomic taxomy.
+
+Pablo Vinuesa, Luz-Edith Ochoa-Sanchez and Bruno Contreras-Moreira 2018. 
+GET_PHYLOMARKERS, a pipeline to select optimal phylogenetic markers for phylogenomics 
+and inference of pan-genome phylogenies: identification of cryptic species in 
+the Stenotrophomonas maltophilia complex. 
 Available at https://github.com/vinuesa/get_phylomarkers
 
 A publication was submitted to Frontiers in Microbiology on January 15th 2018,
@@ -1955,19 +1958,19 @@ http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-a
   1. The links to the the corresponding manuscript will be provided here
       as soon as it is available at bioRxiv, and latter, to the paper.
 
-  2. If you encounter problems or bugs while trying to run the pipeline
-      please report them through the issues page at
-      https://github.com/vinuesa/get_phylomarkers/issues
+  2. If you encounter problems or bugs while running the pipeline
+     please report them through the issues page at
+     https://github.com/vinuesa/get_phylomarkers/issues
 
-      Alternatively, see our contact details at:
-      http://www.ccg.unam.mx/~vinuesa/
-      https://digital.csic.es/cris/rp/rp02661/
+     Alternatively, see our contact details at:
+     http://www.ccg.unam.mx/~vinuesa/
+     https://digital.csic.es/cris/rp/rp02661/
 
-      Please run the script with the -D flag added at the end of the
-      command line and send us the output, so that we can better diagnose
-      the problem.
+     Please run the script with the -D flag added at the end of the
+     command line and send us the output, so that we can better diagnose
+     the problem.
 
-      Thanks!
+     Thanks!
 
 REF
 
