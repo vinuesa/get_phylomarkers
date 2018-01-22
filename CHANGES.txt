@@ -1,18 +1,34 @@
-v1.9.13_20Jan18: updated temporal citation; minor cleanup of text printed to STDOUT; 
-                 moved changes.txt to CHANGES.txt and formated the file consistently for better readability
+v2.0_22Jan10: # >>> MAJOR UPGRADE: uses iqtree v1.6.1 as default search algorithm throughout the pipeline <<< 
+              * now uses IQ-TREE (v1.6.1; Dec. 28th, 2017 release) as the default algorithm, both for gene- and species-tree searches!
+              * Based on the benchmark results presented in the GET_PHYLOMARKERS paper, model-selection is enabled by default
+	        during gene tree searches, making use of the -fast flag. The number of models evaluated (hard-coded) depends on -T 
+	      * moved most functions to file lib/get_phylomarkers_fun_lib
+              * added new key functions: estimate_FT_gene_trees, compute_FT_gene_tree_stats estimate_IQT_gene_trees compute_IQT_gene_tree_stats
+	         process_IQT_species_trees_for_molClock.
+	      * added $search_thoroughness and $search_algorithm particles to dir_suffix
+	      * thoroughly updated the extended Help text printed to STDOUT when -H is invoked
+	      * updated the README.md file accordingly
+	      * updated the help messages printed to STDOUT with -h
+	      * added DISCLAIMER and LICENSE notices to the headers of the run_get_phylomarkers_pipeline.sh and get_phylomarkers_fun_lib files
 
-v1.9.12_19Jan18: changed -K 1 to -K (flag) to run mol-clock; replaced echo for msg within functions; 
-                 changed all file globings like *.fasta for ./*fasta ... so names with dashes won't become options
+v1.9.13_20Jan18: * updated temporal citation; minor cleanup of text printed to STDOUT; 
+                 * moved changes.txt to CHANGES.txt and formated the file consistently for better readability
 
-v1.9.11_17Jan18: added -slow to FastTree with -T high (supermatrix); added msg function to cleanup code; updated citation message at end;
-                 moved changes messages from top of script to this file
+v1.9.12_19Jan18: * changed -K 1 to -K (flag) to run mol-clock; replaced echo for msg within functions; 
+                 * changed all file globings like *.fasta for ./*fasta ... so names with dashes won't become options
 
-v1.9.10.1_1Jan18: added functions check_IQT_DNA_models() check_IQT_PROT_models() to check -S strings passed by user to IQ-TREE
-	          changed iqtree-omp v 1.5.6 to iqtree (v. 1.6.1); added -fast flag to the model selection calls of IQ-TREE!!!
-   	          grep '^Gamma20LogLk' instead of ML_Lengths2 also for protein data
-   	          Changed spr_length=8 to  spr_length=10 to match the default value of FastTree 2.1.10
+v1.9.11_17Jan18: * added -slow to FastTree with -T high (supermatrix); added msg function to cleanup code; updated citation message at end;
+                 * moved changes messages from top of script to this file
 
-v 1.9.9.2_31Dic17: grep '^Gamma20LogLk' instead of ML_Lengths2 to print the FastTree lnL score to STDOUT
+v1.9.10.1_1Jan18: # >>> MAJOR UPGRADE: this is the version using iqtree v1.6.1 with the -fast flag 
+                         on which some of the benchmark analyses reported in the paper were based on <<<
+	          * changed iqtree-omp v1.5.6 to iqtreev.1.6.1 (first released on Dec 26th, 2017; fixed bug thanks to our report on Dec. 28th, 2017); 
+		  * added -fast flag to the model selection calls of IQ-TREE!!!
+                  * added functions check_IQT_DNA_models() check_IQT_PROT_models() to check -S strings passed by user to IQ-TREE
+   	          * grep '^Gamma20LogLk' instead of ML_Lengths2 also for protein data
+   	          * Changed spr_length=8 to  spr_length=10 to match the default value of FastTree 2.1.10
+
+v 1.9.9.2_31Dic17: * grep '^Gamma20LogLk' instead of ML_Lengths2 to print the FastTree lnL score to STDOUT
 
 v1.9.9.1_23Dic17: renamed the iqtree binary to iqtree-omp to be explicit about the multicore version
 
