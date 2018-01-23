@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #: LIBRARY: get_phylomarkers_fun_lib
 #     * functions called by run_get_phylomarkers_pipeline.sh
 #     * part of the GET_PHYLOMARKERS software package
@@ -65,6 +66,7 @@ exit 0
 
 function get_script_PID()
 {
+    [ $DEBUG -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
     # returns the PID of the script, run by USER
     prog=${0%.*} # remove the script's .extension_name
     #proc_ID=$(ps -eaf|grep "$prog"|grep -v grep|grep '-'|grep $USER|awk '{print $2}')
@@ -76,6 +78,7 @@ function get_script_PID()
 
 function install_Rlibs_msg()
 {
+   [ $DEBUG -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
    outfile=$1
    Rpackage=$2
 
@@ -98,6 +101,7 @@ exit 1
 
 function count_tree_labels()
 {
+   [ $DEBUG -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
    # call R pacake 'ape' to count the number of labels in a tree
    ext=$1
    outfile=$2
@@ -131,11 +135,13 @@ function count_tree_labels()
    sink()
 RCMD
 
+   [ $DEBUG -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 
 function count_tree_branches()
 {
+   [ $DEBUG -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
    ext=$1
    outfile=$2
 
@@ -198,11 +204,13 @@ function count_tree_branches()
 
 RCMD
 
+   [ $DEBUG -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 function estimate_FT_gene_trees()
 {
    # estimate gene trees running FT in parallel using the user-defined thoroughness
+    [ $DEBUG -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
     local mol_type=$1
     local search_thoroughness=$2
 
@@ -235,11 +243,13 @@ function estimate_FT_gene_trees()
    [ $DEBUG -eq 1 ] && msg "$cmd" DEBUG NC
    echo "$cmd" | bash &> /dev/null
 
+   [ $DEBUG -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 
 function compute_FT_gene_tree_stats()
 {
+   [ $DEBUG -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
    local mol_type=$1
    local search_thoroughness=$2
       
@@ -251,10 +261,10 @@ function compute_FT_gene_tree_stats()
        grep '^Gamma20LogLk' ./*.log | cut -f1,2 | sed 's/:Gamma20LogLk//; s/ /\t/' > FT_lnL_cdnAln_FTGTRG_T${search_thoroughness}.tsv
        grep '^Total time:' ./*.log | cut -d' ' -f3 > FT_tot_wc_seconds_cdnAln_FTGTRG_T${search_thoroughness}.tsv
        
-       N=$(ls ./*.log | wc -l)
+       N=$(find . -name "*.log" | wc -l)
        
        i=0
-       for (( i=1; i<=$N; i++ )); do
+       for (( i=1; i<=N; i++ )); do
           echo "$s_type" >> s_type.txt
        done
        
@@ -278,13 +288,13 @@ function compute_FT_gene_tree_stats()
         s_type="FTprotT${search_thoroughness}"
 
        # parse computation-times and lnL stats for FT-computed gene trees and write to table
-       grep '^Gamma20LogLk' *cluo.log | cut -f1,2 | sed 's/:Gamma20LogLk//; s/ /\t/' > FT_lnL_protAln_FTlgG_T${search_thoroughness}.tsv
-       grep '^Total time:' *cluo.log | cut -d' ' -f3 > FT_tot_wc_seconds_protAln_FTlgG_T${search_thoroughness}.tsv
+       grep '^Gamma20LogLk' ./*cluo.log | cut -f1,2 | sed 's/:Gamma20LogLk//; s/ /\t/' > FT_lnL_protAln_FTlgG_T${search_thoroughness}.tsv
+       grep '^Total time:' ./*cluo.log | cut -d' ' -f3 > FT_tot_wc_seconds_protAln_FTlgG_T${search_thoroughness}.tsv
        
-       N=$(ls ./*.log | wc -l)
+       N=$(find . -name "*.log" | wc -l)
        
        i=0
-       for (( i=1; i<=$N; i++ )); do
+       for (( i=1; i<=N; i++ )); do
           echo "$s_type" >> s_type.txt
        done
        
@@ -304,12 +314,13 @@ function compute_FT_gene_tree_stats()
 	    rm FT_gene_tree_stats.header FT_lnL_protAln_FTlgG_T${search_thoroughness}.tsv FT_tot_wc_seconds_protAln_FTlgG_T${search_thoroughness}.tsv s_type.txt
        fi
     fi
+   [ $DEBUG -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 estimate_IQT_gene_trees()
 {
    # estimate gene trees running IQT in parallel using the user-defined mset
-
+   [ $DEBUG -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
    mol_type=$1
    search_thoroughness=$2
    IQT_models=$3
@@ -341,11 +352,13 @@ estimate_IQT_gene_trees()
    #       Then we can execute run_parallel_cmmds.pl with a customized command, resulting from the interpolation of multiple varialbles
    [ $DEBUG -eq 1 ] && msg " > $command | bash &> /dev/null" DEBUG NC
    echo "$cmd" | bash &> /dev/null
+   [ $DEBUG -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 
 function compute_IQT_gene_tree_stats()
 {
+    [ $DEBUG -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
     local mol_type=$1
     local search_thoroughness=$2
       
@@ -356,20 +369,20 @@ function compute_IQT_gene_tree_stats()
     echo -e "model\tcount" > model_count_header.tmp
 
     # generate computation-time, lnL and best-model stats for IQT-computed gene trees
-    grep '^Total wall-clock' *log | cut -d: -f1,3 | perl -pe 's/:\h+/\t/; s/\s+sec.*$//'  > tot_wcsecs_IQT_mset_gtrees.tsv
-    grep '^Total CPU time used' *log | cut -d: -f1,3 | perl -pe 's/:\h+/\t/; s/\s+sec.*$//'  > tot_CPUsecs_IQT_mset_gtrees.tsv
-    grep '^BEST SCORE' *log | sort -nrk5 | cut -d: -f1,3 | perl -pe 's/\h+/\t/; s/://' > sorted_IQT_lnL_mset_gene_trees.tsv
-    grep '^BEST SCORE' *log | cut -d: -f1,3 | perl -pe 's/\h+/\t/; s/://' > sorted_by_FILE_NAME_lnL_mset_gene_trees.tsv
-    grep '^Best-fit model' *log | cut -d' ' -f1,3 | perl -pe 's/:\S+/\t/' > IQT_best_models_for_gene_tree.tsv
+    grep '^Total wall-clock' ./*log | cut -d: -f1,3 | perl -pe 's/:\h+/\t/; s/\s+sec.*$//'  > tot_wcsecs_IQT_mset_gtrees.tsv
+    grep '^Total CPU time used' ./*log | cut -d: -f1,3 | perl -pe 's/:\h+/\t/; s/\s+sec.*$//'  > tot_CPUsecs_IQT_mset_gtrees.tsv
+    grep '^BEST SCORE' ./*log | sort -nrk5 | cut -d: -f1,3 | perl -pe 's/\h+/\t/; s/://' > sorted_IQT_lnL_mset_gene_trees.tsv
+    grep '^BEST SCORE' ./*log | cut -d: -f1,3 | perl -pe 's/\h+/\t/; s/://' > sorted_by_FILE_NAME_lnL_mset_gene_trees.tsv
+    grep '^Best-fit model' ./*log | cut -d' ' -f1,3 | perl -pe 's/:\S+/\t/' > IQT_best_models_for_gene_tree.tsv
     cut -f2 IQT_best_models_for_gene_tree.tsv | sort | uniq -c | awk 'BEGIN{OFS="\t"}{print $2,$1}' > IQT_best_model_counts_for_gene_trees.tsv
     
     cat model_count_header.tmp IQT_best_model_counts_for_gene_trees.tsv > ed && mv ed IQT_best_model_counts_for_gene_trees.tsv
     [ -s IQT_best_model_counts_for_gene_trees.tsv ] && rm model_count_header.tmp
     
     [ -s s_type.txt ] && rm s_type.txt
-    N=$(ls ./*.log | wc -l)
+    N=$(find . -name "*.log" | wc -l)
     i=0
-    for (( i=1; i<=$N; i++ )); do
+    for (( i=1; i<=N; i++ )); do
        echo "$s_type" >> s_type.txt
     done
 
@@ -383,7 +396,7 @@ function compute_IQT_gene_tree_stats()
     	check_output IQT_${mol_type}_gene_tree_T${search_thoroughness}_stats.tsv
     
     	# fix columns and add header
-    	cat IQT_${mol_type}_gene_tree_T${search_thoroughness}_stats.tsv | cut -f1,2,4,6,8,9 > ed && mv ed IQT_${mol_type}_gene_tree_T${search_thoroughness}_stats.tsv
+    	cut -f1,2,4,6,8,9 IQT_${mol_type}_gene_tree_T${search_thoroughness}_stats.tsv > ed && mv ed IQT_${mol_type}_gene_tree_T${search_thoroughness}_stats.tsv
     	cat IQT_gene_tree_stats.header IQT_${mol_type}_gene_tree_T${search_thoroughness}_stats.tsv > ed && mv ed IQT_${mol_type}_gene_tree_T${search_thoroughness}_stats.tsv
 
     	# cleanup
@@ -395,13 +408,17 @@ function compute_IQT_gene_tree_stats()
     	[ -d iqtree_output_files ] && tar -czf iqtree_output_files.tgz iqtree_output_files && rm -rf iqtree_output_files
     	check_output iqtree_output_files.tgz
     fi
+   [ $DEBUG -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 
 function process_IQT_species_trees_for_molClock()
 {
+    [ $DEBUG -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC    
     local best_search_base_name=$1
     local best_tree_file=$2
+    
+    [ $DEBUG -eq 1 ] && msg "Received: best_search_base_name:$best_search_base_name | best_tree_file:$best_tree_file ..." DEBUG NC 
     
     # cp the treefile $top_markers_dir for compute_suppValStas_and_RF-dist.R
     mv ${best_search_base_name}.treefile ${best_tree_file} && cp ${best_tree_file} $top_markers_dir
@@ -417,7 +434,7 @@ function process_IQT_species_trees_for_molClock()
  
     rename 's/_ed\.treefile/_ed\.sptree/' ./*_ed.treefile
     [ -d iqtree_output_files ] && cp iqtree_output_files/${best_tree_file} .
-    cp *_ed.sptree sorted_IQ-TREE_searches.out $top_markers_dir
+    cp ./*_ed.sptree sorted_IQ-TREE_searches.out $top_markers_dir
     
     [ -d iqtree_output_files ] && tar -czf iqtree_output_files.tgz iqtree_output_files && rm -rf iqtree_output_files
     check_output iqtree_output_files.tgz $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
@@ -447,34 +464,40 @@ function process_IQT_species_trees_for_molClock()
     # top100_median_support_values4loci.tab should probably not be written in the first instance
     [ -s top100_median_support_values4loci.tab -a "${no_top_markers}" -lt 101 ] && rm top100_median_support_values4loci.tab
 
+   [ $DEBUG -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 
 function compute_MJRC_tree()
 {
-    echo "TODO"
-    # 5.4 compute MJRE consensus tree with consense; does not work with trees with different number of leaves
-    # cat *ph > intree
-    # echo "y" > consense.cmd
+     [ $DEBUG -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
 
-    # consense < consense.cmd
-    # check_output outtree $parent_PID
+     src_tree_ext=$1
+    
+     # 1 compute MJRE consensus tree with consense; 
+     #   >>> WATCH OUT! does not work with trees with different number of leaves
+     cat ./*$src_tree_ext > intree
+     echo "y" > consense.cmd
 
-    #  5.5 concatenated prefix required by run compute_suppValStas_and_RF-dist.R
-    #  ln -s outtree concatenated.ph
+     consense < consense.cmd
+     check_output outtree $parent_PID
 
-    # 5.6 compute average bipartition support values for each gene tree
-    #     and their RF-fistance to the consensus tree computed with consense
+      #5.5 concatenated prefix required by run compute_suppValStas_and_RF-dist.R
+      #ln -s outtree concatenated.ph
 
+     #5.6 compute average bipartition support values for each gene tree
+     #	 and their RF-fistance to the consensus tree computed with consense
+   [ $DEBUG -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 
 function concat_alns()
 {
+    [ $DEBUG -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
     aln_ext=$1
     pPID=$2
 
-    ls -1 *${aln_ext} > list2concat
+    ls -1 ./*${aln_ext} > list2concat
     check_output list2concat $parent_PID
 
     if [ "$mol_type" == "DNA" ]
@@ -492,6 +515,7 @@ function concat_alns()
     check_output $concat_file $pPID
     perl -ne 'if (/^#|^$/){ next }else{print}' $concat_file > ed && mv ed $concat_file
     check_output $concat_file $pPID
+   [ $DEBUG -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 
@@ -510,24 +534,29 @@ function fix_fastaheader()
 
 function get_critical_TajD_values()
 {
+   [ $DEBUG -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
    no_seq=$1
    TajD_low=$(awk -v n=$no_seq '$1 == n' ${distrodir}/pop_gen_tables/TajD_predicted_CIs.tsv|cut -d' ' -f2)
    TajD_up=$(awk -v n=$no_seq '$1 == n' ${distrodir}/pop_gen_tables/TajD_predicted_CIs.tsv|cut -d' ' -f3)
    echo "$TajD_low $TajD_up"
+   [ $DEBUG -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 
 function get_critical_FuLi_values()
 {
+    [ $DEBUG -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
    no_seq=$1
    FuLi_low=$(awk -v n=$no_seq 'BEGIN{FS="\t"}$1 == n' ${distrodir}/pop_gen_tables/Fu_Li_predicted_CIs.tsv|cut -f2)
    FuLi_up=$(awk -v n=$no_seq 'BEGIN{FS="\t"}$1 == n'  ${distrodir}/pop_gen_tables/Fu_Li_predicted_CIs.tsv|cut -f3)
    echo "$FuLi_low $FuLi_up"
+   [ $DEBUG -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 
 function check_output()
 {
+    [ $DEBUG -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
     outfile=$1
     pPID=$2
 
@@ -543,11 +572,13 @@ function check_output()
 	[ $DEBUG -eq 1 ] && msg "check_output running: kill -9 $pPID" DEBUG NC
 	kill -9 $pPID
     fi
+   [ $DEBUG -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
 
 #-----------------------------------------------------------------------------------------
 function check_IQT_DNA_models
 {
+    [ $DEBUG -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
     # https://unix.stackexchange.com/questions/299217/grepping-array-from-file-and-reusing-search-pattern
     # https://stackoverflow.com/questions/21058210/use-grep-on-array-to-find-words
     # https://www.linuxquestions.org/questions/linux-newbie-8/split-a-string-into-array-in-bash-869196/
@@ -556,7 +587,7 @@ function check_IQT_DNA_models
     model_string="$1"
     modelOK=0
     usr_models=($(echo $model_string | tr "," " "))
-    dna_models=(HKY JC F81 K2P K3P K81uf TN TrN TNef TIM TIMef TVM TVMef SYM GTR)
+    dna_models=(JC F81 K2P HKY TrN TNe K3P K81u TPM2 TPM2u TPM3 TPM3u TIM TIMe TIM2 TIM2e TIM3 TIM3e TVM TVMe SYM GTR)
 
     for u in ${usr_models[*]}
     do
@@ -577,11 +608,13 @@ function check_IQT_DNA_models
         fi
 	modelOK=0
     done
+   [ $DEBUG -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
 
 #-----------------------------------------------------------------------------------------
 function check_IQT_PROT_models
 {
+    [ $DEBUG -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
     # https://unix.stackexchange.com/questions/299217/grepping-array-from-file-and-reusing-search-pattern
     # https://stackoverflow.com/questions/21058210/use-grep-on-array-to-find-words
     # https://www.linuxquestions.org/questions/linux-newbie-8/split-a-string-into-array-in-bash-869196/
@@ -590,7 +623,7 @@ function check_IQT_PROT_models
     model_string="$1"
     modelOK=0
     usr_models=($(echo $model_string | tr "," " "))
-    dna_models=(LG Poisson cpREV mtREV Dayhoff mtMAM JTT WAG mtART mtZOA VT rtREV DCMut PMB HIVb HIVw JTTDCMut FLU Blosum62 GTR20 mtMet mtVer mtInv)
+    dna_models=(BLOSUM62 cpREV Dayhoff DCMut FLU HIVb HIVw JTT JTTDCMut LG mtART mtMAM mtREV mtZOA Poisson PMB rtREV VT WAG)
 
     for u in ${usr_models[*]}
     do
@@ -611,11 +644,13 @@ function check_IQT_PROT_models
         fi
 	modelOK=0
     done
+   [ $DEBUG -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
 
 #-----------------------------------------------------------------------------------------
 function msg()
 {
+    #[ $DEBUG -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
     msg=$1
     mtype=$2
     col=$3
@@ -641,5 +676,6 @@ function msg()
        DEBUG)  printf "${col}%s${NC}\n" "$msg" >&1 | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log;;
        VERBOSE)  printf "${col}%s${NC}\n" "$msg" >&1 | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log;;
     esac
+   #[ $DEBUG -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
