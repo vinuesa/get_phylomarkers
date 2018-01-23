@@ -25,7 +25,7 @@
 #              along with graphics and tables summarizing the results of the pipeline obtained at different levels.
 #
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.0_22Jan18'
+VERSION='2.0.1_22Jan18'
 
 # Set GLOBALS
 DEBUG=0
@@ -76,6 +76,7 @@ function print_start_time()
 
 function set_pipeline_environment()
 {
+  [ $DEBUG -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
   if [[ "$OSTYPE" == "linux-gnu" ]]
   then
     scriptdir=$(readlink -f ${BASH_SOURCE[0]})
@@ -91,6 +92,7 @@ function set_pipeline_environment()
     no_cores=$(sysctl -n hw.ncpu)
   fi
   echo "$distrodir $bindir $OS $no_cores"
+  [ $DEBUG -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 
@@ -98,6 +100,7 @@ function check_dependencies()
 {
 
     # check if scripts are in path; if not, set flag
+    [ $DEBUG -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
     for prog in bash R perl awk bc cut grep sed sort uniq Rscript
     do
        bin=$(type -P $prog)
@@ -114,6 +117,7 @@ function check_dependencies()
 
 function check_scripts_in_path()
 {
+    [ $DEBUG -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
     distrodir=$1
     not_in_path=0
     homebinflag=0
@@ -168,11 +172,13 @@ function check_scripts_in_path()
        fi
     fi
     #echo "$homebinflag $homebinpathflag"
+    [ $DEBUG -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 
 function set_bindirs()
 {
+    [ $DEBUG -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
     # receives: $bindir $homebinpathflag
     bindir=$1
 #   not_in_path=1
@@ -203,6 +209,7 @@ function set_bindirs()
 #	   export PATH="${bindir}:${PATH}" # prepend $bindir to $PATH to ensure that the script runs with the distributed binaries
 #   fi
    #echo $setbindir_flag
+   [ $DEBUG -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 
@@ -303,26 +310,28 @@ function print_usage_notes()
 	   Please refer to the FastTree manual for the details.
 
        b) IQT searches:
-          Our benchmark analyses have shown that IQ-TREE (v1.6.1 and above) runs quickly enough
-	  when the -fast flag is passed to make it feasible to include a modelselection step withouth
-	  incurring in prohibitively long computation times. Combined with its superior tree-searching
-	  algorithm, makes IQT the clear winner in our benchmarks. Therefore, from version 2.0 onwards,
+          Our benchmark analyses have shown that IQ-TREE (v1.6.1) runs quickly enough when the '-fast'
+	  flag is passed to make it feasible to include a modelselection step withouth incurring in 
+	  prohibitively long computation times. Combined with its superior tree-searching algorithm, 
+	  makes IQT the clear winner in our benchmarks. Therefore, from version 2.0 (22Jan18) onwards,
 	  $progname uses IQT as its default tree searching algorithm, both for the estimation of
-	  gene-trees and the species-tree (from the concatenated, top-scoring alignments).
+	  gene-trees and the species-tree (from the concatenated, top-scoring alignments), now using
+	  model selection in both cases (v 1.9 only used model selection and IQT for supermatrix search).
 	  
 	  However, the number of models evaluated by ModelFinder (integrated in IQ-TREE) differ for the
-	  gene-tree and species-tree search phases, as shown below: 
+	  gene-tree and species-tree search phases, as detailed below: 
 
-	-IQT gene tree searches (hard-coded): -T <high|medium|low|lowest> [default: $search_thoroughness]
-	  high:   -m MFP -nt 1 -alrt 1000 -fast
-	  medium: -mset K2P,HKY,TN,TNe,TIM,TIMe,TIM2,TIM2e,TIM3,TIM3e,TVM,TVMe,GTR
-	  low:	  -mset K2P,HKY,TN,TNe,TVM,TVMe,TIM,TIMe,GTR
-	  lowest: -mset K2P,HKY,TN,TNe,TVM,TIM,GTR
+	-IQT gene-tree searches (hard-coded): -T <high|medium|low|lowest> [default: $search_thoroughness]
+	  high:   -m MFP -nt 1 -alrt 1000 -fast [ as jModelTest]
+	  medium: -mset K2P,HKY,TN,TNe,TIM,TIMe,TIM2,TIM2e,TIM3,TIM3e,TVM,TVMe,GTR -m MFP -nt 1 -alrt 1000 -fast
+	  low:	  -mset K2P,HKY,TN,TNe,TVM,TVMe,TIM,TIMe,GTR -m MFP -nt 1 -alrt 1000 -fast
+	  lowest: -mset K2P,HKY,TN,TNe,TVM,TIM,GTR -m MFP -nt 1 -alrt 1000 -fast
 
-	  all gene trees are run in parallel under the modelset with the following parameters: -mset XXX -m MFP -nt 1 -alrt 1000 -fast
+	  all gene trees are run in parallel under the modelset with the following parameters: 
+	    -mset X,Y,Z -m MFP -nt 1 -alrt 1000 -fast
 
 	-IQT species-tree searches on the supermatrix: 
-	      -S <string> quoted 'comma-separated list' of base models to be evaluated by IQ-TREE
+	      -S <string> comma-separated list of base models to be evaluated by IQ-TREE
 	         when estimating the species tree from the concatenated supermatrix.
 		 If no -S is passed, then sinlge default models are used, as shown below
               <'JC,F81,K2P,HKY,TrN,TNe,K3P,K81u,TPM2,TPM2u,TPM3,TPM3u,
@@ -373,7 +382,7 @@ function print_usage_notes()
      4. To run the pipeline on a remote server, we recommend using the nohup command upfront, as shown below:
         nohup $progname -R 1 -t DNA -S 'TNe,TVM,TVMe,GTR' -k 1.0 -m 0.75 -T high -N 5 &> /dev/null &
      5. Run in population-genetics mode (generates a table with descritive statistics for DNA-polymorphisms 
-          and the results of diverse neutrality test)
+          and the results of diverse neutrality tests)
 	  $progname -R 2 -t DNA
 
    NOTES
@@ -394,7 +403,6 @@ exit 0
 
 function print_help()
 {
-#     -e <integer> select gene trees with at least (min. = 4) external branches                     [default: $min_no_ext_branches]
 #     -V flag to activate verbose command execution lines                                           [default: $VERBOSITY]
 
    cat <<EOF
@@ -413,6 +421,7 @@ function print_help()
      -c <integer> NCBI codontable number (1-23) for pal2nal.pl to generate codon alignment         [default:$codontable]
      -C flag to print codontables
      -D flag to print debugging messages; please use if you encounter problems executing the code  [default: $DEBUG]
+#    -e <integer> select gene trees with at least (min. = 4) external branches                     [default: $min_no_ext_branches]
      -k <real> kde stringency (0.7-1.6 are reasonable values; less is more stringent)              [default: $kde_stringency]
      -K flag to run molecular clock test on codon alignments                                       [default: $eval_clock]
      -l <integer> max. spr length (7-12 are reasonable values)                                     [default: $spr_length]
@@ -470,7 +479,7 @@ mol_type=
 # Optional, with defaults
 search_thoroughness='medium'
 kde_stringency=1.5
-min_supp_val=0.75
+min_supp_val=0.7
 min_no_ext_branches=4
 n_cores=
 #VERBOSITY=0
@@ -487,11 +496,9 @@ search_algorithm=I
 IQT_DNA_models=GTR
 IQT_PROT_models=LG
 IQT_models=
-IQT_gene_models=
-IQT_concat_models=
-nrep_IQT_searches=10
+nrep_IQT_searches=5
 
-while getopts ':c:k:l:m:M:n:N:p:q:r:s:t:A:T:R:S:hCDHK' OPTIONS
+while getopts ':c:e:k:l:m:M:n:N:p:q:r:s:t:A:T:R:S:hCDHK' OPTIONS
 do
    case $OPTIONS in
    h)   print_help
@@ -505,6 +512,8 @@ do
    C)	print_codontables
 	;;
    D)   DEBUG=1
+        ;;
+   e)   min_no_ext_branches=$OPTARG
         ;;
    K)   eval_clock=1
         ;;
@@ -536,15 +545,15 @@ do
         ;;
    H)   print_usage_notes
         ;;
-   \:)   sprintf "argument missing from -%s option\n" $OPTARG
+    :)   sprintf "argument missing from -%s option\n" "-$OPTARG" 
    	 print_help
      	 exit 2
      	 ;;
-   \?)   echo "need the following args: "
+   \?)   echo "invalid option: -$OPTARG"
    	 print_help
          exit 3
 	 ;;
-    *)   msg "An  unexpected parsing error occurred" ERROR RED
+    *)   msg "An unexpected parsing error occurred" ERROR RED
          echo
          print_help
 	 exit 4
@@ -552,7 +561,7 @@ do
    esac >&2   # print the ERROR MESSAGES to STDERR
 done
 
-shift $(($OPTIND - 1))
+shift $((OPTIND - 1))
 
 
 #-------------------------------------------------------#
@@ -561,7 +570,7 @@ shift $(($OPTIND - 1))
 
 # 0. Set the distribution base directory and OS-specific (linux|darwin) bindirs
 env_vars=$(set_pipeline_environment) # returns: $distrodir $bindir $OS $no_proc
-[ $DEGUG ] && echo "env_vars:$env_vars"
+[ $DEBUG ] && echo "env_vars:$env_vars"
 distrodir=$(echo $env_vars|awk '{print $1}')
 bindir=$(echo $env_vars|awk '{print $2}')
 OS=$(echo $env_vars|awk '{print $3}')
@@ -699,9 +708,10 @@ then
     dir_suffix=A${search_algorithm}R${runmode}t${mol_type}_k${kde_stringency}_m${min_supp_val}_T${search_thoroughness}
 fi
 
-printf "
- ${CYAN}>>> $(basename $0) vers. $VERSION run with the following parameters:${NC}
- ${YELLOW}Run started on $TIMESTAMP_SHORT_HMS under $OSTYPE on $HOSTNAME with $n_cores cores
+lmsg=" >>> $(basename $0) vers. $VERSION run with the following parameters:"
+msg "$lmsg" PROGR CYAN
+
+lmsg="Run started on $TIMESTAMP_SHORT_HMS under $OSTYPE on $HOSTNAME with $n_cores cores
  wkdir:$wkdir
  distrodir:$distrodir
  bindir:$bindir
@@ -717,9 +727,31 @@ printf "
  > Molecular Clock parmeters:
      eval_clock:$eval_clock|root_method:$root_method|base_model:$base_mod|ChiSq_quantile:$q
 
- DEBUG=$DEBUG${NC}
+ DEBUG=$DEBUG"
+ 
+msg "$lmsg" PROGR YELLOW
 
-" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
+#printf "
+# ${CYAN}>>> $(basename $0) vers. $VERSION run with the following parameters:${NC}
+# ${YELLOW}Run started on $TIMESTAMP_SHORT_HMS under $OSTYPE on $HOSTNAME with $n_cores cores
+# wkdir:$wkdir
+# distrodir:$distrodir
+# bindir:$bindir
+#
+# > General run settings:
+#      runmode:$runmode|mol_type:$mol_type|search_algorithm:$search_algorithm
+# > Filtering parameters:
+#     kde_stringency:$kde_stringency|min_supp_val:$min_supp_val
+# > FastTree parameters:
+#     spr:$spr|spr_length:$spr_length|search_thoroughness:$search_thoroughness
+# > IQ-TREE parameters:
+#     IQT_models:$IQT_models|search_thoroughness:$search_thoroughness|nrep_IQT_searches:$nrep_IQT_searches
+# > Molecular Clock parmeters:
+#     eval_clock:$eval_clock|root_method:$root_method|base_model:$base_mod|ChiSq_quantile:$q
+#
+# DEBUG=$DEBUG${NC}
+#
+#" | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
 #----------------------------------------------------------------------------------------------------------------
 #>>>BLOCK 1. make a new subdirectory within the one holding core genome clusters generated by compare_clusters.pl
@@ -740,7 +772,7 @@ msg "" PROGR NC
 
 
 # make sure we have *.faa and *.fna file pairs to work on
-nfna=$(ls ./*.fna | wc -l)
+nfna=$(find . -name "*.fna" | wc -l)
 if [ "$?" -ne "0" ]
 then
    msg " >>> ERROR: there are no input fna files to work on!\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES -n]\n\tPlease check the GET_HOMOLOGUES manual" ERROR RED
@@ -748,7 +780,7 @@ msg "http://eead-csic-compbio.github.io/get_homologues/manual/" ERROR BLUE
    exit 2
 fi
 
-nfaa=$(ls ./*.faa | wc -l)
+nfaa=$(find . -name "*.faa" | wc -l)
 if [ "$?" -ne "0" ]
 then
    msg " >>> ERROR: there are no input faa files to work on!\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES]\n\tPlease check the GET_HOMOLOGUES manual" ERROR RED
@@ -758,7 +790,10 @@ fi
 
 if [ "$nfna" -ne "$nfaa" ]
 then
- msg " >>> ERROR: there are no equal numbers of fna and faa input files to work on!\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES -n; and a second time: run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES]\n\tPlease check the GET_HOMOLOGUES manual${NC}\n${LBLUE}http://eead-csic-compbio.github.io/get_homologues/manual/" ERROR RED
+  lmsg=" >>> ERROR: there are no equal numbers of fna and faa input files to work on!\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES -n; and a second time: run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES]"
+  msg "$lmsg" ERROR RED
+  msg "  Please check the GET_HOMOLOGUES manual at: " ERROR RED
+  msg "  http://eead-csic-compbio.github.io/get_homologues/manual/" ERROR LBLUE
 fi
 
 mkdir get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT} && cd get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}
@@ -804,17 +839,16 @@ ${distrodir}/run_parallel_cmmds.pl faaed 'add_nos2fasta_header.pl $file > ${file
 [ $DEBUG -eq 1 ] && msg " > ${distrodir}/run_parallel_cmmds.pl fnaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null" DEBUG NC
 ${distrodir}/run_parallel_cmmds.pl fnaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null
 
-no_alns=$(ls ./*.fnaedno | wc -l)
+no_alns=$(find . -name "*.fnaedno" | wc -l)
 
-[ $no_alns -eq 0 ] && printf "\n${RED} >>> ERROR: There are no codon alignments to work on! Something went wrong. Please check input and settings ...${NC}\n\n" | \
- tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log && exit 4
+[ $no_alns -eq 0 ] && msg " >>> ERROR: There are no codon alignments to work on! Something went wrong. Please check input and settings ... " ERROR RED && exit 4
 print_start_time && msg "# Total number of alignments to be computed $no_alns" PROGR BLUE
 
 # 1.3 generate a tree_labels.list file for later tree labeling
 print_start_time && msg "# generating the labels file for tree-labeling ..." PROGR BLUE
 
 tree_labels_dir=$(pwd)
-grep '>' $(ls ./*fnaedno|head -1) > tree_labels.list
+grep '>' "$(find . -name "*fnaedno" | head -1)" > tree_labels.list
 
 [ $DEBUG -eq 1 ] && msg " > perl -pe '$c++; s/>/$c\t/; s/\h\[/_[/' tree_labels.list > ed && mv ed tree_labels.list" DEBUG NC
 perl -pe '$c++; s/>/$c\t/; s/\h\[/_[/' tree_labels.list > ed && mv ed tree_labels.list
@@ -883,7 +917,7 @@ phipack_dir=$(pwd)
 ln -s ../*fasta .
 
 # 3.1.2 check that we have codon alignments before proceeding
-no_fasta_files=$(ls ./*.fasta | wc -l)
+no_fasta_files=$(find . -name "*.fasta" | wc -l)
 
 [ $no_fasta_files -lt 1 ] && print_start_time && msg " >>> ERROR: there are no codon alignments to run Phi on. Will exit now!" ERROR RED && exit 3
 
@@ -1020,11 +1054,11 @@ then
 	estimate_FT_gene_trees $mol_type $search_thoroughness
 
 	# 4.1.1 check that FT computed the expected gene trees
-        no_gene_trees=$(ls ./*.ph | wc -l)
+        no_gene_trees=$(find . -name "*.ph" | wc -l)
         [ $no_gene_trees -lt 1 ] && print_start_time && msg " >>> ERROR: There are no gene tree to work on in non_recomb_cdn_alns/. will exit now!" ERROR RED && exit 3
 
 	# 4.1.2 generate computation-time and lnL stats
-	[ $DEBUG -eq 1 ] && msg "compute_FT_gene_tree_stats $mol_type $search_thorougness" DEBUG NC
+	[ $DEBUG -eq 1 ] && msg "compute_FT_gene_tree_stats $mol_type $search_thoroughness" DEBUG NC
 	compute_FT_gene_tree_stats $mol_type $search_thoroughness
     else
         gene_tree_ext="treefile"
@@ -1035,7 +1069,7 @@ then
 	estimate_IQT_gene_trees $mol_type $search_thoroughness $IQT_models
 
 	# 4.1.1 check that IQT computed the expected gene trees
-	no_gene_trees=$(ls ./*.treefile | wc -l)
+	no_gene_trees=$(find . -name "*.treefile" | wc -l)
         [ $no_gene_trees -lt 1 ] && print_start_time && msg " >>> ERROR: There are no gene tree to work on in non_recomb_cdn_alns/. will exit now!" ERROR RED && exit 3
 
 	# 4.1.2 generate computation-time, lnL and best-model stats
@@ -1058,8 +1092,8 @@ then
     no_tree_counter=0
     for phy in $(grep -v '^#Tree' no_tree_branches.list | awk -v min_no_ext_branches=$min_no_ext_branches 'BEGIN{FS="\t"; OFS="\t"}$7 < min_no_ext_branches' |cut -f1)
     do
-         [ "$search_algorithm" == "F" ] && base=$(echo $phy | sed 's/_FTGTR\.ph//')
-	 [ "$search_algorithm" == "I" ] && base=$(echo $phy | sed 's/\.treefile//')
+         [ "$search_algorithm" == "F" ] && base=$(echo ${phy//_FTGTR\.ph/})
+	 [ "$search_algorithm" == "I" ] && base=$(echo ${phy//\.treefile/})
 	 print_start_time && msg " >>> will remove ${base}* because it has < 5 branches" WARNING LRED
 	 rm ${base}*
 	 let no_tree_counter++
@@ -1306,14 +1340,14 @@ then
 	     print_start_time && msg "$lmsg" PROGR BLUE
 
 	     # run nrep_IQT_searches IQ-TREE searches under the best-fit model found
-	     for ((rep=1;rep<=$nrep_IQT_searches;rep++))
+	     for ((rep=1;rep<=nrep_IQT_searches;rep++))
 	     do
-	         print_start_time && msg " > iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null" PROGR LBLUE
+	         print_start_time && msg " > iqtree -s concat_cdnAlns.fnainf -st DNA -m $best_model -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null" PROGR LBLUE
 
-		 iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null
+		 iqtree -s concat_cdnAlns.fnainf -st DNA -m $best_model -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null
 	     done
 
-	     grep '^BEST SCORE' ./*log | sort -nrk5 > sorted_IQ-TREE_searches.out
+	     grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_IQ-TREE_searches.out
 
 	     check_output sorted_IQ-TREE_searches.out $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	     best_search=$(head -1 sorted_IQ-TREE_searches.out)
@@ -1333,7 +1367,7 @@ then
 
 	     iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre iqtree_abayes &> /dev/null
 
-	     grep '^BEST SCORE' ./*log | sort -nrk5 > sorted_IQ-TREE_searches.out
+	     grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_IQ-TREE_searches.out
 
 	     check_output sorted_IQ-TREE_searches.out $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 	     best_search=$(head -1 sorted_IQ-TREE_searches.out)
@@ -1371,7 +1405,7 @@ then
              #run_molecClock_test_jmodeltest2_paup.sh -R 1 -M $base_mod -t ph -e fasta -b molec_clock -q $q &> /dev/null
 
 	     # 2. >>> print table header and append results to it
-             no_dot_q=$(echo $q | sed 's/\.//' )
+             no_dot_q=$(echo ${q//\./})
              results_table=mol_clock_M${base_mod}G_r${rooting_method}_o${outgroup_OTU_nomol}_q${no_dot_q}_ClockTest.tab
              echo -e "#nexfile\tlnL_unconstr\tlnL_clock\tLRT\tX2_crit_val\tdf\tp-val\tmol_clock" > $results_table
 
@@ -1424,7 +1458,7 @@ then
 	    
 	    tar -czf concatenated_alignment_files.tgz concat_cdnAlns.fna concat_cdnAlns.fnainf
             [ -s concatenated_alignment_files.tgz ] && rm concat_cdnAlns.fna concat_cdnAlns.fnainf
-	    [ $DEBUG -eq 0 ] && [ rm gene_trees2_concat_tree_RF_distances.tab ./*cdnAln_FTGTR.ph ./*cdnAln.fasta
+	    [ $DEBUG -eq 0 ] && rm gene_trees2_concat_tree_RF_distances.tab ./*cdnAln_FTGTR.ph ./*cdnAln.fasta
 	    [ $DEBUG -eq 0 ] && rm ../Rplots.pdf ../sorted*perc.tab sorted_aggregated_*tab ../all_*trees.tre
 
             cd $non_recomb_cdn_alns_dir
@@ -1449,7 +1483,7 @@ then
 	    
 	    tar -czf concatenated_alignment_files.tgz concat_cdnAlns.fna concat_cdnAlns.fnainf
             [ -s concatenated_alignment_files.tgz ] && rm concat_cdnAlns.fna concat_cdnAlns.fnainf
-	    [ $DEBUG -eq 0 ] && rm mol_clock_MGTRG_r_o_q099_ClockTest.ta* gene_trees2_concat_tree_RF_distances.tab ./*cdnAln.fasta ./*.log sorted_aggregated_support_values4loci_*.tab
+	    [ $DEBUG -eq 0 ] && rm gene_trees2_concat_tree_RF_distances.tab ./*.ph ./*cdnAln.fasta ./*.log sorted_aggregated_support_values4loci_*.tab
 
             cd $non_recomb_cdn_alns_dir
 	    [ $DEBUG -eq 0 ] && rm ./Rplots.pdf sorted_aggregated_*tab ./all_*trees.tre kde_*out
@@ -1485,8 +1519,8 @@ then
         print_start_time && msg "# Moved into dir popGen ..." PROGR LBLUE
 
 	ln -s ../*fasta .
-	no_top_markers=$(ls ./*fasta | wc -l)
-	tmpf=$(ls -1 ./*fasta | head -1)
+	no_top_markers=$(find . -name "*.fasta" | wc -l)
+	tmpf=$(find . -name "*.fasta" | head -1)
 	no_seqs=$(grep -c '>' $tmpf)
 	[ $DEBUG -eq 1 ] && msg "no_seqs:$no_seqs" DEBUG NC
 
@@ -1566,7 +1600,7 @@ then
 	estimate_FT_gene_trees $mol_type $search_thoroughness
 
 	# 4.1.1 check that FT computed the expected gene trees
-        no_gene_trees=$(ls ./*.ph | wc -l)
+        no_gene_trees=$(find . -name "*.ph" | wc -l)
         [ $no_gene_trees -lt 1 ] && print_start_time && msg " >>> ERROR: There are no gene tree to work on in non_recomb_cdn_alns/. will exit now!" ERROR RED && exit 3
 
 	# 4.1.2 generate computation-time and lnL stats
@@ -1602,8 +1636,8 @@ then
     no_tree_counter=0
     for phy in $(grep -v '^#Tree' no_tree_branches.list | awk -v min_no_ext_branches=$min_no_ext_branches 'BEGIN{FS="\t"; OFS="\t"}$7 < min_no_ext_branches' |cut -f1)
     do
-         [ "$search_algorithm" == "F" ] && base=$(echo $phy | sed 's/_allFT\.*ph//')
-	 [ "$search_algorithm" == "I" ] && base=$(echo $phy | sed 's/\.treefile//')
+         [ "$search_algorithm" == "F" ] && base=$(echo ${phy//_allFT\.ph/}) 
+	 [ "$search_algorithm" == "I" ] && base=$(echo ${phy//\.treefile/})
 	 print_start_time && msg " >>> will remove ${base}* because it has < 5 branches" WARNING LRED
 	 rm ${base}*
 	 let no_tree_counter++
@@ -1833,7 +1867,7 @@ then
     	  print_start_time && msg "$lmsg" PROGR BLUE
 
     	  # run nrep_IQT_searches IQ-TREE searches under the best-fit model found
-    	  for ((rep=1;rep<=$nrep_IQT_searches;rep++))
+    	  for ((rep=1;rep<=nrep_IQT_searches;rep++))
     	  do
     	     lmsg=" > iqtree -s concat_protAlns.faainf -st PROT -m $best_model -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null"
     	     print_start_time && msg "$lmsg" PROGR LBLUE
@@ -1841,7 +1875,7 @@ then
     	      iqtree -s concat_protAlns.faainf -st PROT -m $best_model -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null
     	  done
 
-    	  grep '^BEST SCORE' ./*log | sort -nrk5 > sorted_IQ-TREE_searches.out
+    	  grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_IQ-TREE_searches.out
 
     	  check_output sorted_IQ-TREE_searches.out $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
     	  best_search=$(head -1 sorted_IQ-TREE_searches.out)
@@ -1935,7 +1969,7 @@ fi # [ "$mol_type" == "PROT" ]
 
 # compute the elapsed time since the script was fired
 end_time=$(date +%s)
-secs=$(($end_time-$start_time))
+secs=$((end_time-start_time))
 
 #printf '%dh:%dm:%ds\n' $(($secs/3600)) $(($secs%3600/60)) $(($secs%60))
 msg "" PROGR NC
