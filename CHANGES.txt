@@ -1,4 +1,12 @@
-v2.0_22Jan10: # >>> MAJOR UPGRADE: uses iqtree v1.6.1 as default search algorithm throughout the pipeline <<< 
+v2.0.1_22Jan18: * Fixed a parsing problem introduced due to changing file globings like *.fasta for ./*fasta
+                * extended the lists of models checked by check_IQT_DNA_models and check_IQT_PROT_models to match those currently 
+		  implemented by IQ-TREE and displayed in the -h & -H help_messages
+		* Made syntax more compliant with shellcheck standards
+		* Added more [ DEBUG -eq 1 ] && debugging messages, now also to signal entry and exit from each function
+		* set (reduced) min_supp_val=0.7 and nrep_IQT_searches=5
+		* Further improved documentation displayed with -H
+
+v2.0_22Jan18: # >>> MAJOR UPGRADE: uses iqtree v1.6.1 as default search algorithm throughout the pipeline <<< 
               * now uses IQ-TREE (v1.6.1; Dec. 28th, 2017 release) as the default algorithm, both for gene- and species-tree searches!
               * Based on the benchmark results presented in the GET_PHYLOMARKERS paper, model-selection is enabled by default
 	        during gene tree searches, making use of the -fast flag. The number of models evaluated (hard-coded) depends on -T 
