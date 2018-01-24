@@ -1,3 +1,8 @@
+23JAN18: * Added the new script estimate_pangenome_phylogenies.sh v1.0_23Jan18, along with the binaries it depends on:
+             - from phylip v3.69: consense pars seqboot; and from newick_utilities: nw_reroot nw_support    
+	 * This makes the GET_PHYLOMARKERS v2.0.1 suite complete, as described in the manuscript submitted to 
+	       Front. Microbiol. on Jan 15th, 2018
+
 v2.0.1_22Jan18: * Fixed a parsing problem introduced due to changing file globings like *.fasta for ./*fasta
                 * extended the lists of models checked by check_IQT_DNA_models and check_IQT_PROT_models to match those currently 
 		  implemented by IQ-TREE and displayed in the -h & -H help_messages
