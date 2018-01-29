@@ -1,29 +1,4 @@
----
-title: 'GET_PHYLOMARKERS manual and tutorial'
-author: "Pablo Vinuesa, CCG-UNAM (<http://www.ccg.unam.mx/~vinuesa/>) and Bruno Contreras-Moreira, EEAD-CSIC  (<https://digital.csic.es/cris/rp/rp02661/>)"
-date: "January 28th, 2018"
-output:
-  html_document:
-    fig_caption: yes
-    keep_md: yes
-    number_sections: yes
-    toc: yes
-    toc_depth: 4
-  pdf_document:
-    fig_caption: yes
-    keep_tex: yes
-    number_sections: yes
-    toc: yes
-    toc_depth: 4
-fontsize: 10pt
-documentclass: article
----
-
-
-
 # GET_PHYLOMARKERS MANUAL
-<!--knitr::opts_chunk$set(fig.align = "center", out.height = '800px', out.width = '0.8\\textheigh'); # to avoid excessively large figures-->
-<!--Version Dec. 29cnd, 2017.-->
 
 ## Brief presentation and graphical overview of the pipeline
 
