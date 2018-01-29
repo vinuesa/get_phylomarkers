@@ -33,7 +33,7 @@ the pipeline should be run using protein instead of DNA sequences.
 
 ## Manual and tutorials
 
-Please, follow the link for a detailed [manual](doc/GET_PHYLOMARKERS_MANUAL.md) and [tutorials](doc/GET_PHYLOMARKERS_MANUAL.md), including a [graphical flowchart](doc/GET_PHYLOMARKERS_MANUAL.md) of the pipeline and explanations of the implementation details.
+Please, follow the link for a detailed [manual](doc/GET_PHYLOMARKERS_MANUAL.md) and [tutorials](doc/GET_PHYLOMARKERS_MANUAL.md#get_phylomarkers-tutorial), including a [graphical flowchart](doc/GET_PHYLOMARKERS_MANUAL.md#brief-presentation-and-graphical-overview-of-the-pipeline) of the pipeline and explanations of the implementation details.
 
 ## Citation.
 
