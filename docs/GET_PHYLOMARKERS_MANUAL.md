@@ -1,4 +1,6 @@
 # GET_PHYLOMARKERS MANUAL
+<!--knitr::opts_chunk$set(fig.align = "center", out.height = '800px', out.width = '0.8\\textheigh'); # to avoid excessively large figures-->
+<!--Version Dec. 29cnd, 2017.-->
 
 ## Brief presentation and graphical overview of the pipeline
 
@@ -369,7 +371,6 @@ We thank Alfredo J. Hernández and Víctor del Moral at CCG-UNAM for technical s
 # Funding
 We gratefully acknowledge the funding provided by [DGAPA-PAPIIT/UNAM](http://dgapa.unam.mx/index.php/impulso-a-la-investigacion/papiit) (grants IN201806-2, IN211814 and IN206318) and [CONACyT-Mexico](http://www.conacyt.mx/) (grants P1-60071, 179133 and FC-2015-2-879) to [Pablo Vinuesa](http://www.ccg.unam.mx/~vinuesa/), as well as the Fundación ARAID,Consejo  Superior  de Investigaciones Científicas (grant 200720I038 and Spanish MINECO (AGL2013-48756-R) to [Bruno Contreras-Moreira](https://digital.csic.es/cris/rp/rp02661).
 
-```
 
 # Developers
 The code is developed and maintained by [Pablo Vinuesa](http://www.ccg.unam.mx/~vinuesa/) 
