@@ -1,8 +1,3 @@
----
-output:
-  pdf_document: default
-  html_document: default
----
 # GET_PHYLOMARKERS
 
 <!--Version Dec. 29cnd, 2017.-->
