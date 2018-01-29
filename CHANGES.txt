@@ -1,3 +1,7 @@
+29JAN18: * Added the pars and seqboot binaries to bin/macosx-intel (compiled on Darwin14)
+         * Added the docs/GET_PHYLOMARKERS_manual.md and docs/pics dirs/files, the latter with the pipeline flowchart
+	 * Moved the manual-specific parts of the README.md file to docs/GET_PHYLOMARKERS_manual.md, providing links to it
+
 23JAN18: * Added the new script estimate_pangenome_phylogenies.sh v1.0_23Jan18, along with the binaries it depends on:
              - from phylip v3.69: consense pars seqboot; and from newick_utilities: nw_reroot nw_support    
 	 * This makes the GET_PHYLOMARKERS v2.0.1 suite complete, as described in the manuscript submitted to 
