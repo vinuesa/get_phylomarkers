@@ -110,7 +110,7 @@ Codon or protein alignments (depending on runmode) are first screened with **Phi
 ([Bruen et al. 2006](http://www.genetics.org/content/172/4/2665.long)) for the presence of potential recombinant sequences. It is a well established fact that recombinant sequences negatively impact phylogenetic inference when using algorithms that do not account for the effects of this evolutionary force. The permutation test with 1000 permutations is used to compute the *p*-values. These are considered significant if *p* < 0.05. Some loci may not contain sufficient polymorphisms for the test to
 work. In that case, the main script assumes that the locus does not contain recombinant sites, but prints a warning message to screen and to the run's logfile.
  
-### ii) Detection of trees deviating from expectations of the (multispecies) coalescent.
+### Detection of trees deviating from expectations of the (multispecies) coalescent.
 
 The next filtering step is provided by the **kdetrees-test**, which checks the distribution of topologies, tree lengths and branch lengths. *kdetrees* is a non-parametric method for estimating distributions of phylogenetic trees 
 ([Weyenberg et al. 2014](https://academic.oup.com/bioinformatics/article-lookup/doi/10.1093/bioinformatics/btu258)), 
@@ -250,7 +250,15 @@ run_get_phylomarkers_pipeline.sh -R 1 -A F -t DNA -m 0.7 -k 1.0 -T high -s 20 -l
 # GET_PHYLOMARKERS TUTORIAL
 
 ## Test datasets
-The **GET_PHYLOMARKERS** distribution provides a **test_sequences/** directory which holds the subdirectories **core_genome/** and **pan_genome/**. The first one contains **\*.fna** and **\*.faa** FASTA files with the **consensus (BDBH, COGtriangles and OMCL) core-genome clusters** computed with **GET_HOMOLOGUES** from a set of 12 GenBank-formatted pIncA/C plasmids. The latter holds the **pan-genome matrix** computed by *compare_clusters.pl* from the **GET_HOMOLOGUES** suite in tabular (\*.tab), FASTA (\*.fasta) and phylip (\*.phy) formats. The pIncAC_gbk directory holds the source \*.gbk GenBank files. This directory has a README.txt file that briefly describes the GenBank files.
+The **GET_PHYLOMARKERS** distribution provides a **test_sequences/** directory which holds the subdirectories **core_genome/** and **pan_genome/**. The first one contains **\*.fna** and **\*.faa** FASTA files with the **consensus (BDBH, COGtriangles and OMCL) core-genome clusters** computed with **GET_HOMOLOGUES** from a set of 12 GenBank-formatted pIncA/C plasmids. The latter holds the **pan-genome matrix** computed by *compare_clusters.pl* from the **GET_HOMOLOGUES** suite in tabular (\*.tab), FASTA (\*.fasta) and phylip (\*.phy) formats. The **pIncAC/** directory holds the source \*.gbk GenBank files. This directory has a README.txt file that briefly describes the GenBank files.
+
+These directories allow you to:
+
+- Rapidly test the GET_PHYLOMARKERS suite working on core-genome orthologous clusters (core_genome/)
+
+- Rapidly test the GET_PHYLOMARKERS suite working on the pan-genome matrix (pan_genome/)
+
+- Run the comlete GET_HOMOLOGUES + GET_PHYLOMARKERS pipelines from scratch (pIncAC)
 
 The following sections provide code examples on how to run the full **GET_HOMOLOGUES** + **GET_PHYLOMARKERS** pipelines using the test sequences.
 
@@ -261,13 +269,17 @@ Go (cd) into the distribution directory and cd into the subidrectory test_sequen
 ```
 # 1. cd into the directory holding the test_sequences
 cd test_sequences/
-ls
+ls # will list the following directories: core_genome, pan_genome and pIncAC
 
 # 2. run get_homologues to compute the set of homologous clusters using the BDBH, COGtriangles and OMCL clustering algorithms 
 get_homologues.pl -d pIncAC -t 12 -e -n 4  # BDBH clusters containing sequences for the 12 genomes, 
-                                           # excluding those with inparalogues (-e)
+                                           # excluding those with inparalogues (-e): 33 clusters found.
+                                           # Takes 330 wallclock secs on a comodity desktop with 
+                                           # Intel Core2 Quad CPU Q9400 @ 2.66GHz x 4 cores
 get_homologues.pl -d pIncAC -G -t 0        # COGtriangles, computing clusters of all sizes (-t 0)
-get_homologues.pl -d pIncAC/ -M -t 0       # OMCL
+                                           # finds 408 clusters in 14 wallclock secs, as it recycles
+                                           # the blast results of the previous run.
+get_homologues.pl -d pIncAC/ -M -t 0       # OMCL, finds 393 clusters in 5 wallclock secs.
 
 ```
 
@@ -282,11 +294,16 @@ get_homologues.pl -d pIncAC/ -M -t 0       # OMCL
 cd pIncAC_homologues/
 find . -type d
 
-compare_clusters.pl -d ./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_12taxa_algBDBH_e1_,./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algCOG_e0_,./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algCOG_e0_ -o core_BCM -n
+compare_clusters.pl -d ./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_12taxa_algBDBH_e1_,./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algCOG_e0_,./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algOMCL_e0_ -o core_BCM -t 12 -n
 
-compare_clusters.pl -d ./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_12taxa_algBDBH_e1_,./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algCOG_e0_,./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algCOG_e0_ -o core_BCM
+compare_clusters.pl -d ./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_12taxa_algBDBH_e1_,./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algCOG_e0_,./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algOMCL_e0_ -o core_BCM -t 12
 
 ```
+
+**Figure 2**. The resulting **consensus core-genome** of 31 genes for the 12 input pIncA/C sequences, as shown in the **Venn diagram** below. This is the set provided in the test_sequences/core_genome/ directory
+
+![Fig. 2. Consensus core-genome](pics/venn_t12_90x90mm.png)
+
 
 ## Computing a consensus pan-genome with GET_HOMOLOGUES
 
@@ -299,29 +316,172 @@ compare_clusters.pl -d ./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_12taxa_al
 # as these are not suitable to compute a proper pan-genome matrix, since the 
 # BDBH clusters always contain the reference sequence.
 
-compare_clusters.pl -d ./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algCOG_e0_,./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algCOG_e0_ -o pan_CM -n -m
-compare_clusters.pl -d ./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algCOG_e0_,./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algCOG_e0_ -o pan_CM
+compare_clusters.pl -d ./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algCOG_e0_,./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algOMCL_e0_ -o pan_CM -n -m
+compare_clusters.pl -d ./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algCOG_e0_,./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algOMCL_e0_ -o pan_CM
 
 ```
+
+**Figure 3.** The **consensus pan-genome clusters** for the 12 input pIncA/C sequences contains 373 cluster is depicted in the **Venn diagram** below. The corresponding pan-genome matrix is provided in the test_sequences/pan_genome/ directory
+
+![Figure 3. Consensus pan-genome](pics/venn_t0_90x60mm.png)
+
+
+
 ## Searching for the best core-genome phylogeny of the pIncA/C plasmids with GET_PHYLOMARKERS
 
 ```
-# assumes that you are within pIncAC_homologues/
+# assumes that you are within test_sequences/pIncAC_homologues/ or in or in test_sequences/pan_genome
 cd core_BCM
 
-# 1. make sure we have the same nuber of faa and fna cluster files
-find . -name '*.faa' | wc -l
-find . -name '*.fna' | wc -l
+# 1. make sure we have the same nuber of faa and fna cluster files; 
+#    Note that GET_PHYLOMARKERS will check that for you automatically ;)
+find . -name '*.faa' | wc -l  # 31
+find . -name '*.fna' | wc -l  # 31
 
 # 2. run the pipeline under default values
-run_get_phylomarkers_pipeline.sh -R 1 -t DNA 
+run_get_phylomarkers_pipeline.sh -R 1 -t DNA # takes 55 seconds on the above-mentioned machine
 
 ```
+
+### Analyzing the pipeline's output
+GET_PHYLOMARKERS prints informative progress messages to screen and to a logfile. Compare them with the pipeline's flowchart shown in Fig. 1 to make shure you understand what computations are performed at each step.
+
+- It first reports that the input \.*fna and \.faa files contain the same number of sequences and a single instance of eack genome, as expected for orthologous clusters
+- next it will perform the multiple sequence alignments in parallel for the 31 loci to generate codon-alignments 
+- the phi(w) test is the first filter in the pipeline, identifying recombinant sequences. Note that some of the loci lack of sufficient polymorphisms for the test to work, as signalled by the warning messages. There is no evidence for recombinant loci in the test set
+- parallel IQ-TREE gene tree searches follow
+- the kdetrees test identifies "outlier phylogenies", one outlier identified along with 5 loci that produce "trees" with < 5 branches
+- average support values of gene trees are computed for the remaining 25 loci to discard poorly resovled ones: 10 in this dataset
+- a supermatrix is generated from the 15 alignments passing the previous filters
+- IQ-TREE searches for the best model and tree for the supermatrix, reporting the best model and lnL score found
+- the script finally does some cleanup in the different working directories
+
+```
+
+# >>> explore the directories:
+ls
+cd get_phylomarkers_run_AIR1tDNA_k1.5_m0.7_Tmedium_30Jan18 # holds the compressed input FASTAS and alignments
+
+# >>> cd into PhiPac/ dir, which holds the results of the recombination tests.
+cd PhiPack 
+
+# have a peak a the file
+head Phi_results_30Jan18.tsv
+#./1961_hypothetical_protein_cdnAln_Phi.log	1.00e+00	1.00e+00
+#./1962_DNA_topoisomerase_II_cdnAln_Phi.log	1.00e+00	1.00e+00
+#./1964_hypothetical_protein_cdnAln_Phi.log	1.00e+00	1.00e+00
+#./1966_site-specific_DNA_me_cdnAln_Phi.log	1.00e+00	1.00e+00
+#./1967_hypothetical_protein_cdnAln_Phi.log	1	1	TOO_FEW_INFORMATIVE_SITES
+#./1968_hypothetical_protein_cdnAln_Phi.log	1.00e+00	1.00e+00
+#./1969_putative_type_I_rest_cdnAln_Phi.log	1	1	TOO_FEW_INFORMATIVE_SITES
+#./1970_KorB_cdnAln_Phi.log	1.00e+00	1.00e+00
+#./1971_ParA_cdnAln_Phi.log	1.00e+00	1.00e+00
+#./1984_hypothetical_protein_cdnAln_Phi.log	1.00e+00	1.00e+00
+
+# >>> cd into the directory holding the non-recombinant sequences, 
+# which contains the results of several phylogenetic attributes of the loci
+cd non_recomb_cdn_alns/
+
+# 1.1 to identify the kde-test outlier loci see the contents of kde_outliers, in this case only 1 "outlier" locus was detected
+ls kde_outliers
+
+# 1.2 the details of the kdetrees test are provided in tabular format kde_dfr_file_all_gene_trees.tre.tab
+head kde_dfr_file_all_gene_trees.tre.tab
+#file	kde_topo_dens	kde_topo_test	kde_bl_dens	kde_bl_test	kde_bl_topo_test
+#1961_hypothetical_protein_cdnAln.fasta.treefile	0.288751935193142	ok	63.2675110841703	ok	ok
+#1962_DNA_topoisomerase_II_cdnAln.fasta.treefile	0.252919761356219	ok	28.7241410392773	ok	ok
+#1964_hypothetical_protein_cdnAln.fasta.treefile	0.287751455109637	ok	17.2677657886815	ok	ok
+#1966_site-specific_DNA_me_cdnAln.fasta.treefile	0.240400359789596	outlier	27.0113341481227	ok	outlier
+#1967_hypothetical_protein_cdnAln.fasta.treefile	0.252639796140819	ok	95.8112601171774	ok	ok
+#1968_hypothetical_protein_cdnAln.fasta.treefile	0.297536609843425	ok	96.2903342166101	ok	ok
+#1969_putative_type_I_rest_cdnAln.fasta.treefile	0.314498361683638	ok	95.2603170008101	ok	ok
+#1970_KorB_cdnAln.fasta.treefile	0.331685645962565	ok	79.0447022830493	ok	ok
+#1971_ParA_cdnAln.fasta.treefile	0.334991727858742	ok	55.4211725899592	ok	ok
+
+# 2.1 have a look at the counts of best-fitting models selected
+cat IQT_best_model_counts_for_gene_trees.tsv
+#model	count
+#HKY+F	2
+#HKY+F+G4	1
+#K2P	26
+#K2P+G4	1
+#TIMe	1
+
+# 2.2 and locus-specific stats are provied in IQT_DNA_gene_tree_Tmedium_stats.tsv
+head  IQT_DNA_gene_tree_Tmedium_stats.tsv
+#alignment	wc_secs	CPU_secs	lnL	model	s_type
+#./1961_hypothetical_protein_cdnAln.fasta.log	0.164	0.112	-1107.994	 K2P	IQTdnaTmedium
+#./1962_DNA_topoisomerase_II_cdnAln.fasta.log	0.251	0.184	-4124.482	 HKY+F+G4	IQTdnaTmedium
+#./1964_hypothetical_protein_cdnAln.fasta.log	0.284	0.172	-1225.145	 K2P+G4	IQTdnaTmedium
+#./1966_site-specific_DNA_me_cdnAln.fasta.log	0.204	0.108	-2183.089	 K2P	IQTdnaTmedium
+#./1967_hypothetical_protein_cdnAln.fasta.log	0.089	0.072	-870.935	 K2P	IQTdnaTmedium
+#./1968_hypothetical_protein_cdnAln.fasta.log	0.099	0.076	-1179.667	 K2P	IQTdnaTmedium
+#./1969_putative_type_I_rest_cdnAln.fasta.log	0.064	0.060	-1111.931	 K2P	IQTdnaTmedium
+#./1970_KorB_cdnAln.fasta.log	0.130	0.116	-2112.818	 TIMe	IQTdnaTmedium
+#./1971_ParA_cdnAln.fasta.log	0.129	0.072	-1157.621	 K2P	IQTdnaTmedium
+
+# 3. graphical summaries of the results of the kdetrees and the distribuions of support-values are provided as svg files.
+ls -1 *svg
+#dotplot_and_bxplot_kdeDensity_dist_dissim_topo_TRUE.svg
+#parallel_bxplots_kdeDensity_dist_dissim_topo_TRUE-FALSE.svg
+#scatterplot_for_gene_tree_support_values.svg
+
+```
+
+**Figure 4** below depicts the **results of the non-parametric *kdetrees* test**, run at the default stringency level of k = 1.5. As depicted on the graph, only one outlier is detected based on the topology (lower panel)
+
+![Fig.4 results of the kdetrees test](pics/dotplot_and_bxplot_kdeDensity_dist_dissim_topo_TRUE_90x90mm.png)
+
+**Figure 5** depicts a **scatterplot and a histogram summarizing the distribution of mean SH-support values for the 25 gene trees** that reached this point in the pipeline.
+
+![Fig. 5. Distribution of SHalrt support values](pics/scatterplot_for_gene_tree_support_values_90x90.png)
+
+Finally we will inspect the contents of the **top_15_markers_ge70perc/ directory**, which holds the top-scoring markers that passed the above-mentioned filters, the supermatrix resulting from their concatenations and the "species-tree" estimated from it under the best-fitting model identified by ModelFinder/IQ-TREE.
+
+```
+# >>> inspecting the contents of the top_15_markers_ge70perc/ directory
+cd top_15_markers_ge70perc
+
+# The concatenation coordinates for the supermatrix are saved in concatenation_coordinates.txt
+cat concatenation_coordinates.txt
+# concatenation coordinates:
+1961_hypothetical_protein_cdnAln.fasta = 1-615
+1967_hypothetical_protein_cdnAln.fasta = 616-1113
+1968_hypothetical_protein_cdnAln.fasta = 1114-1785
+1970_KorB_cdnAln.fasta = 1786-2961
+1971_ParA_cdnAln.fasta = 2962-3642
+1984_hypothetical_protein_cdnAln.fasta = 3643-3975
+1989_hypothetical_protein_cdnAln.fasta = 3976-4830
+1990_hypothetical_protein_cdnAln.fasta = 4831-5346
+1994_DSBA_oxidoreductase_cdnAln.fasta = 5347-6204
+1995_putative_signal_pept_cdnAln.fasta = 6205-7110
+1996_hypothetical_protein_cdnAln.fasta = 7111-7962
+1997_hypothetical_protein_cdnAln.fasta = 7963-8403
+1998_hypothetical_protein_cdnAln.fasta = 8404-8922
+1999_hypothetical_protein_cdnAln.fasta = 8923-9381
+2012_TraF_cdnAln.fasta = 9382-10395
+
+# some phylogenetic properties of the markers are summarized in sorted_aggregated_support_values4loci.tab
+# graphical analysis of RF-distances of gene-trees to the species-tree is found in scatterplot_RF-dist_of_gene_trees2concat_phylo.svg
+
+# The final tree concat_nonRecomb_KdeFilt_iqtree_GTR+F+ASC_ed.sptree can be conveniently visualized and edited with figtree
+figtree concat_nonRecomb_KdeFilt_iqtree_GTR+F+ASC_ed.sptree &
+
+# 
+
+```
+**Figure 6** depicts the **RF-distances of the 15 top-scoring markers to the ML tree** inferred under the GTR+F+ASC substitution model from the concatenation of these loci (shown in Fig. 7)
+![Fig. 7 RF-distances to the "species-tree"](pics/scatterplot_RF-dist_of_gene_trees2concat_phylo_70x70mm.png)
+
+**Figure 7** depicts the  **best ML "species tree" ** inferred under the GTR+F+ASC substitution model from the supermatrix of 15 top-scoring markers. The nodes are colored according to the legend. The first value corresponds to approximate Bayes branch support values and second ones to the UFBoot values described in the manual.
+
+![Fig. 7 the "species-tree"](pics/concat_nonRecomb_KdeFilt_iqtree_GTR+F+ASC_ed.sptree.png)
+
 
 ## Estimating the ML pan-genome phylogeny of the pIncA/C plasmids with GET_PHYLOMARKERS
 
 ```
-# assumes that you are within pIncAC_homologues/
+# assumes that you are within test_sequences/pIncAC_homologues/, or in test_sequences/pan_genome
 cd pan_CM
 
 # 1. find the pangenome_matrix
@@ -333,21 +493,73 @@ estimate_pangenome_phylogenies.sh -f pangenome_matrix_t0.fasta -r 10
 
 ```
 
+### Inspecting and visualizing the output
+The *estimate_pangenome_phylogenies.sh* reports its progress to the screen, informing that:
+- it created and moved into subdir iqtree_PGM_10_runs, which holds the results of the analysis
+- the best-fitting binary model was GTR2+FO
+- after determining the best model, it performs 10 independent IQ-TREE searches 
+- Best IQ-TREE run was: abayes_UFBboot_run9.log:BEST SCORE FOUND : -1897.260
+- wrote file best_PGM_IQT_abayes_UFBboot_run9_GTR2+FO.treefile in pan_CM/iqtree_PGM_10_runs/iqtree_10_runs
+
+Lets have a look at the tree search profile
+
+```
+cd iqtree_PGM_10_runs/iqtree_10_runs
+
+cat sorted_lnL_scores_IQ-TREE_searches.out
+#abayes_UFBboot_run9.log:BEST SCORE FOUND : -1897.260
+#abayes_UFBboot_run8.log:BEST SCORE FOUND : -1897.260
+#abayes_UFBboot_run7.log:BEST SCORE FOUND : -1897.260
+#abayes_UFBboot_run6.log:BEST SCORE FOUND : -1897.260
+#abayes_UFBboot_run5.log:BEST SCORE FOUND : -1897.260
+#abayes_UFBboot_run4.log:BEST SCORE FOUND : -1897.260
+#abayes_UFBboot_run3.log:BEST SCORE FOUND : -1897.260
+#abayes_UFBboot_run2.log:BEST SCORE FOUND : -1897.260
+#abayes_UFBboot_run1.log:BEST SCORE FOUND : -1897.260
+#abayes_UFBboot_run10.log:BEST SCORE FOUND : -1897.260
+```
+No wonder, in such a small dataset, all searches find exactly the same best tree. However, this will most likely not be the case in searches of large datasets of 30 or more genomes.
+
+
+```
+figtree best_PGM_IQT_abayes_UFBboot_run9_GTR2+FO.treefile &
+
+```
+
+**Figure 8** displays the **best ML pan-genome tree**, again using figtree. The nodes are colored according to the legend. The first value corresponds to approximate Bayes branch support values and second ones to the UFBoot values described in the manual.
+
+![Fig. 8. best ML pan-genome tree](pics/best_PGM_IQT_abayes_UFBboot_run9_GTR2+FO.treefile.png)
+
 ## Estimating the pan-genome phylogeny of the pIncA/C plasmids under the parsimony criterion with GET_PHYLOMARKERS
 
 ```
-# assumes that you are within pIncAC_homologues/
+# assumes that you are within test_sequences/pIncAC_homologues/ or test_sequences/pan_genome
 cd pan_CM
 
 # 1. find the pangenome_matrix
 ls pangenome_matrix*
 
 
-# 2. run estimate_pangenome_phylogenies.sh launching 10 independent iqtree searches, fitting binary (BIN) models
+# 2. run estimate_pangenome_phylogenies.sh launching 10 independent iqtree searches on all available cores (-n 4 in this case), fitting binary (BIN) models
 
 estimate_pangenome_phylogenies.sh -c PARS -R 3 -i pangenome_matrix_t0.phylip -n 4 -b 25 -j 10 -t 1
 
 ```
+
+### Inspect and visualize the output
+
+After changing into the boot_pars/ dir we can edit and visualize the most parsimonious tree found among 100 pars (from the PHYLIP package) searches split on 4 cores (-n 4) with 10 taxon jumples searches using again figtree. See the manual for the details.
+
+```
+cd boot_pars
+figtree full_pars_tree_rooted_withBoot_ed.ph &
+
+```
+
+**Figure 9** displays the **most parsimonious pan-genome tree**, again using figtree. The nodes are colored according to the legend. The nodes are colored according to the legend, which represents standard bootstrap support values computed by seqboot from the PHYLIP package.
+
+![Fig. 9 most parsimonious pan-genome tree](pics/full_pars_tree_rooted_withBoot_ed.ph.png)
+
 
 # Developers
 The code is developed and maintained by [Pablo Vinuesa](http://www.ccg.unam.mx/~vinuesa/) 
