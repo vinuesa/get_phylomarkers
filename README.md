@@ -2,7 +2,7 @@
 
 <!--Version Dec. 29cnd, 2017.-->
 
-This repository hosts the code for the *GET_PHYLOMARKERS* software package used to estimate species trees from a supermatrix of concatenated, top-scoring alignments. [A detailed manual can be accessed here](docs/GET_PHYLOMARKERS_MANUAL.md) 
+This repository hosts the code for the *GET_PHYLOMARKERS* software package used to estimate species trees from a supermatrix of concatenated, top-scoring alignments. [A detailed manual can be accessed here](docs/GET_PHYLOMARKERS_manual.md) 
 
 The code is developed and maintained by [Pablo Vinuesa](http://www.ccg.unam.mx/~vinuesa/) 
 at [CCG-UNAM, Mexico](http://www.ccg.unam.mx/) and 
@@ -33,7 +33,7 @@ the pipeline should be run using protein instead of DNA sequences.
 
 ## Manual and tutorials
 
-Please, follow the link for a detailed [manual](docs/GET_PHYLOMARKERS_MANUAL.md) and [tutorials](docs/GET_PHYLOMARKERS_MANUAL.md#get_phylomarkers-tutorial), including a [graphical flowchart](docs/GET_PHYLOMARKERS_MANUAL.md#brief-presentation-and-graphical-overview-of-the-pipeline) of the pipeline and explanations of the implementation details.
+Please, follow the link for a detailed [manual](docs/GET_PHYLOMARKERS_manual.md) and [tutorials](docs/GET_PHYLOMARKERS_manual.md#get_phylomarkers-tutorial), including a [graphical flowchart](docs/GET_PHYLOMARKERS_manual.md#brief-presentation-and-graphical-overview-of-the-pipeline) of the pipeline and explanations of the implementation details.
 
 ## Citation.
 
