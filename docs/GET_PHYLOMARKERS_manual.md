@@ -145,11 +145,12 @@ to evaluate the free-rates and clock hypothesis using likelihood ratio tests usi
 #### ModelFinder + IQ-TREE searches:
 As of version 1.9.9.0_22Dec17, **GET_PHYLOMERKERS** implements the **-A I** option, which calls [**IQ-TREE**](http://www.iqtree.org/) for ML tree searching [**Nguyen et. al (2015)**](https://academic.oup.com/mbe/article/32/1/268/2925592). This is the most recent fast ML software on the scene, which was developed with the aim of escaping from early local maxima encountered during "hill-climbing" by generating multiple seed trees to intiate tree searches, maintaining a pool of candidate trees during the entire run. Overall, it was the best-performing ML tree search algorithm among those evaluated by [Zhou et al. (2017)](https://www.ncbi.nlm.nih.gov/pubmed/29177474) in their above-mentioned benchmarking paper, at least for datasets < 200 taxa. For larger datasets (several hudreds to thousands of sequencs), current implementations of algorithms like RAxML and ExaML, which make hevay use of SPR-moves, will most likey outperform IQ-TREE, which makes more intensive use of local NNI-moves. 
 
-Our benchmark analyses have shown that [IQ-TREE](http://www.iqtree.org/) (v1.6.1) [Nguyen et. al (2015)](https://academic.oup.com/mbe/article/32/1/268/2925592) runs quickly enough when the **-fast** flag is passed to make it feasible to include a model selection step using  [ModelFinder](http://www.iqtree.org/ModelFinder/) [(Kalyaanamoorthy et al. 2017)](https://www.nature.com/articles/nmeth.4285) withouth incurring in prohibitively long computation times. 
+- Our benchmark analyses have shown that [IQ-TREE](http://www.iqtree.org/) (v1.6.1) [Nguyen et. al (2015)](https://academic.oup.com/mbe/article/32/1/268/2925592) runs quickly enough when the **-fast** flag is passed to make it feasible to include a model selection step using  [ModelFinder](http://www.iqtree.org/ModelFinder/) [(Kalyaanamoorthy et al. 2017)](https://www.nature.com/articles/nmeth.4285) withouth incurring in prohibitively long computation times. 
 
-Combined with its superior tree-searching algorithm, makes IQT the clear winner in our benchmarks. Therefore, **from version 2.0 onwards, *GET_PHYLOMARKERS* uses IQT as its default tree searching algorithm**, both for the estimation of gene-trees and the species-tree (from the concatenated, top-scoring alignments).
+- Combined with its superior tree-searching algorithm, makes IQT the clear winner in our benchmarks. Therefore, **from version 2.0 onwards, *GET_PHYLOMARKERS* uses IQT as its default tree searching algorithm**, both for the estimation of gene-trees and the species-tree (from the concatenated, top-scoring alignments).
 	  
-However, the number of models evaluated by ModelFinder (integrated in IQ-TREE) differ for the gene-tree and species-tree search phases, as shown below: 
+- However, the number of models evaluated by ModelFinder (integrated in IQ-TREE) differ for the gene-tree and species-tree search phases, as shown below: 
+
 ```
 IQT gene tree searches (hard-coded): -T <high|medium|low|lowest> [default: medium]
 
@@ -163,14 +164,14 @@ IQT gene tree searches (hard-coded): -T <high|medium|low|lowest> [default: mediu
 
 ```
 
-All ++gene tree searches are run in parallel** under the modelset with the following parameters: -mset XXX -m MFP -nt 1 -alrt 1000 -fast
+- All **gene tree searches are run in parallel** under the modelset with the following parameters: -mset XXX -m MFP -nt 1 -alrt 1000 -fast
 
 - IQT species-tree searches on the supermatrix: 
 
 	      -S <string> quoted 'comma-separated list' of base models to be evaluated by IQ-TREE
 	         when estimating the species tree from the concatenated supermatrix.
 	         
-If no -S is passed, then sinlge default models are used, as shown below:
+- If no -S is passed, then sinlge default models are used, as shown below:
 
 ```
  - for DNA alignments [default: GTR]
@@ -182,12 +183,12 @@ If no -S is passed, then sinlge default models are used, as shown below:
    <'BLOSUM62,cpREV,Dayhoff,DCMut,FLU,HIVb,HIVw,JTT,JTTDCMut,LG,mtART,mtMAM,mtREV,mtZOA,Poisson,PMB,rtREV,VT,WAG'>          
 ```
                 
-In addition, if **-T high**, *run_get_phylomarkers_pipeline.sh* will launch -N <integer> [default: 5] independent IQT searches on the supermatrix of concatenated top-scoring markers.
+- In addition, if **-T high**, *run_get_phylomarkers_pipeline.sh* will launch -N <integer> [default: 5] independent IQT searches on the supermatrix of concatenated top-scoring markers.
 
-After selecting the best substitution model, which includes taking care of among-site rate variation, IQ-TREE will search for the best tree, including bootstrapping with the **UFBoot2 ultrafast bootstrapping algorithm** [(Hoang et al. 2017)](https://www.ncbi.nlm.nih.gov/pubmed/29077904) and estimation of **approximate Bayes branch support values**. 
+- After selecting the best substitution model, which includes taking care of among-site rate variation, IQ-TREE will search for the best tree, including bootstrapping with the **UFBoot2 ultrafast bootstrapping algorithm** [(Hoang et al. 2017)](https://www.ncbi.nlm.nih.gov/pubmed/29077904) and estimation of **approximate Bayes branch support values**. 
 
-The following are example *run_get_phylomarkers_pipeline.sh* invocations to perform IQ-TREE searches. Note that as of version 1.9.10 (January 1st, 2018), the script calls IQ-TREE 1.6.1 with the **-fast flag** enabled for maximal speed.
-
+##### Example *run_get_phylomarkers_pipeline.sh* invocations to perform IQ-TREE searches. 
+Note that as of version 1.9.10 (January 1st, 2018), the script calls IQ-TREE 1.6.1 with the **-fast flag** enabled for maximal speed.
 
 ```    
 # 1. Default IQ-TREEE run (-T medium), evaluating the corresponding set models during gene-tree searches and evaluating the base GTR model  on the concatenated DNA supermatrix, using a single search
@@ -219,6 +220,7 @@ calls of FastTree on codon alignments.
 
 - For gene tree searches, and particularly for concatenated codon alignments, which may take a considerable time (up to several hours) or
 for large datasets (~ 100 taxa and > 300 concatenated genes) the user can choose to run FastTree with at different **levels of tree-search thoroughness**: high|medium|low|lowest 
+
 ```      
       high:   -nt -gtr -gamma -bionj -slow -slownni -mlacc 3 -spr 8 -sprlength 10
       medium: -nt -gtr -gamma -bionj -slownni -mlacc 3 -spr 4 -sprlength 10 
@@ -227,13 +229,13 @@ for large datasets (~ 100 taxa and > 300 concatenated genes) the user can choose
 ```      
 where '-s spr' and '-l spr_length' can be set by the user. The lines above show their default values.
       
-For protein alignments, the search parameters are the same, only the model changes to lg
+- For protein alignments, the search parameters are the same, only the model changes to lg
 
 ```      
       high: -lg -gamma -bionj -slow -slownni -mlacc 3 -spr 4 -sprlength 10
 ```
 
-Example invokations for FastTree searches
+##### Example invocations for FastTree searches
 
 ```
 # FastTree searching on a huge protein dataset for fast inspection
@@ -353,8 +355,8 @@ at [CCG-UNAM, Mexico](http://www.ccg.unam.mx/) and
 [Bruno Contreras-Moreira](https://digital.csic.es/cris/rp/rp02661/) 
  at [EEAD-CSIC, Spain](http://www.eead.csic.es/). It is released to the public domain under the GNU GPLv3 [license](./LICENSE).
  
-# Citation.
-On Jaunary 15th, 2018 we submitted a manuscript describing the implementation of the **GET_PHYLOMARKERS** pipeline and its use in genomic taxonomy and population genomics of *Stenotrophomonas* bacteria to the [Research Topic of Frontiers in Microbiology: Microbial Taxonomy, Phylogeny and Biodiversity](http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity).
+# Citation
+On Jaunary 15th, 2018 we submitted a manuscript to the [Research Topic of Frontiers in Microbiology: Microbial Taxonomy, Phylogeny and Biodiversity](http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity) describing the implementation of the **GET_PHYLOMARKERS** pipeline and its use in genomic taxonomy and population genomics of *Stenotrophomonas* bacteria.
 
 Meanwhile, if you find the code useful for your academic work, please use the following citation:
 Pablo Vinuesa and Bruno Contreras-Moreira 2018. GET_PHYLOMARKERS, a pipeline to select optimal markers for microbial phylogenomics, systematics and genomic taxomy. Available at https://github.com/vinuesa/get_phylomarkers and released under the GNU GPLv3 license.
