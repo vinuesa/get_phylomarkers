@@ -2,7 +2,7 @@
 
 <!--Version Dec. 29cnd, 2017.-->
 
-This repository hosts the code for the *GET_PHYLOMARKERS* software package used to estimate species trees from a supermatrix of concatenated, top-scoring alignments. [A detailed manual can be accessed here](docs/GET_PHYLOMARKERS_manual.md) 
+This repository hosts the code for the **GET_PHYLOMARKERS** software package, designed to filter optimal genomic markers for phylogenomics, population genetics and genomic taxonomy. It implements a pipeline to filter orthologous gene clusters computed by **GET_HOMOLOGUES** to exclude those with evidence for recombination, producing "outlier" and poorly resolved gene trees. The top-scoring markers are concatenated into a supermatrix, which is used to estimate species trees under the maximum-likelihood (ML) criterion, using state-of-the-art fast ML tree searching algorithms. [A detailed manual can be accessed here](docs/GET_PHYLOMARKERS_manual.md). **GET_PHYLOMARKERS** can also estimate ML and parsimony trees from the pan-genome matrix, including unsupervised learning methods to detect optimal clusters of genomes from pan-genome and average genomic distance matrices.
 
 The code is developed and maintained by [Pablo Vinuesa](http://www.ccg.unam.mx/~vinuesa/) 
 at [CCG-UNAM, Mexico](http://www.ccg.unam.mx/) and 
@@ -28,7 +28,7 @@ More recently we have developed [GET_HOMOLOGUES-EST](https://github.com/eead-csi
 which can be used to cluster eukaryotic genes and transcripts, as described in [Contreras-Moreira et al., 2017](http://journal.frontiersin.org/article/10.3389/fpls.2017.00184/full).
 
 **GET_PHYLOMARKERS** is primarily tailored towards selecting CDSs (gene markers) to infer DNA-level phylogenies of different species of the same genus or family. It can also select optimal markers for population genetics, when the source genomes belong to the same species.
-For more divergent genome sequences, belonging for example to different genera, families, orders or higher taxa,
+For more divergent genome sequences, classified in different genera, families, orders or higher taxa,
 the pipeline should be run using protein instead of DNA sequences.
 
 ## Manual and tutorials
@@ -37,15 +37,15 @@ Please, follow the link for a detailed [manual](docs/GET_PHYLOMARKERS_manual.md)
 
 ## Citation.
 
-On Jaunary 15th, 2018 we submitted a manuscript describing the implementation get_phylomarkers pipeline and its use in genomic taxonomy and population genomics of *Stenotrophomonas* bacteria to the [Research Topic of Frontiers in Microbiology: Microbial Taxonomy, Phylogeny and Biodiversity](http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity).
+On Jaunary 15th, 2018 we submitted a manuscript to the [Research Topic of Frontiers in Microbiology: Microbial Taxonomy, Phylogeny and Biodiversity](http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity) describing the implementation of the GET_PHYLOMARKERS pipeline along with a thorough benchmark analysis comparing the performance of FastTree vs IQ-TREE, and its use in genomic taxonomy and population genomics of *Stenotrophomonas* bacteria.
 
 Meanwhile, if you find the code useful for your academic work, please use the following citation:
-Pablo Vinuesa and Bruno Contreras-Moreira 2018. Get_PhyloMarkers, a pipeline to select optimal markers for microbial phylogenomics, systematics and genomic taxomy. Available at https://github.com/vinuesa/get_phylomarkers and released under the GNU GPLv3 license.
+Pablo Vinuesa and Bruno Contreras-Moreira 2018. GET_PHYLOMARKERS, a pipeline to select optimal markers for microbial phylogenomics, systematics and genomic taxomy. Available at https://github.com/vinuesa/get_phylomarkers and released under the GNU GPLv3 license.
 
 ## Acknowledgements
 
 ### Personal
-We thank Alfredo J. Hernández and Víctor del Moral at CCG-UNAM for technical support.
+We thank Alfredo J. Hernández and Víctor del Moral at CCG-UNAM for technical support with server administration.
 
 ### Funding
 We gratefully acknowledge the funding provided by [DGAPA-PAPIIT/UNAM](http://dgapa.unam.mx/index.php/impulso-a-la-investigacion/papiit) (grants IN201806-2, IN211814 and IN206318) and [CONACyT-Mexico](http://www.conacyt.mx/) (grants P1-60071, 179133 and FC-2015-2-879) to [Pablo Vinuesa](http://www.ccg.unam.mx/~vinuesa/), as well as the Fundación ARAID,Consejo  Superior  de Investigaciones Científicas (grant 200720I038 and Spanish MINECO (AGL2013-48756-R) to [Bruno Contreras-Moreira](https://digital.csic.es/cris/rp/rp02661).
