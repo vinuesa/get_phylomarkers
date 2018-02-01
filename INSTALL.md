@@ -16,7 +16,7 @@ The pipeline is designed to take advantage of modern multicore machines to paral
 
 - To get a quick impressin of the capabilities of the [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues) + **GET_PHYLOMARKERS** combo, We recommend following the [**tutorial**](docs/GET_PHYLOMARKERS_manual.md#get_phylomarkers-tutorial) with the test sequences provided in the test_sequences/ directory (and subdirectories contained therein). Read the [**manual**](docs/GET_PHYLOMARKERS_manual.md) for the implementation details.
 
-Alternatively, you can proceed by attempting a manual install, as follows:
+Alternatively, you can try to perform a manual install, as follows:
 
 1. Download the [latest release](https://github.com/vinuesa/get_phylomarkers/releases) or clone the repository into a suitable directory (e.g. $HOME/src/gitHub/). To clone the repo, issue the command 'git clone https://github.com/vinuesa/get_phylomarkers.git' from within $HOME/src/gitHub/
 
@@ -121,5 +121,6 @@ NOTES:
 * [paup*](https://people.sc.fsu.edu/~dswofford/paup_test/). Multipurpose phylogenetics software package developed by David Swofford and colleagues. NOTE: This is a test version that expires every 6 months! So please update regularly. Shipped version will expire on April 1st, 2018.
 * pars, seqboot and consense from Joe Felsenstein's [PHYLIP](http://evolution.genetics.washington.edu/phylip.html) package.
 * nw_reroot and nw_support from the [Newick utilities](http://bioinformatics.oxfordjournals.org/cgi/content/abstract/btq243v1) package.
+* you may also need to install **bc**,an arbitrary-precision language for performing math calculations with Bash and other shells
 
 3. Source code and manual compilation instructions are also provided in the corresponding \$bindir, in case bundled binaries fail.
