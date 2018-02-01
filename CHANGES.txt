@@ -1,3 +1,5 @@
+31JAN18: * updated the install instructions to reflect changes associated to release 1.1.0, 
+           which include links to the Docker image, manual and tutorials + additional dependiencies
 29JAN18: * Added the pars and seqboot binaries to bin/macosx-intel (compiled on Darwin14)
          * Added the docs/GET_PHYLOMARKERS_manual.md and docs/pics dirs/files, the latter with the pipeline flowchart
 	 * Moved the manual-specific parts of the README.md file to docs/GET_PHYLOMARKERS_manual.md, providing links to it
