@@ -1,32 +1,40 @@
 # Installation and execution notes for the get_phylomarkers pipeline
 
-Version: Dec. 31, 2017
+Version: Jan. 31, 2018
  
 This file lists the software components of the *get_phylomarkers* pipeline and briefly describes how to install them.
 
 The pipeline runs on Linux (Ubuntu and RedHat distros) and Mac OS X environments.
 
 It assumes that recent versions of Bash, Perl and R are installed on a multicore (64bit) machine, ideally a server running Linux.
-The pipeline is designed to take advantage of modern multicore machines to parallelize all repetitive tasks that have to be performed on each entry sequence, like tagging sequences, generating multiple sequence alignments, deriving codon alignments, runnig the Phi test on them and inferring maximum likelihood phylogenies from to markers. Therefore, if your intention is to select optimal genome markers to infer genome phylogenies, you should run the pipeline on a multiprocessor/multicore server to speed up computations. 
+The pipeline is designed to take advantage of modern multicore machines to parallelize all repetitive tasks that have to be performed on each entry sequence, like tagging sequences, generating multiple sequence alignments, deriving codon alignments, runnig the Phi test on them and inferring maximum likelihood phylogenies from each alignment. We recommend running the pipeline on a multiprocessor/multicore server to speed up these  computations.
 
 
 ## Quick install and test notes
 
-1. clone the repository into a suitable directory (e.g. $HOME/src/gitHub/) using the command 'git clone https://github.com/vinuesa/get_phylomarkers.git' from within $HOME/src/gitHub/
+- We highly recommend that you download the [**Doccker image**](https://hub.docker.com/r/csicunam/get_homologues), which bundles GET_PHYLOMARKERS with [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues), ready to use. This is the easiest way to get the full pipeline up and running, avoiding potential architecture-specific configuration and installation problems of the second-party dependencies (Perl modules, R packages, binaries ...) of the complete software suite. 
 
-2. Make sure R is configured in your system. If not, please install R package (r-base in linux). See CRAN packages for OSX [here](https://cran.r-project.org/bin/macosx/).
+- To get a quick impressin of the capabilities of the [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues) + **GET_PHYLOMARKERS** combo, We recommend following the [**tutorial**](docs/GET_PHYLOMARKERS_manual.md#get_phylomarkers-tutorial) with the test sequences provided in the test_sequences/ directory (and subdirectories contained therein). Read the [**manual**](docs/GET_PHYLOMARKERS_manual.md) for the implementation details.
+
+Alternatively, you can proceed by attempting a manual install, as follows:
+
+1. Download the [latest release](https://github.com/vinuesa/get_phylomarkers/releases) or clone the repository into a suitable directory (e.g. $HOME/src/gitHub/). To clone the repo, issue the command 'git clone https://github.com/vinuesa/get_phylomarkers.git' from within $HOME/src/gitHub/
+
+2. Make sure a recent version of R is configured in your system. If not, please install R package (r-base in linux). See CRAN packages for OSX [here](https://cran.r-project.org/bin/macosx/). Your system will also need recent versions of Bash and Perl installed.
 
 3. cd into get_phylomarkers/ and run './install_R_deps.R', which will install R packages into get_phylomarkers/lib/R
 
 4. Copy the test_sequences directory into a suitable place (e.g. 'cp -r test_sequences $HOME)
 
-5. cd into the test_sequences dir (e.g. '$HOME/test_sequences')
+5. cd into the test_sequences dir (e.g. 'cd $HOME/test_sequences/core_genome')
 
-6. Issue the following command to test if the distro is working on your system: '/path/to/get_phylomarkers/run_get_phylomarkers_pipeline.sh -R 1 -t DNA -K 1', which will run in phylogenomics mode (-R 1), on DNA sequences (-t DNA), and will test the molecular clock hypothesis (-K 1). 
+6. Issue the following command to test if the distro is working on your system: '/path/to/get_phylomarkers/run_get_phylomarkers_pipeline.sh -R 1 -t DNA', which will run in phylogenomics mode (-R 1), on DNA sequences (-t DNA). 
  
-7. Check it now on the protein level: 'run_get_phylomarkers_pipeline.sh -R 1 -t PROT'. Note that for this second invocation, you will probably not need to prepend the full path to the script anymore (see NOTES below).
+7. Check it now on the protein level: 'run_get_phylomarkers_pipeline.sh -R 1 -t PROT'. Note that for this second invocation, you will probably not need to prepend the full path to the script anymore, as symlinks are created to the scripts from your $HOME/bin dir (see NOTES below).
 
 8. Explore the help menu of the main script to see the options available for customization of the run. It is printed to STDOUT when issuing run_get_phylomarkers_pipeline.sh -h or simply run_get_phylomarkers_pipeline.sh
+
+9.  Read the [**manual**](docs/GET_PHYLOMARKERS_manual.md) for the implementation details.
 
 That's it, enjoy. 
 
@@ -50,6 +58,7 @@ All scripts display usage instructions and describe their aims.
 
 * run_get_phylomarkers_pipeline.sh (the main script to run the pipeline)
 * run_parallel_molecClock_test_with_paup.sh
+* estimate_pangenome_phylogenies.sh
 
 ### Perl scripts
 * run_parallel_cmmds.pl
@@ -63,7 +72,7 @@ All scripts display usage instructions and describe their aims.
 
 #### Perl modules
   File::Rename
- From the BioPerl suite: 
+  From the BioPerl suite: 
   Bio::AlignIO;
   Bio::PopGen::IO;
   Bio::PopGen::Utilities;
@@ -83,7 +92,7 @@ The dependencies can be easily installed in local folder lib/R by calling script
 Instead, if you wish these packages to be installed on a system-wide basis, then you should call R with 
 superuser privileges and within it execute the following command: 
 
-install.packages( c("ape", "kdetrees", "stingr", "vioplot", "ggplot2", "gplots", "plyr", "seqinr"), dep=T)
+install.packages( c("ape", "kdetrees", "stingr", "vioplot", "ggplot2", "gplots", "dplyr", "seqinr"), dep=T)
 
 Please see examples in the source code of *install_R_deps.R* to solve problems that might arise when
 old versions of the, particularly *Rcpp*, are already in the system. Tips are also provided to install
@@ -95,7 +104,7 @@ NOTES:
 
 1. The required binaries are provided as part of the distribution. The main script will determine the location of the statically compiled versions packaged in the distribution under bin/linux or bin/macosx-intel directories, as required for the local environment. The corresponding \$bindir is prepended to \$PATH and exported only for the duration of the run of the script to avoid polluting the user's ENVIRONMENT. This also ensures that the pipeline always gets access to tested versions of the binaries. Older, pre-installed versions available on the system may not work properly.
 
-2. The required second-party binaries required by GET_PHYLOMARKERS are all freely available for download from the links provided below. However, the *run_get_phylomarkers_pipeline.sh* script will call the binaries provided with the distribution, which avoids problems with old versions that may be installed on the user's system.
+2. The required second-party binaries required by GET_PHYLOMARKERS are all freely available for download from the links provided below. However, the *run_get_phylomarkers_pipeline.sh* script will call the binaries provided with the distribution in the bin/$OSTYPE/ directory, which avoids problems with old versions that may be installed on the user's system. If you
 
 * [clustal omega](http://www.clustal.org/omega/). Multiple sequence alignment software. [Sievers et al. 2011](http://msb.embopress.org/content/7/1/539.long). On Ubuntu try: 'sudo apt-get install clustalo'
 * [parallel](https://www.gnu.org/software/parallel/). Executes processes in parallel on multicore machines. On Ubuntu try: 'sudo apt-get install parallel'
@@ -108,7 +117,9 @@ NOTES:
 ```
 
 * [ModelFinder](http://www.iqtree.org/ModelFinder/): Fast model selection for accurate phylogenetic estimates. [(Kalyaanamoorthy et al. 2017)](https://www.nature.com/articles/nmeth.4285)
-* [IQ-TREE](http://www.iqtree.org/). Highly accurate maximum-likelihood tree searching program. [Nguyen et. al (2015)](https://academic.oup.com/mbe/article/32/1/268/2925592). On Ubuntu try: 'sudo apt-get install iqtree' 
-* [paup*](https://people.sc.fsu.edu/~dswofford/paup_test/). Multipurpose phylogenetics software package developed by David Swofford and colleagues. NOTE: This is a test version that expires every 6 months! So please update regularly.
+* [IQ-TREE](http://www.iqtree.org/). Highly accurate maximum-likelihood tree searching program. [Nguyen et. al (2015)](https://academic.oup.com/mbe/article/32/1/268/2925592). You will need to install the latest version 1.6.\*, not the old 1.5.\* version installed on ubuntu with the 'sudo apt install iqtree' option.
+* [paup*](https://people.sc.fsu.edu/~dswofford/paup_test/). Multipurpose phylogenetics software package developed by David Swofford and colleagues. NOTE: This is a test version that expires every 6 months! So please update regularly. Shipped version will expire on April 1st, 2018.
+* pars, seqboot and consense from Joe Felsenstein's [PHYLIP](http://evolution.genetics.washington.edu/phylip.html) package.
+* nw_reroot and nw_support from the [Newick utilities](http://bioinformatics.oxfordjournals.org/cgi/content/abstract/btq243v1) package.
 
 3. Source code and manual compilation instructions are also provided in the corresponding \$bindir, in case bundled binaries fail.
