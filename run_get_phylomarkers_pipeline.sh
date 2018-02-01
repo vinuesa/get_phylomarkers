@@ -25,7 +25,7 @@
 #              along with graphics and tables summarizing the results of the pipeline obtained at different levels.
 #
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.0.2_22Jan18'
+VERSION='2.0.3_31Jan18'
 
 # Set GLOBALS
 DEBUG=0
