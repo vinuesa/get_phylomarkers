@@ -12,9 +12,9 @@ The pipeline is designed to take advantage of modern multicore machines to paral
 
 ## Quick install and test notes
 
-- We highly recommend that you download the [**Doccker image**](https://hub.docker.com/r/csicunam/get_homologues), which bundles GET_PHYLOMARKERS with [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues), ready to use. This is the easiest way to get the full pipeline up and running, avoiding potential architecture-specific configuration and installation problems of the second-party dependencies (Perl modules, R packages, binaries ...) of the complete software suite. 
+- We highly recommend that you download the [**Docker image**](https://hub.docker.com/r/csicunam/get_homologues), which bundles GET_PHYLOMARKERS with [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues), ready to use. This is the easiest way to get the full pipeline up and running, avoiding potential architecture-specific configuration and installation problems of the diverse dependencies (Perl modules, R packages, binaries ...). 
 
-- To get a quick impressin of the capabilities of the [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues) + **GET_PHYLOMARKERS** combo, We recommend following the [**tutorial**](docs/GET_PHYLOMARKERS_manual.md#get_phylomarkers-tutorial) with the test sequences provided in the test_sequences/ directory (and subdirectories contained therein). Read the [**manual**](docs/GET_PHYLOMARKERS_manual.md) for the implementation details.
+- To get a quick impression of the capabilities of the [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues) + **GET_PHYLOMARKERS** combo, We recommend following the [**tutorial**](docs/GET_PHYLOMARKERS_manual.md#get_phylomarkers-tutorial) with the test sequences provided in the test_sequences/ directory (and subdirectories contained therein). Read the [**manual**](docs/GET_PHYLOMARKERS_manual.md) for the implementation and advanced usage details.
 
 Alternatively, you can try to perform a manual install, as follows:
 
