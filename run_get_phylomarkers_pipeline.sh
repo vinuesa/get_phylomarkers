@@ -25,7 +25,7 @@
 #              along with graphics and tables summarizing the results of the pipeline obtained at different levels.
 #
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.0.1_22Jan18'
+VERSION='2.0.2_22Jan18'
 
 # Set GLOBALS
 DEBUG=0
@@ -101,7 +101,7 @@ function check_dependencies()
 
     # check if scripts are in path; if not, set flag
     [ $DEBUG -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
-    for prog in bash R perl awk bc cut grep sed sort uniq Rscript
+    for prog in bash R perl awk bc cut grep sed sort uniq Rscript find
     do
        bin=$(type -P $prog)
        if [ -z $bin ]; then
@@ -440,6 +440,7 @@ function print_help()
               <'BLOSUM62,cpREV,Dayhoff,DCMut,FLU,HIVb,HIVw,JTT,JTTDCMut,LG,
                 mtART,mtMAM,mtREV,mtZOA,Poisson,PMB,rtREV,VT,WAG'>           for PROT alignments   [default: $IQT_PROT_models]
      -T <string> tree search Thoroughness: high|medium|low|lowest (see -H for details)             [default: $search_thoroughness]
+     -v flag, print version and exit
 
    INVOCATION EXAMPLES:
      1. default on DNA sequences (uses IQ-TREE evaluating a subset of models specified in the detailed help)
@@ -498,7 +499,7 @@ IQT_PROT_models=LG
 IQT_models=
 nrep_IQT_searches=5
 
-while getopts ':c:e:k:l:m:M:n:N:p:q:r:s:t:A:T:R:S:hCDHK' OPTIONS
+while getopts ':c:e:k:l:m:M:n:N:p:q:r:s:t:A:T:R:S:hCDHKv' OPTIONS
 do
    case $OPTIONS in
    h)   print_help
@@ -515,6 +516,8 @@ do
         ;;
    e)   min_no_ext_branches=$OPTARG
         ;;
+   H)   print_usage_notes
+        ;;
    K)   eval_clock=1
         ;;
    l)   spr_length=$OPTARG
@@ -527,13 +530,11 @@ do
         ;;
    N)   nrep_IQT_searches=$OPTARG
         ;;
-   t)   mol_type=$OPTARG
-        ;;
-   T)   search_thoroughness=$OPTARG
-        ;;
    p)   tree_prefix=$OPTARG
         ;;
    q)   q=$OPTARG
+        ;;
+   R)   runmode=$OPTARG
         ;;
    r)   root_method=$OPTARG
         ;;
@@ -541,9 +542,11 @@ do
         ;;
    S)   IQT_models=$OPTARG
         ;;
-   R)   runmode=$OPTARG
+   t)   mol_type=$OPTARG
         ;;
-   H)   print_usage_notes
+   T)   search_thoroughness=$OPTARG
+        ;;
+   v)   echo "$progname v$VERSION" && exit 0
         ;;
     :)   sprintf "argument missing from -%s option\n" "-$OPTARG" 
    	 print_help
