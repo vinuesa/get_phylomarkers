@@ -432,7 +432,7 @@ function process_IQT_species_trees_for_molClock()
     rm ./*.ckp.gz concat_cdnAlns.fnainf
     mkdir iqtree_output_files && mv ./*.iqtree ./*.bionj ./*.mldist ./*.uniqueseq.phy ${best_tree_file} iqtree_output_files
  
-    rename 's/_ed\.treefile/_ed\.sptree/' ./*_ed.treefile
+    $distrodir/rename.pl 's/_ed\.treefile/_ed\.sptree/' ./*_ed.treefile
     [ -d iqtree_output_files ] && cp iqtree_output_files/${best_tree_file} .
     cp ./*_ed.sptree sorted_IQ-TREE_searches.out $top_markers_dir
     
@@ -459,7 +459,7 @@ function process_IQT_species_trees_for_molClock()
     [ -s gene_trees2_concat_tree_RF_distances.tab ] && rm concat_*.treefile
     
     # need to remove the double extension name and change treefile for ph to make it paup-compatible, if clock-test is to be run
-    rename 's/\.fasta\.treefile/\.ph/' ./*.fasta.treefile
+    $distrodir/rename.pl 's/\.fasta\.treefile/\.ph/' ./*.fasta.treefile
     
     # top100_median_support_values4loci.tab should probably not be written in the first instance
     [ -s top100_median_support_values4loci.tab -a "${no_top_markers}" -lt 101 ] && rm top100_median_support_values4loci.tab
