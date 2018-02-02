@@ -25,7 +25,7 @@
 #              along with graphics and tables summarizing the results of the pipeline obtained at different levels.
 #
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.0.3_31Jan18'
+VERSION='2.0.4_1Feb18'
 
 # Set GLOBALS
 DEBUG=0
@@ -1461,15 +1461,20 @@ then
 	    
 	    tar -czf concatenated_alignment_files.tgz concat_cdnAlns.fna concat_cdnAlns.fnainf
             [ -s concatenated_alignment_files.tgz ] && rm concat_cdnAlns.fna concat_cdnAlns.fnainf
-	    [ $DEBUG -eq 0 ] && rm gene_trees2_concat_tree_RF_distances.tab ./*cdnAln_FTGTR.ph ./*cdnAln.fasta
-	    [ $DEBUG -eq 0 ] && rm ../Rplots.pdf ../sorted*perc.tab sorted_aggregated_*tab ../all_*trees.tre
+	    [ $DEBUG -eq 0 ] && rm gene_trees2_concat_tree_RF_distances.tab ./*cdnAln_FTGTR.ph ./*cdnAln.fasta Rplots.pdf list2concat ./*cdnAln.log
+	    concat_logfile=$(find . -name 'concat*log')
+	    [ -s $concat_logfile ] && gzip $concat_logfile
 
             cd $non_recomb_cdn_alns_dir
+	    rm Rplots.pdf ./sorted*perc.tab sorted_aggregated_*tab ./all_*trees.tre top100_median_support_values4loci.tab 
+	    rm kde_outlier_files_all_gene_trees.tre.out kde_stats_all_gene_trees.tre.out
 	    [ $DEBUG -eq 0 ] && tar -czf non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln.fasta
 	    [ -s non_recombinant_kdeOK_codon_alignments.tgz ] && rm ./*_cdnAln.fasta
 	    tar -czf gene_trees_from_non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln*.ph
 	    [ $DEBUG -eq 0 ] && [ -s gene_trees_from_non_recombinant_kdeOK_codon_alignments.tgz ] && rm ./*_cdnAln*.ph
-
+	    tar -czf FastTree_logfiles.tgz ./*.log 
+            [ $DEBUG -eq 0 ] && [ -s FastTree_logfiles.tgz ] && rm ./*.log
+	    
 	    cd $top_dir
 	    tar -czf codon_alignments.tgz ./*_cdnAln.fasta
             [ $DEBUG -eq 0 ] && [ -s codon_alignments.tgz ] && rm ./*_cdnAln.fasta clustalo.log
@@ -1479,17 +1484,17 @@ then
 	    if [ $eval_clock -eq 1 ]
 	    then
 	        tar -czf IQT_molClock_PAUP_files.tgz ./*_paup.block ./*.nex  ./*_clockTest.log ./*tre ./*clock.scores ./*critical_X2_val.R \
-	        $mol_clock_tab ${mol_clock_tab}sorted mol_clock_MGTRG_r_o_q099_ClockTest.ta*
-                [ -s IQT_molClock_PAUP_files.tgz ] && rm ./*_paup.block ./*.nex ./*_clockTest.log ./*tre ./*clock.scores ./*critical_X2_val.R
+	        $mol_clock_tab ${mol_clock_tab}sorted mol_clock_*_ClockTest.ta*
+                [ -s IQT_molClock_PAUP_files.tgz ] && rm ./*_paup.block ./*.nex ./*_clockTest.log ./*tre ./*clock.scores ./*critical_X2_val.R ./mol_clock_*_ClockTest.ta*
                 [ "$DEBUG" -eq "0" ] && rm list2concat Rplots.pdf header.tmp list2grep.tmp ./*cdnAln.ph 
             fi
 	    
 	    tar -czf concatenated_alignment_files.tgz concat_cdnAlns.fna concat_cdnAlns.fnainf
             [ -s concatenated_alignment_files.tgz ] && rm concat_cdnAlns.fna concat_cdnAlns.fnainf
-	    [ $DEBUG -eq 0 ] && rm gene_trees2_concat_tree_RF_distances.tab ./*.ph ./*cdnAln.fasta ./*.log sorted_aggregated_support_values4loci_*.tab
+	    [ $DEBUG -eq 0 ] && rm gene_trees2_concat_tree_RF_distances.tab ./*cdnAln.fasta ./*.log sorted_aggregated_support_values4loci_*.tab ./*ckp.gz ./*model.gz ./*uniqueseq.phy
 
             cd $non_recomb_cdn_alns_dir
-	    [ $DEBUG -eq 0 ] && rm ./Rplots.pdf sorted_aggregated_*tab ./all_*trees.tre kde_*out
+	    [ $DEBUG -eq 0 ] && rm ./Rplots.pdf sorted_aggregated_*tab ./all_*trees.tre kde_*out ./top100_median_support_values4loci.tab
 	    tar -czf non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln.fasta
 	    [ $DEBUG -eq 0 ] && [ -s non_recombinant_kdeOK_codon_alignments.tgz ] && rm ./*_cdnAln.fasta
 	    tar -czf IQT_gene_trees_from_non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln*.treefile
@@ -1959,7 +1964,7 @@ then
         tar -czf non_recomb_kdeOK_FAA_alignments.tgz ./*_cluo.faaln
         [ -s non_recomb_kdeOK_FAA_alignments.tgz ] && rm ./*_cluo.faaln
         tar -czf non_recomb_kdeOK_prot_trees.tgz ./*faaln.treefile ./*.faaln.log all_gene_trees.tre
-        [ -s non_recomb_kdeOK_prot_trees.tgz ] && rm ./*faaln.treefile all_gene_trees.tre ./*.faaln.log kde*.out
+        [ -s non_recomb_kdeOK_prot_trees.tgz ] && rm ./*faaln.treefile all_gene_trees.tre ./*.faaln.log kde*.out top100_median_support_values4loci.tab no_tree_branches.list
 
         cd $top_dir
         tar -czf codon_alignments.tgz ./*_cdnAln.fasta
