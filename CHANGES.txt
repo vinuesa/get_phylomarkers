@@ -1,6 +1,11 @@
+1Feb18:  * run_get_phylomarkers_pipeline.sh v2.0.4_1Feb18 performs a more thorough and consistent final cleanup/tidying of directories
+         * added bc Mach-O 64-bit x86_64 executable to bin/macosx-intel
+	 * changed calls to rename for $distrodir/rename.pl in get_phylomarkers_fun_lib so that docker container instances can find it
+	 
 31JAN18: * updated the install instructions to reflect changes associated to release 1.1.0, 
            which include links to the Docker image, manual and tutorials + additional dependiencies.
 	 * added -v flag to run_get_phylomarkers_pipeline.sh to print version; added find to the list of binaires to check 
+
 29JAN18: * Added the pars and seqboot binaries to bin/macosx-intel (compiled on Darwin14)
          * Added the docs/GET_PHYLOMARKERS_manual.md and docs/pics dirs/files, the latter with the pipeline flowchart
 	 * Moved the manual-specific parts of the README.md file to docs/GET_PHYLOMARKERS_manual.md, providing links to it
