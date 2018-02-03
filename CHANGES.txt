@@ -1,3 +1,6 @@
+3Feb18: * Extended the INSTALL.md file to include instructions on how to setup a locak Docker environment and run image instances
+        * Extended the tutorial material, to include instructions on How to access the sequence data on the host (your machine) from a container instance
+	
 2Feb18: # changes in tagged release v1.2.1
         * minor fix in cleanup/tidying of directories in run_get_phylomarkers_pipeline.sh v2.1.1_2Feb18
 	* this release has the first fully working docker image for all runmodes and -A I|F -K ... Passed all tests
