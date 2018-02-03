@@ -1,13 +1,11 @@
 # Installation and execution notes for the get_phylomarkers pipeline
 
-Version: Jan. 31, 2018
- 
-This file lists the software components of the *get_phylomarkers* pipeline and briefly describes how to install them.
+This file lists the software components of the **GET_PHYLOMARKERS** pipeline and its dependencies, briefly describing how to install them. It also provides instructions on how to prepare your Docker environment to run local instances (containers) of the [**GET_HOMOLOGUES + GET_PHYLOMARKERS Docker image**](https://hub.docker.com/r/csicunam/get_homologues/) available on Docker hub. We highly recommend installing the platform-independent, ready-to-use Docker version, which will free you from struggling with system-specific configuration issues.  
 
-The pipeline runs on Linux (Ubuntu and RedHat distros) and Mac OS X environments.
+The pipeline has been developed and extensively tested on Linux (Ubuntu and RedHat distros). It should also run on Mac OS X machines, but it has been less tested in this environment.
 
 It assumes that recent versions of Bash, Perl and R are installed on a multicore (64bit) machine, ideally a server running Linux.
-The pipeline is designed to take advantage of modern multicore machines to parallelize all repetitive tasks that have to be performed on each entry sequence, like tagging sequences, generating multiple sequence alignments, deriving codon alignments, runnig the Phi test on them and inferring maximum likelihood phylogenies from each alignment. We recommend running the pipeline on a multiprocessor/multicore server to speed up these  computations.
+**The pipeline is designed to take advantage of modern multicore machines to parallelize all repetitive tasks** that have to be performed on each entry sequence, like tagging sequences, generating multiple sequence alignments, deriving codon alignments, runnig the Phi test on them and inferring maximum likelihood phylogenies from each alignment. We recommend running the pipeline on a multiprocessor/multicore server to speed up these  computations.
 
 
 ## Quick install and test notes
@@ -34,10 +32,160 @@ Alternatively, you can try to perform a manual install, as follows:
 
 8. Explore the help menu of the main script to see the options available for customization of the run. It is printed to STDOUT when issuing run_get_phylomarkers_pipeline.sh -h or simply run_get_phylomarkers_pipeline.sh
 
-9.  Read the [**manual**](docs/GET_PHYLOMARKERS_manual.md) for the implementation details.
+9. Work out through the  [**tutorial**](https://github.com/vinuesa/get_phylomarkers/blob/master/docs/GET_PHYLOMARKERS_manual.md#get_phylomarkers-tutorial) to get a quick grasp of its possibilities.
+
+10.  Read the [**manual**](docs/GET_PHYLOMARKERS_manual.md) for the implementation details and additional functionality not described in the [tutorial](https://github.com/vinuesa/get_phylomarkers/blob/master/docs/GET_PHYLOMARKERS_manual.md#get_phylomarkers-tutorial).
 
 That's it, enjoy. 
 
+
+## Installing the Docker environment on your machine
+Here we provide brief notes and provide the relevant links to the official and up-to-date instructions to install the freely available [Docker Community Edition (CE)](https://docs.docker.com/install/).
+
+### What is this "Docker" thing you are recommending to install?
+- Docker is a standard way to build/package/ship software applications in a portable format, making it easy for developers to deploy complex software applications developed in a Linux environment as **Docker images**. These can then be very easily downloaded by users, who run them as an image instance known in the jargon as a [**Docker container**](https://docs.docker.com/get-started/part2/) on essentially any modern computer running recent OS versions of Linux, MacOS or Windows. 
+- You will need to download and install the matching version for your platform [supported platforms](https://docs.docker.com/install/#supported-platforms). 
+- After a successful install, you will have a Docker daemon running on your machine and you will be able to interact with **Docker images** you download from [**Dockerhub**](https://hub.docker.com/) like the [GET_HOMOLOGUES + GET_PHYLOMARKER image](https://hub.docker.com/r/csicunam/get_homologues/) (or built yourself on your system) by issuing commands from the **docker client**.
+- Read the official Docker [Get Started, Part 1: Orientation and setup](https://docs.docker.com/get-started/) documentation if you'd like further background information.
+- There are thousands of images available for you to download. You can search them at [Docker store](https://store.docker.com/)
+
+#### Recap of basic Docker concepts
+**A container** is launched by running an image. **An image** is an executable package that includes everything needed to run an application–the code, a runtime, libraries, environment variables, and configuration files.
+
+A container is a runtime instance of an image –what the image becomes in memory when executed (that is, an image with state, or a user process). You can see a list of your running containers with the command, docker ps, just as you would in Linux (see below).
+
+#### Installing Docker on a Linux box
+To install Docker CE, you need the 64-bit version of one of these Ubuntu versions:
+
+    Artful 17.10 (Docker CE 17.11 Edge and higher only)
+    Zesty 17.04
+    Xenial 16.04 (LTS)
+    Trusty 14.04 (LTS)
+
+You can install either from:
+
+- the [Docker's repository](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce) 
+- or from a [.deb package](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-from-a-package)
+    
+#### Install Docker for Mac
+The [Docker for Mac install package](https://docs.docker.com/docker-for-mac/install/) includes everything you need to run Docker CE on a Mac.
+
+#### Install Docker for Windows
+The [Docker for Windows install package](https://docs.docker.com/docker-for-windows/install/) includes everything you need to run Docker on a Windows system. 
+
+### Fetching and running the latest version of the [GET_HOMOLOGUES + GET_PHYLOMARKERS Docker image](https://hub.docker.com/r/csicunam/get_homologues/) 
+Once Docker is set up on your machine (the host), you can run get (fetch) the latest image version available at Dockerhub by typing the following commands in your terminal: 
+
+#### Fetch and run a container instance of the downloaded image
+
+```
+# If you are fetching the distro for the first time, the following command will take a while to download everything from Dockerhub ...
+docker run --rm -it csicunam/get_homologues:latest /bin/bash
+
+# you will get a container command prompt that will look something like:
+you@ce7444a1ffbd:~$
+
+# lets make sure GET_HOMOLOGUES is properly setup
+get_homologues.pl -v
+
+# lets do the same for GET_PHYLOMARKERS
+run_get_phylomarkers_pipeline.sh -v
+
+# lets exit this docker session
+exit
+
+```
+
+#### Update your local image of the GET_HOMOLOGUES + GET_PHYLOMARKERS Docker distro with docker pull
+In order to have the **latest version of the image** running on your machine, you need to [pull](https://docs.docker.com/engine/reference/commandline/pull/) it from [Dockerhub](https://hub.docker.com/r/csicunam/get_homologues/)
+
+```
+# pull the latest version of the image available on Dockerhub to your machine
+docker pull csicunam/get_homologues:latest
+
+# this will be much faster as the first install, as only modified files are updated.
+# if your image corresponds to the last version available, you'll see output like:
+latest: Pulling from csicunam/get_homologues
+Digest: sha256:e33fce348e28d4544c726961024b8450f48ac7ed1a30c0199247e1d29e0874ae
+Status: Image is up to date for csicunam/get_homologues:latest
+
+```
+
+#### A few basic docker commands
+You can search the full official [reference documentation](https://docs.docker.com/reference/). There are many good basic Docker tutorials on the Internet. You may like [Rominirami's tutorial for beginners](https://rominirani.com/docker-tutorial-series-part-2-basic-commands-baaf70807fd3) to quickly learn more of the basics.
+
+What follows is just a tiny bit to get you quickly up and running.
+
+- Get the installed docker version, search for images on Docker hub and general help + command-specific help
+
+```
+docker --version
+# Docker version 17.12.0-ce, build c97c6d6
+
+# >>> Display system-wide information
+docker info
+
+docker --help # output not shown
+
+docker pull --help
+#Usage:	docker pull [OPTIONS] NAME[:TAG|@DIGEST]
+#
+#Pull an image or a repository from a registry
+#
+#Options:
+#  -a, --all-tags                Download all tagged images in the repository
+#      --disable-content-trust   Skip image verification (default true)
+
+# >>> search for an image on Docker hub 
+docker search get_phylomarkers
+
+#NAME                             DESCRIPTION                                     STARS               OFFICIAL            AUTOMATED
+#eeadcsiccompbio/get_homologues   Ubuntu-based image with GET_HOMOLOGUES and G…   0                                       
+#csicunam/get_homologues          Ubuntu-based image with GET_HOMOLOGUES and G…   0
+
+```
+
+- Listing installed images
+
+```
+docker images
+# or docker image ls
+
+#REPOSITORY                TAG                     IMAGE ID            CREATED             SIZE
+#csicunam/get_homologues   01022018-2.1.1_2Feb18   9626fda936c7        14 hours ago        1.37GB
+#csicunam/get_homologues   latest                  9626fda936c7        14 hours ago        1.37GB
+#ubuntu                    16.04                   0458a4468cbc        9 days ago          112MB
+#r-base                    3.4.3                   524f705b5ed1        7 weeks ago         647MB
+#hello-world               latest                  f2a91732366c        2 months ago        1.85kB
+
+```
+- Listing running containers
+
+```
+## List Docker containers (running, all, all in quiet mode)
+docker container ls
+docker container ls -all
+docker container ls -a -q
+
+# example output
+docker ps -a
+#CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS                    PORTS               NAMES
+#c0fe986eb5d8        d61f3b9a7428        "/bin/bash"         41 hours ago        Exited (0) 37 hours ago                       test-container
+
+```
+
+- Removing images and containers
+
+```
+# remove and image (think twice befor performing)
+rmi IMAGE
+
+# remove one or more containers (good household habit)
+
+```
+
+- How to access the sequence data on the host (your machine) from a container instance
+This is an essential operation that is documented in the [**GET_PHYLOMARKERS tutorial**](https://github.com/vinuesa/get_phylomarkers/blob/master/docs/GET_PHYLOMARKERS_manual.md#get_phylomarkers-tutorial).
 
 ## Scripts distributed through GitHub
 
