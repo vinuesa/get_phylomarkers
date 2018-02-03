@@ -317,6 +317,7 @@ function compute_FT_gene_tree_stats()
    [ $DEBUG -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
+
 estimate_IQT_gene_trees()
 {
    # estimate gene trees running IQT in parallel using the user-defined mset
@@ -411,6 +412,56 @@ function compute_IQT_gene_tree_stats()
    [ $DEBUG -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
+compute_MJRC_tree()
+{
+    [ $DEBUG -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
+    ext="$1"
+    algo="$2"
+    
+    contree_outfile=
+    
+    if [ "$algo" == "F" ]; then
+        contree_outfile=FT_MJRC_tree.nwk
+    else
+         contree_outfile=IQT_MJRC_tree.nwk   
+    fi
+    
+    cat ./*."${ext}" > alltrees.nwk
+    
+    [ -s alltrees.nwk ] && iqtree -con alltrees.nwk &> /dev/null 
+    [ -s alltrees.nwk.contree ] && mv alltrees.nwk.contree $contree_outfile && rm alltrees.nwk.log
+    check_output $contree_outfile
+ 
+    [ $DEBUG -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
+}
+
+# NOTE: this consense-based version does not work if trees have different number of nodes! Use iqtree-based function above
+#function compute_MJRC_tree()
+#{
+#     [ $DEBUG -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
+#
+#     src_tree_ext=$1
+#    
+#     # 1 compute MJRE consensus tree with consense; 
+#     #   >>> WATCH OUT! does not work with trees with different number of leaves
+#     cat ./*$src_tree_ext > intree
+#     echo "y" > consense.cmd
+#
+#     consense < consense.cmd
+#     check_output outtree $parent_PID
+#
+#      #5.5 concatenated prefix required by run compute_suppValStas_and_RF-dist.R
+#      #ln -s outtree concatenated.ph
+#
+#     #5.6 compute average bipartition support values for each gene tree
+#     #	 and their RF-fistance to the consensus tree computed with consense
+#   [ $DEBUG -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
+#}
+#-----------------------------------------------------------------------------------------
+
+
+
+#-----------------------------------------------------------------------------------------
 
 function process_IQT_species_trees_for_molClock()
 {
@@ -464,29 +515,6 @@ function process_IQT_species_trees_for_molClock()
     # top100_median_support_values4loci.tab should probably not be written in the first instance
     [ -s top100_median_support_values4loci.tab -a "${no_top_markers}" -lt 101 ] && rm top100_median_support_values4loci.tab
 
-   [ $DEBUG -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
-}
-#-----------------------------------------------------------------------------------------
-
-function compute_MJRC_tree()
-{
-     [ $DEBUG -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
-
-     src_tree_ext=$1
-    
-     # 1 compute MJRE consensus tree with consense; 
-     #   >>> WATCH OUT! does not work with trees with different number of leaves
-     cat ./*$src_tree_ext > intree
-     echo "y" > consense.cmd
-
-     consense < consense.cmd
-     check_output outtree $parent_PID
-
-      #5.5 concatenated prefix required by run compute_suppValStas_and_RF-dist.R
-      #ln -s outtree concatenated.ph
-
-     #5.6 compute average bipartition support values for each gene tree
-     #	 and their RF-fistance to the consensus tree computed with consense
    [ $DEBUG -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
