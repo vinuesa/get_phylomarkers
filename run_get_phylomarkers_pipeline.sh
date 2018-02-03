@@ -25,7 +25,7 @@
 #              along with graphics and tables summarizing the results of the pipeline obtained at different levels.
 #
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.0.4_1Feb18'
+VERSION='2.1.0_2Feb18'
 
 # Set GLOBALS
 DEBUG=0
@@ -1063,6 +1063,9 @@ then
 	# 4.1.2 generate computation-time and lnL stats
 	[ $DEBUG -eq 1 ] && msg "compute_FT_gene_tree_stats $mol_type $search_thoroughness" DEBUG NC
 	compute_FT_gene_tree_stats $mol_type $search_thoroughness
+	
+	print_start_time && msg "# running compute_MJRC_tree ph $search_algorithm ..." PROGR BLUE
+	compute_MJRC_tree ph $search_algorithm 
     else
         gene_tree_ext="treefile"
 	msg "" PROGR NC
@@ -1077,6 +1080,9 @@ then
 
 	# 4.1.2 generate computation-time, lnL and best-model stats
 	compute_IQT_gene_tree_stats $mol_type $search_thoroughness
+	
+	print_start_time && msg "# running compute_MJRC_tree treefile $search_algorithm ..." PROGR BLUE
+	compute_MJRC_tree treefile $search_algorithm 
     fi
 
     #remove trees with < 5 branches
@@ -1307,6 +1313,10 @@ then
           print_start_time && msg "# computing the mean support values and RF-distances of each gene tree to the concatenated tree ..." PROGR BLUE
 	  [ $DEBUG -eq 1 ] && msg " > compute_suppValStas_and_RF-dist.R $top_markers_dir 2 fasta ph 1 &> /dev/null" DEBUG NC
           $distrodir/compute_suppValStas_and_RF-dist.R $top_markers_dir 2 fasta ph 1 &> /dev/null
+	  
+	  print_start_time && msg "# running compute_MJRC_tree ph $search_algorithm ..." PROGR BLUE
+	  compute_MJRC_tree ph $search_algorithm 
+
 
 	  # top100_median_support_values4loci.tab should probably not be written in the first instance
 	  [ -s top100_median_support_values4loci.tab -a "${no_top_markers}" -lt 101 ] && rm top100_median_support_values4loci.tab
@@ -1323,6 +1333,9 @@ then
           msg "" PROGR NC
 	  msg " >>>>>>>>>>>>>>> ModelFinder + IQ-TREE run on supermatrix to estimate the species tree <<<<<<<<<<<<<<< " PROGR YELLOW
 	  msg "" PROGR NC
+
+          print_start_time && msg "# running compute_MJRC_tree treefile $search_algorithm ..." PROGR BLUE
+	  compute_MJRC_tree treefile $search_algorithm 
 
 	  print_start_time && msg "# running ModelFinder on the concatenated alignment with $IQT_models. This will take a while ..." PROGR BLUE
 
@@ -1466,6 +1479,7 @@ then
 	    [ -s $concat_logfile ] && gzip $concat_logfile
 
             cd $non_recomb_cdn_alns_dir
+	    [ $DEBUG -eq 1 ] && echo "... working in: $non_recomb_cdn_alns_dir ]"	
 	    rm Rplots.pdf ./sorted*perc.tab sorted_aggregated_*tab ./all_*trees.tre top100_median_support_values4loci.tab 
 	    rm kde_outlier_files_all_gene_trees.tre.out kde_stats_all_gene_trees.tre.out
 	    [ $DEBUG -eq 0 ] && tar -czf non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln.fasta
@@ -1476,6 +1490,7 @@ then
             [ $DEBUG -eq 0 ] && [ -s FastTree_logfiles.tgz ] && rm ./*.log
 	    
 	    cd $top_dir
+	    [ $DEBUG -eq 1 ] && echo "... working in: $top_dir ]"	
 	    tar -czf codon_alignments.tgz ./*_cdnAln.fasta
             [ $DEBUG -eq 0 ] && [ -s codon_alignments.tgz ] && rm ./*_cdnAln.fasta clustalo.log
             tar -czf protein_alignments.tgz ./*.faaln
@@ -1494,6 +1509,7 @@ then
 	    [ $DEBUG -eq 0 ] && rm gene_trees2_concat_tree_RF_distances.tab ./*cdnAln.fasta ./*.log sorted_aggregated_support_values4loci_*.tab ./*ckp.gz ./*model.gz ./*uniqueseq.phy
 
             cd $non_recomb_cdn_alns_dir
+	    [ $DEBUG -eq 1 ] && echo "... working in: $non_recomb_cdn_alns_dir ]"	
 	    [ $DEBUG -eq 0 ] && rm ./Rplots.pdf sorted_aggregated_*tab ./all_*trees.tre kde_*out ./top100_median_support_values4loci.tab
 	    tar -czf non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln.fasta
 	    [ $DEBUG -eq 0 ] && [ -s non_recombinant_kdeOK_codon_alignments.tgz ] && rm ./*_cdnAln.fasta
@@ -1503,6 +1519,7 @@ then
 	    [ $DEBUG -eq 0 ] && [ -s IQT_gene_tree_logfiles.tgz ] && rm ./*fasta.log
 	    
 	    cd $top_dir
+	    [ $DEBUG -eq 1 ] && echo "... working in: $top_dir ]"	
 	    tar -czf codon_alignments.tgz ./*_cdnAln.fasta
             [ $DEBUG -eq 0 ] && [ -s codon_alignments.tgz ] && rm ./*_cdnAln.fasta clustalo.log
             tar -czf protein_alignments.tgz ./*.faaln
@@ -1559,23 +1576,40 @@ then
 
 	msg " >>> descriptive DNA polymorphism stats are found in: $popGen_dir ..." PROGR GREEN
 
-
 	#>>> CLEANUP <<<#
 	tar -czf clean_cdnAlns.tgz ./*_cdnAln_clean.fasta ./*.nex
 	[ -s clean_cdnAlns.tgz ] && rm -rf ./*_cdnAln_clean.fasta ./*.nex ./paup.cmd ./popGen_summStats_*.log ./*_cdnAln.fasta
 
+#       # No molclock test for -R 2 implemented yet
+#	if [ $eval_clock -eq 1 ]
+#	then
+#	    tar -czf molClock_PAUP_files.tgz ./*_paup.block ./*.nex  ./*_clockTest.log ./*tre ./*clock.scores ./*critical_X2_val.R \
+#	    $mol_clock_tab ${mol_clock_tab}sorted mol_clock_*_ClockTest.ta*
+#            [ $DEBUG -eq 0 ] && [ -s molClock_PAUP_files.tgz ] && rm ./*_paup.block ./*.nex  ./*_clockTest.log ./*tre ./*clock.scores ./*critical_X2_val.R
+#            [ $DEBUG -eq 0 ] && rm list2concat Rplots.pdf header.tmp list2grep.tmp
+#	fi
+# 
 	cd $non_recomb_cdn_alns_dir
-	tar -czf non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln.fasta
-	[ -s non_recombinant_kdeOK_codon_alignments.tgz ] && rm ./*_cdnAln.fasta ./all_*trees.tre ./Rplots.pdf
-	tar -czf gene_trees_from_non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln*.ph
-	[ -s gene_trees_from_non_recombinant_kdeOK_codon_alignments.tgz ] && rm ./*_cdnAln*.ph
+	[ $DEBUG -eq 1 ] && echo "... working in: $non_recomb_cdn_alns_dir ]"	
+        tar -czf non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln.fasta
+        [ $DEBUG -eq 0 ] && [ -s non_recombinant_kdeOK_codon_alignments.tgz ] && rm ./*_cdnAln.fasta ./all_*trees.tre ./Rplots.pdf
+	
+	if [ "$search_algorithm" == "F" ]
+	then
+            tar -czf FT_gene_trees_from_non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln*.ph ./*_cdnAln.log
+            [ $DEBUG -eq 0 ] && [ -s FT_gene_trees_from_non_recombinant_kdeOK_codon_alignments.tgz ] && rm ./*_cdnAln*.ph ./*_cdnAln.log
+        else
+            tar -czf IQT_gene_trees_from_non_recombinant_kdeOK_codon_alignments.tgz ./*.fasta.log ./*.fasta.treefile
+            [ $DEBUG -eq 0 ] && [ -s IQT_gene_trees_from_non_recombinant_kdeOK_codon_alignments.tgz ] && rm ./*.fasta.log ./*.fasta.treefile
+        fi
 
-	cd $top_dir
-	tar -czf codon_alignments.tgz ./*_cdnAln.fasta
+        cd $top_dir
+	[ $DEBUG -eq 1 ] && echo "... working in: $top_dir ]"	
+        tar -czf codon_alignments.tgz ./*_cdnAln.fasta
         [ -s codon_alignments.tgz ] && rm ./*_cdnAln.fasta clustalo.log
         tar -czf protein_alignments.tgz ./*.faaln
         [ -s protein_alignments.tgz ] && rm ./*.faaln
-    fi
+    fi # if $runmode -eq 2
 fi # if [ "$mol_type" == "DNA"
 
 
@@ -1605,14 +1639,18 @@ then
         gene_tree_ext="ph"
 	lmsg=" > running estimate_FT_gene_trees $mol_type $search_thoroughness ..."
         [ $DEBUG -eq 1 ] && msg "$lmsg" DEBUG NC
-	estimate_FT_gene_trees $mol_type $search_thoroughness
+	estimate_FT_gene_trees "$mol_type" "$search_thoroughness"
 
 	# 4.1.1 check that FT computed the expected gene trees
         no_gene_trees=$(find . -name "*.ph" | wc -l)
         [ $no_gene_trees -lt 1 ] && print_start_time && msg " >>> ERROR: There are no gene tree to work on in non_recomb_cdn_alns/. will exit now!" ERROR RED && exit 3
 
 	# 4.1.2 generate computation-time and lnL stats
-	compute_FT_gene_tree_stats $mol_type $search_thoroughness
+	compute_FT_gene_tree_stats "$mol_type" "$search_thoroughness"
+	
+	print_start_time && msg "# running compute_MJRC_tree $gene_tree_ext $search_algorithm ..." PROGR BLUE
+	compute_MJRC_tree "$gene_tree_ext" "$search_algorithm" 
+
     else
         gene_tree_ext="treefile"
 	msg "" PROGR NC
@@ -1627,6 +1665,9 @@ then
 
 	# 4.1.2 generate computation-time, lnL and best-model stats
 	compute_IQT_gene_tree_stats $mol_type $search_thoroughness
+	
+	print_start_time && msg "# running compute_MJRC_tree $gene_tree_ext $search_algorithm ..." PROGR BLUE
+        compute_MJRC_tree "$gene_tree_ext" "$search_algorithm" 
     fi
 
     #remove trees with < 5 branches
@@ -1836,7 +1877,10 @@ then
 
         check_output ${tree_prefix}_${no_top_markers}nonRecomb_KdeFilt_protAlns_FTlgG.spTree $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
-       msg " >>> found in dir $top_markers_dir ..." PROGR GREEN
+        msg " >>> found in dir $top_markers_dir ..." PROGR GREEN
+	
+        print_start_time && msg "# running compute_MJRC_tree ph $search_algorithm ..." PROGR BLUE
+	compute_MJRC_tree ph "$search_algorithm" 
 
         [ $DEBUG -eq 1 ] && msg " > compute_suppValStas_and_RF-dist.R $top_markers_dir 2 faaln ph 1 &> /dev/null" DEBUG NC
         ${distrodir}/compute_suppValStas_and_RF-dist.R $top_markers_dir 2 faaln ph 1 &> /dev/null
@@ -1855,6 +1899,8 @@ then
        msg "" PROGR NC
 
        #wkdir=$(pwd)
+       print_start_time && msg "# running compute_MJRC_tree treefile $search_algorithm ..." PROGR BLUE
+       compute_MJRC_tree treefile "$search_algorithm" 
        
        print_start_time && msg "# running ModelFinder on the $no_top_markers concatenated $mol_type alignments with $IQT_models. This will take a while ..." PROGR BLUE
 
@@ -1941,6 +1987,7 @@ then
         tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
         cd $non_recomb_FAA_alns_dir
+	[ $DEBUG -eq 1 ] && echo "... working in: $non_recomb_FAA_alns_dir ]"	
         tar -czf non_recomb_kdeOK_FAA_alignments.tgz ./*_cluo.faaln
         [ -s non_recomb_kdeOK_FAA_alignments.tgz ] && rm ./*_cluo.faaln
         tar -czf non_recomb_kdeOK_prot_trees.tgz ./*_cluo_*.ph ./*.log
@@ -1948,6 +1995,7 @@ then
 	rm Rplots.pdf no_tree_branches.list
 
         cd $top_dir
+ 	[ $DEBUG -eq 1 ] && echo "... working in: $top_dir ]"	
         tar -czf codon_alignments.tgz ./*_cdnAln.fasta
         [ -s codon_alignments.tgz ] && rm ./*_cdnAln.fasta clustalo.log
         tar -czf protein_alignments.tgz ./*.faaln
@@ -1961,18 +2009,19 @@ then
         [ $DEBUG -eq 0 ] && rm  ../Rplots.pdf ../sorted*perc.tab 
 
         cd $non_recomb_FAA_alns_dir
+	[ $DEBUG -eq 1 ] && echo "... working in: $non_recomb_FAA_alns_dir ]"	
         tar -czf non_recomb_kdeOK_FAA_alignments.tgz ./*_cluo.faaln
         [ -s non_recomb_kdeOK_FAA_alignments.tgz ] && rm ./*_cluo.faaln
         tar -czf non_recomb_kdeOK_prot_trees.tgz ./*faaln.treefile ./*.faaln.log all_gene_trees.tre
         [ -s non_recomb_kdeOK_prot_trees.tgz ] && rm ./*faaln.treefile all_gene_trees.tre ./*.faaln.log kde*.out top100_median_support_values4loci.tab no_tree_branches.list
 
         cd $top_dir
+	[ $DEBUG -eq 1 ] && echo "... working in: $top_dir ]"	
         tar -czf codon_alignments.tgz ./*_cdnAln.fasta
         [ -s codon_alignments.tgz ] && rm ./*_cdnAln.fasta clustalo.log
         tar -czf protein_alignments.tgz ./*.faaln
         [ -s protein_alignments.tgz ] && rm ./*.faaln
     fi
-
 fi # [ "$mol_type" == "PROT" ]
 
 # compute the elapsed time since the script was fired
