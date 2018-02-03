@@ -25,7 +25,7 @@
 #              along with graphics and tables summarizing the results of the pipeline obtained at different levels.
 #
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.1.0_2Feb18'
+VERSION='2.1.1_2Feb18'
 
 # Set GLOBALS
 DEBUG=0
@@ -1462,25 +1462,25 @@ then
  # >>> 5.4 cleanup <<< #
  #---------------------#
 
-	if [ $search_algorithm == "F" ]
+	if [ "$search_algorithm" == "F" ]
 	then
-	    if [ $eval_clock -eq 1 ]
+	    if [ "$eval_clock" -eq 1 ]
 	    then
 	        tar -czf molClock_PAUP_files.tgz ./*_paup.block ./*.nex  ./*_clockTest.log ./*tre ./*clock.scores ./*critical_X2_val.R \
 	        $mol_clock_tab ${mol_clock_tab}sorted mol_clock_MGTRG_r_o_q099_ClockTest.ta*
-                [ $DEBUG -eq 0 ] && [ -s molClock_PAUP_files.tgz ] && rm ./*_paup.block ./*.nex  ./*_clockTest.log ./*tre ./*clock.scores ./*critical_X2_val.R
-                [ $DEBUG -eq 0 ] && rm list2concat Rplots.pdf header.tmp list2grep.tmp concat_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
+                [ "$DEBUG" -eq 0 ] && [ -s molClock_PAUP_files.tgz ] && rm ./*_paup.block ./*.nex  ./*_clockTest.log ./*tre ./*clock.scores ./*critical_X2_val.R
+                [ "$DEBUG" -eq 0 ] && rm list2concat Rplots.pdf header.tmp list2grep.tmp concat_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
 	    fi
 	    
 	    tar -czf concatenated_alignment_files.tgz concat_cdnAlns.fna concat_cdnAlns.fnainf
             [ -s concatenated_alignment_files.tgz ] && rm concat_cdnAlns.fna concat_cdnAlns.fnainf
-	    [ $DEBUG -eq 0 ] && rm gene_trees2_concat_tree_RF_distances.tab ./*cdnAln_FTGTR.ph ./*cdnAln.fasta Rplots.pdf list2concat ./*cdnAln.log
+	    [ $DEBUG -eq 0 ] && rm gene_trees2_concat_tree_RF_distances.tab ./*cdnAln_FTGTR.ph ./*cdnAln.fasta ./*cdnAln.log ./sorted_aggregated_*tab
 	    concat_logfile=$(find . -name 'concat*log')
 	    [ -s $concat_logfile ] && gzip $concat_logfile
 
             cd $non_recomb_cdn_alns_dir
 	    [ $DEBUG -eq 1 ] && echo "... working in: $non_recomb_cdn_alns_dir ]"	
-	    rm Rplots.pdf ./sorted*perc.tab sorted_aggregated_*tab ./all_*trees.tre top100_median_support_values4loci.tab 
+	    rm Rplots.pdf ./sorted*perc.tab ./all_*trees.tre top100_median_support_values4loci.tab 
 	    rm kde_outlier_files_all_gene_trees.tre.out kde_stats_all_gene_trees.tre.out
 	    [ $DEBUG -eq 0 ] && tar -czf non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln.fasta
 	    [ -s non_recombinant_kdeOK_codon_alignments.tgz ] && rm ./*_cdnAln.fasta
