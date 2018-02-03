@@ -1,3 +1,9 @@
+2Feb18: # changes in tagged release v1.2.0 
+        * added statically compiled bc for linux to avoid problmes in docker containers that don't find the interpreter /lib64/ld-linux-x86-64.so.2 in dynamically compiled binaries
+	* added new function compute_MJRC_tree() based on iqtree -con, which computes the MJRC trees for all non-recomb input trees and top markers, for -F A|I and -t DNA|PROT
+	* updated run_get_phylomarkers_pipeline.sh to 'v2.1.0_2Feb18', which calls compute_MJRC_tree() and performs proper cleanup/tidying of directories when -R 2
+	* further checked cleanup functions
+
 1Feb18:  * run_get_phylomarkers_pipeline.sh v2.0.4_1Feb18 performs a more thorough and consistent final cleanup/tidying of directories
          * added bc Mach-O 64-bit x86_64 executable to bin/macosx-intel
 	 * changed calls to rename for $distrodir/rename.pl in get_phylomarkers_fun_lib so that docker container instances can find it
