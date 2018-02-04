@@ -13,7 +13,9 @@ This manual provides the usage details for **GET_PHYLOMARKERS**, a software pack
 ![Figure 1](pics/getphylo_flowchart_FINAL.png)
 
 <!--
-<img src="pics/getphylo_flowchart_FINAL.png" width="100%" height="1200px" style="display: block; margin: auto;" />
+```{r, fig.align='center', out.width = "100%", echo = FALSE}
+knitr::include_graphics("pics/getphylo_flowchart_FINAL.png")
+```
 -->
 
 <!--<img src="pics/getphylo_flowchart_FINAL.png" alt="GET_PHYLOMARKERS pipeline workflow"
@@ -25,7 +27,7 @@ This manual provides the usage details for **GET_PHYLOMARKERS**, a software pack
 
 The **GET_PHYLOMARKERS** pagacke can be conveniently downloaded as a [**GitHub release**](https://github.com/vinuesa/get_phylomarkers/releases). For detailed instructions on installing the external dependencies please check [**INSTALL.md**](https://github.com/vinuesa/get_phylomarkers/blob/master/INSTALL.md).
 
-A [**Docker image**](https://hub.docker.com/r/csicunam/get_homologues) is available that bundles **GET_PHYLOMARKERS** with [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues), ready to use. We highly recommend installing the docker image to avoid potential problems with the installation of the many second-party dependencies.
+A [**Docker image**](https://hub.docker.com/r/csicunam/get_homologues) is available that bundles **GET_PHYLOMARKERS** with [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues), ready to use. We highly recommend installing the docker image to avoid potential problems with the installation of the many second-party dependencies. If you have not set a Docker environment on your machine, please see the instructions provied in the [**INSTALL.md**](https://github.com/vinuesa/get_phylomarkers/blob/master/INSTALL.md) document for installing Docker on different platforms and downloading/upgrading the Docker image from Docker hub.
 
 ## Aim
 **GET_PHYLOMARKERS** implements a series of sequential filters (**Fig. 1** and explained below) to selects markers from the homologous gene clusters produced by [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues) with optimal attributes for phylogenomic inference. It estimates **gene-trees** and **species-trees** under the **maximum likelihood (ML) optimality criterion** using *state-of-the-art* fast ML tree searching algorithms. The species tree is estimated from the supermatrix of concatenated, top-scoring alignments that passed the quality filters. The stringency of these filters and the thoroughness of the ML tree searches can be controlled by the user, although sensible defaults are provided, making it an easy-to-use, **user-friendly software**.
@@ -250,7 +252,7 @@ run_get_phylomarkers_pipeline.sh -R 1 -A F -t DNA -m 0.7 -k 1.0 -T high -s 20 -l
 # GET_PHYLOMARKERS TUTORIAL
 
 ## Test datasets
-The **GET_PHYLOMARKERS** distribution provides a **test_sequences/** directory which holds the subdirectories **core_genome/** and **pan_genome/**. The first one contains **\*.fna** and **\*.faa** FASTA files with the **consensus (BDBH, COGtriangles and OMCL) core-genome clusters** computed with **GET_HOMOLOGUES** from a set of 12 GenBank-formatted pIncA/C plasmids. The latter holds the **pan-genome matrix** computed by *compare_clusters.pl* from the **GET_HOMOLOGUES** suite in tabular (\*.tab), FASTA (\*.fasta) and phylip (\*.phy) formats. The **pIncAC/** directory holds the source \*.gbk GenBank files. This directory has a README.txt file that briefly describes the GenBank files.
+The **GET_PHYLOMARKERS** distribution provides a **test_sequences/** directory which holds the subdirectories **core_genome/**, **pan_genome/** and **pIncAC/**. The first one contains **\*.fna** and **\*.faa** FASTA files with the **consensus (BDBH, COGtriangles and OMCL) core-genome clusters** computed with **GET_HOMOLOGUES** from a set of 12 GenBank-formatted pIncA/C plasmids,provided in the pIncAC/ directory. The second one holds the **pan-genome matrix** computed by *compare_clusters.pl* from the **GET_HOMOLOGUES** suite in tabular (\*.tab), FASTA (\*.fasta) and phylip (\*.phy) formats. The **pIncAC/** directory holds the source \*.gbk GenBank files. This directory has a README.txt file that briefly describes the GenBank files.
 
 These directories allow you to:
 
@@ -260,11 +262,135 @@ These directories allow you to:
 
 - Run the comlete GET_HOMOLOGUES + GET_PHYLOMARKERS pipelines from scratch (pIncAC)
 
-The following sections provide code examples on how to run the full **GET_HOMOLOGUES** + **GET_PHYLOMARKERS** pipelines using the test sequences.
+The first section below will first show how to share data between the host (your) machine and the **GET_HOMOLOGUES + GET_PHYLOMARKERS Docker container**.
+
+The following ones provide code examples on how to run the full **GET_HOMOLOGUES** + **GET_PHYLOMARKERS** pipelines using the test sequences.
+
+## How to share data between the host (your) machine and the **GET_HOMOLOGUES + GET_PHYLOMARKERS Docker container**
+1. Design a suitable place on your file system to put the projects and associated sequence data that you will analyze with the **GET_HOMOLOGUES + GET_PHYLOMARKERS** software suites, and create a top directory to hold your projects in subdirectories
+
+```
+# for example at your home directory
+cd # takes you home
+
+# make the directory
+mkdir get_homPhy 
+
+```
+2. Copy the test_sequences directory from the distribution into $HOME/get_homPhy
+
+```
+cp -r ~/path2your/github/get_phylomarkers/test_sequences/ get_homPhy/
+
+# grant write permissions to all users
+# this is required for the container to get access to the directory and write write results in it
+chmod -R a+w get_homPhy
+
+```
+3. With that directory in place, the command to deploy the container 
+  (attaching the host directory to the container volume located at the $HOME/get_homPhy 
+  directory within the container) would be:
+
+```
+docker run --rm -d -P --name get_homPhy -v $HOME/get_homPhy:/home/you/get_homPhy -it csicunam/get_homologues:latest /bin/bash
+
+```
+You should be presented with the container ID (a3ba1460d5e40af32fb8223c8bd17a725ea05b760d145f4001d23f33b47bef01). Make note of the first four characters for the next step.
+
+
+4. Finally, we need to attach the Docker's ID to gain shell access to the running container. Just copy the first 4 characters
+
+```
+# Attach local standard input, output, and error streams to a running container
+docker attach  a3ba
+
+```
+That's it, now we can work within our get_homPhy directory in the Bash environment provided by the container, which also contains all the code required to run **GET_HOMOLOGUES** and **GET_PHYLOMARKERS**. Before getting our hands dirty, lets have a peak at the container environment.
+
+```
+# Now you are running in the container! Lets explore its environment
+
+# 1. where are we at?
+you@a3ba1460d5e4:~$ pwd
+/home/you
+
+# 2. list directories
+you@a3ba1460d5e4:~$ ls
+get_homPhy
+
+# 3. list contents of to directories/
+you@a3ba1460d5e4:~$ ls /
+bin boot dev etc get_homologues get_phylomarkers home lib ...
+
+# 3. list contents of the get_homologues and get_phylomarkers directories
+you@a3ba1460d5e4:~$ ls /get_homologues/
+you@a3ba1460d5e4:~$ ls /get_phylomarkers/
+
+# 4. listing the contents of the /bin directory reveals that we have a powerful 
+#    Linux toolset at hand, including interpreted programming languages like awk, bash, perl, R,
+#    editors like vim, diverse compilers ... 
+you@a3ba1460d5e4:~$ perl -e 'print "Hello world\n";'
+
+# 5. lets have a peak at to our sequence data
+you@a3ba1460d5e4:~$ cd get_homPhy/test_sequences
+
+you@a3ba1460d5e4:~/get_homPhy/test_sequences$ ls
+core_genome  pan_genome  pIncAC
+
+# 5.2 list the contents of each directory recursively
+you@a3ba1460d5e4:~/get_homPhy/test_sequences$ ls -R
+
+# 6. cd into core_genome and list contents
+cd core_genome && ls
+
+# 6.1 How many faa and fna files are there?
+ls *.faa | wc -l
+ls *.fna | wc -l
+
+# 6.1 How many sequences are in each faa file and provide a summary for the fna files
+grep -c '>' *faa 
+grep -c '>' *fna | cut -d: -f2 | sort | unq -c
+
+# 7. lets have a peak at the files
+head -2 1962_DNA_topoisomerase_II...fna
+grep '>' head -2 1962_DNA_topoisomerase_II...fna
+
+# 8. Finally lets return /home/you/get_homPhy directory to proceed with the GET_HOMOLOGUES and GET_PHYLOMARKERS tutorials
+you@a3ba1460d5e4:~$ cd ~/get_homPhy/
+
+# 8.1 It's important to note and remember that you can write output in ~/get_homPhy/ and any subdirectory below it 
+#      and acces the contents from your host machine. The data written to disk are parmanent and shared between the 
+#      Docker container and the host. Lets demonstrate it
+you@b16d93c02c9a:~/get_homPhy$ cat date_stamp.txt
+you@b16d93c02c9a:~/get_homPhy$ ls
+date_stamp.txt  test_sequences
+you@b16d93c02c9a:~/get_homPhy$ cat date_stamp.txt
+Sun Feb  4 02:11:41 UTC 2018
+
+# Note that the time stamp will most likely not correspond to your real time
+# This can be configured, as shown for example in this nice blog
+# https://www.ivankrizsan.se/2015/10/31/time-in-docker-containers/
+
+# Now open a terminal or the filesystem browser of the host machine and navigate to 
+# /home/you/get_homPhy directory to confirm that you can see the date_stamp.txt
+# file that we have just generated.
+
+# That's it, you made it, congratulations! You have permanently shared a parent directory
+# and their childs between the host and your GET_HOMOLOGUES+GET_PHYLOMARKERS Docker container.
+# You are all set to start working with your own data or the test sequences provided with
+# the GET_PHYLOMARKERS distribution for the tutorials that folow.
+
+```
+
+This should have convinced you that you have a powerful Linux toolset at hand to explore and process your data in different ways in a standard shell (Bash) environment.
+
+Lets proceed now with the **GET_HOMOLOGUES**  and **GET_PHYLOMARKERS** tutorials.
 
 ## Computing a consensus core-genome with GET_HOMOLOGUES
 
-Go (cd) into the distribution directory and cd into the subidrectory test_sequences and issue the commands shown below.
+If you are not running in the Docker container, go (cd) into the distribution directory and cd into the subidrectory test_sequences and issue the commands shown below.
+
+If you are running a Docker container, and assuming that you followed the Docker tutorial presented in the previous section, just make sure that you are in ~/get_homPhy/.
 
 ```
 # 1. cd into the directory holding the test_sequences
@@ -272,10 +398,20 @@ cd test_sequences/
 ls # will list the following directories: core_genome, pan_genome and pIncAC
 
 # 2. run get_homologues to compute the set of homologous clusters using the BDBH, COGtriangles and OMCL clustering algorithms 
-get_homologues.pl -d pIncAC -t 12 -e -n 4  # BDBH clusters containing sequences for the 12 genomes, 
+get_homologues.pl -d pIncAC -t 12 -e -n 1  # BDBH clusters containing sequences for the 12 genomes, 
                                            # excluding those with inparalogues (-e): 33 clusters found.
                                            # Takes 330 wallclock secs on a comodity desktop with 
-                                           # Intel Core2 Quad CPU Q9400 @ 2.66GHz x 4 cores
+                                           # Intel Core2 Quad CPU Q9400 @ 2.66GHz x 1 cores
+# if you want, you can suspend the job and put it to the background
+CTRL-Z
+bg
+
+# and run the top command to see the processes running
+top
+
+# hit q to quit monitoring the processes running on your system (docker or host) with the top command
+
+# Now cluster sequences using the COGtriangles algorithm
 get_homologues.pl -d pIncAC -G -t 0        # COGtriangles, computing clusters of all sizes (-t 0)
                                            # finds 408 clusters in 14 wallclock secs, as it recycles
                                            # the blast results of the previous run.
@@ -284,6 +420,7 @@ get_homologues.pl -d pIncAC/ -M -t 0       # OMCL, finds 393 clusters in 5 wallc
 ```
 
 ## Computing a consensus core-genome with GET_HOMOLOGUES
+To learn all details around running GET_HOMOLOGUES, please read the online [GET_HOMOLOGUES manual](http://eead-csic-compbio.github.io/get_homologues/manual/)
 
 ```
 # Compute consensus core-genome clusters using compare_clusters.pl of the GET_HOMOLOGUES suite.
@@ -338,7 +475,10 @@ cd core_BCM
 find . -name '*.faa' | wc -l  # 31
 find . -name '*.fna' | wc -l  # 31
 
-# 2. run the pipeline under default values
+# 2.1 view the help menu of the main script run_get_phylomarkers_pipeline.sh
+run_get_phylomarkers_pipeline.sh -h
+
+# 2.2 run the pipeline under default values. See the manual for the many additional options
 run_get_phylomarkers_pipeline.sh -R 1 -t DNA # takes 55 seconds on the above-mentioned machine
 
 ```
@@ -428,9 +568,11 @@ ls -1 *svg
 
 ```
 
-**Figure 4** below depicts the **results of the non-parametric *kdetrees* test**, run at the default stringency level of k = 1.5. As depicted on the graph, only one outlier is detected based on the topology (lower panel)
+**Figure 4** below depicts the **results of the non-parametric *kdetrees* test**, run at the default stringency level of k = 1.5. As depicted on the graph, only one outlier is detected based on the topology (lower panel). 
 
 ![Fig.4 results of the kdetrees test](pics/dotplot_and_bxplot_kdeDensity_dist_dissim_topo_TRUE_90x90mm.png)
+
+**IMPORTANT NOTE**: to visualize the figures, you need to access the corresponding files from your local host, as the Docker container does not provide a graphical environment with visualization tools.
 
 **Figure 5** depicts a **scatterplot and a histogram summarizing the distribution of mean SH-support values for the 25 gene trees** that reached this point in the pipeline.
 
@@ -530,6 +672,7 @@ figtree best_PGM_IQT_abayes_UFBboot_run9_GTR2+FO.treefile &
 
 ![Fig. 8. best ML pan-genome tree](pics/best_PGM_IQT_abayes_UFBboot_run9_GTR2+FO.treefile.png)
 
+
 ## Estimating the pan-genome phylogeny of the pIncA/C plasmids under the parsimony criterion with GET_PHYLOMARKERS
 
 ```
@@ -560,6 +703,10 @@ figtree full_pars_tree_rooted_withBoot_ed.ph &
 
 ![Fig. 9 most parsimonious pan-genome tree](pics/full_pars_tree_rooted_withBoot_ed.ph.png)
 
+If you are running the tutorials from a Docker image instance, do you remember how to exit the container?
+It's with exit
+
+That's it.
 
 # Developers
 The code is developed and maintained by [Pablo Vinuesa](http://www.ccg.unam.mx/~vinuesa/) 
