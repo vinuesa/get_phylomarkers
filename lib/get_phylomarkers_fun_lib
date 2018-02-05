@@ -422,8 +422,10 @@ compute_MJRC_tree()
     
     if [ "$algo" == "F" ]; then
         contree_outfile=FT_MJRC_tree.nwk
+	#labelled_contree_outfile=FT_MJRC_tree_ed.nwk
     else
          contree_outfile=IQT_MJRC_tree.nwk   
+         #labelled_contree_outfile=IQT_MJRC_tree_ed.nwk   
     fi
     
     cat ./*."${ext}" > alltrees.nwk
@@ -433,6 +435,9 @@ compute_MJRC_tree()
     check_output $contree_outfile
  
     [ $DEBUG -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
+    
+    #"$distrodir"/add_labels2tree.pl "$top_dir"/tree_labels.list $contree_outfile &> /dev/null
+    # check_output "$labelled_contree_outfile"
 }
 
 # NOTE: this consense-based version does not work if trees have different number of nodes! Use iqtree-based function above
