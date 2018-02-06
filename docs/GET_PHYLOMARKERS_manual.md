@@ -305,12 +305,45 @@ You should be presented with the container ID (a3ba1460d5e40af32fb8223c8bd17a725
 docker attach  a3ba
 
 ```
-That's it, now we can work within our get_homPhy directory in the Bash environment provided by the container, which also contains all the code required to run **GET_HOMOLOGUES** and **GET_PHYLOMARKERS**. Before getting our hands dirty, lets have a peak at the container environment.
+That's it, now we can work within our get_homPhy directory in the Bash environment provided by the container, which also contains all the code required to run **GET_HOMOLOGUES** and **GET_PHYLOMARKERS**. Before getting our hands dirty, lets have a look at the container's environment.
+
+### Exploring the container's environment
 
 ```
-# Now you are running in the container! Lets explore its environment
+# >>> Now you are running in the container! 
+        Lets explore its environment <<<  
 
-# 1. where are we at?
+# What type of OS is the Docker running?
+you@b15c0ab109e3:~/get_homPhy/test_sequences/core_genome$ echo $OSTYPE
+linux-gnu
+
+# Give me more details of the OS
+you@b15c0ab109e3:~/get_homPhy/test_sequences/core_genome$ uname -a
+Linux b15c0ab109e3 4.4.0-112-generic #135-Ubuntu SMP Fri Jan 19 11:48:36 UTC 2018 x86_64 GNU/Linux
+
+# What directories are contained in the search $PATH ?
+you@b15c0ab109e3:~/get_homPhy/test_sequences/core_genome$ echo $PATH
+/get_phylomarkers:/get_homologues:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# How many processors does this host provide for parallel computations?
+you@b15c0ab109e3:~/get_homPhy/test_sequences/core_genome$ grep -c ^processor /proc/cpuinfo
+4
+
+# What shell is the conatiner running?
+you@b15c0ab109e3:~/get_homPhy/test_sequences/core_genome$ echo $SHELL
+/bin/bash
+
+# What Bash version is it?
+you@b15c0ab109e3:~/get_homPhy/test_sequences/core_genome$ echo $BASH_VERSION
+4.4.12(1)-release
+
+```
+
+### Exploring the file system
+In this section we will navigate through the file system to get familiar with the structure and contents of the Docker's container.
+
+```
+# 1. In which directory of the file system are we standing at?
 you@a3ba1460d5e4:~$ pwd
 /home/you
 
@@ -318,26 +351,26 @@ you@a3ba1460d5e4:~$ pwd
 you@a3ba1460d5e4:~$ ls
 get_homPhy
 
-# 3. list contents of to directories/
+# 3. list the contents of the root directory /
 you@a3ba1460d5e4:~$ ls /
 bin boot dev etc get_homologues get_phylomarkers home lib ...
 
-# 3. list contents of the get_homologues and get_phylomarkers directories
+# 4. list contents of the get_homologues and get_phylomarkers directories
 you@a3ba1460d5e4:~$ ls /get_homologues/
 you@a3ba1460d5e4:~$ ls /get_phylomarkers/
 
-# 4. listing the contents of the /bin directory reveals that we have a powerful 
+# 5.1 listing the contents of the /bin directory reveals that we have a powerful 
 #    Linux toolset at hand, including interpreted programming languages like awk, bash, perl, R,
 #    editors like vim, diverse compilers ... 
 you@a3ba1460d5e4:~$ perl -e 'print "Hello world\n";'
 
-# 5. lets have a peak at to our sequence data
+# 5.2 lets have a peak at the sequence data in test_sequences/
 you@a3ba1460d5e4:~$ cd get_homPhy/test_sequences
 
 you@a3ba1460d5e4:~/get_homPhy/test_sequences$ ls
 core_genome  pan_genome  pIncAC
 
-# 5.2 list the contents of each directory recursively
+# 5.3 list the contents of each directory recursively
 you@a3ba1460d5e4:~/get_homPhy/test_sequences$ ls -R
 
 # 6. cd into core_genome and list contents
@@ -349,42 +382,42 @@ ls *.fna | wc -l
 
 # 6.1 How many sequences are in each faa file and provide a summary for the fna files
 grep -c '>' *faa 
-grep -c '>' *fna | cut -d: -f2 | sort | unq -c
+grep -c '>' *fna | cut -d: -f2 | sort | uniq -c
 
-# 7. lets have a peak at the files
+# 7. let's have a peak at the files
 head -2 1962_DNA_topoisomerase_II...fna
 grep '>' head -2 1962_DNA_topoisomerase_II...fna
 
-# 8. Finally lets return /home/you/get_homPhy directory to proceed with the GET_HOMOLOGUES and GET_PHYLOMARKERS tutorials
+# 8. Finally let's return to the /home/you/get_homPhy directory to proceed with the GET_HOMOLOGUES and GET_PHYLOMARKERS tutorials
 you@a3ba1460d5e4:~$ cd ~/get_homPhy/
 
 # 8.1 It's important to note and remember that you can write output in ~/get_homPhy/ and any subdirectory below it 
 #      and acces the contents from your host machine. The data written to disk are parmanent and shared between the 
-#      Docker container and the host. Lets demonstrate it
+#      Docker container and the host. Let's demonstrate it
 you@b16d93c02c9a:~/get_homPhy$ cat date_stamp.txt
 you@b16d93c02c9a:~/get_homPhy$ ls
 date_stamp.txt  test_sequences
 you@b16d93c02c9a:~/get_homPhy$ cat date_stamp.txt
 Sun Feb  4 02:11:41 UTC 2018
 
-# Note that the time stamp will most likely not correspond to your real time
-# This can be configured, as shown for example in this nice blog
+# Note that the time stamp will most likely not correspond to that of the host machine.
+# This can be configured, as shown for example in this blog
 # https://www.ivankrizsan.se/2015/10/31/time-in-docker-containers/
 
-# Now open a terminal or the filesystem browser of the host machine and navigate to 
+# Now open a terminal or the filesystem's browser of the host machine and navigate to 
 # /home/you/get_homPhy directory to confirm that you can see the date_stamp.txt
 # file that we have just generated.
 
-# That's it, you made it, congratulations! You have permanently shared a parent directory
+# That's it, congratulations! You have permanently shared a parent directory
 # and their childs between the host and your GET_HOMOLOGUES+GET_PHYLOMARKERS Docker container.
 # You are all set to start working with your own data or the test sequences provided with
 # the GET_PHYLOMARKERS distribution for the tutorials that folow.
 
 ```
 
-This should have convinced you that you have a powerful Linux toolset at hand to explore and process your data in different ways in a standard shell (Bash) environment.
+The preceding section should have provided you with a reasonable overview of the container's environment and file system. It should have also convinced you that you have a powerful Linux toolset at hand to explore and process your data in different ways in a standard shell (Bash) environment.
 
-Lets proceed now with the **GET_HOMOLOGUES**  and **GET_PHYLOMARKERS** tutorials.
+Let's proceed now with the **GET_HOMOLOGUES**  and **GET_PHYLOMARKERS** tutorials.
 
 ## Computing a consensus core-genome with GET_HOMOLOGUES
 
