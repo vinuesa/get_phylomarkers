@@ -1,3 +1,5 @@
+5Feb18: * Extended the tutorial on exploring the container's environment and file system
+        * Updated the README.md file to include links to the tutorial and install instructions of the Docker environment and container usage
 4Feb18: * -v flag also prints list of required system binaries, like GET_HOMOLOGUES; minor fix in cleanup code.
 3Feb18: * Extended the INSTALL.md file to include instructions on how to setup a locak Docker environment and run image instances
         * Extended the tutorial material, to include instructions on How to access the sequence data on the host (your machine) from a container instance
