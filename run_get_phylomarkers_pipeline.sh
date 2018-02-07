@@ -25,7 +25,7 @@
 #              along with graphics and tables summarizing the results of the pipeline obtained at different levels.
 #
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.1.2_4Feb18'
+VERSION='2.1.3_7Feb18'
 
 # Set GLOBALS
 DEBUG=0
@@ -93,6 +93,34 @@ function set_pipeline_environment()
   fi
   echo "$distrodir $bindir $OS $no_cores"
   [ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
+}
+#-----------------------------------------------------------------------------------------
+function print_codontables()
+{
+  cat <<CODONTBL
+    1  Universal code (default)
+    2  Vertebrate mitochondrial code
+    3  Yeast mitochondrial code
+    4  Mold, Protozoan, and Coelenterate Mitochondrial code
+       and Mycoplasma/Spiroplasma code
+    5  Invertebrate mitochondrial
+    6  Ciliate, Dasycladacean and Hexamita nuclear code
+    9  Echinoderm and Flatworm mitochondrial code
+   10  Euplotid nuclear code
+   11  Bacterial, archaeal and plant plastid code
+   12  Alternative yeast nuclear code
+   13  Ascidian mitochondrial code
+   14  Alternative flatworm mitochondrial code
+   15  Blepharisma nuclear code
+   16  Chlorophycean mitochondrial code
+   21  Trematode mitochondrial code
+   22  Scenedesmus obliquus mitochondrial code
+   23  Thraustochytrium mitochondrial code
+
+CODONTBL
+
+exit 0
+
 }
 #-----------------------------------------------------------------------------------------
 
