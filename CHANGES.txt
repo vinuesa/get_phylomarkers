@@ -1,3 +1,4 @@
+7Feb18: * Moved print_codon_tables() back from get_phylomarkers_fun_lib to run_get_phylomarkers_pipeline.sh v2.1.3_7Feb18 so that -C can print them; Thanks to Stefano Romano!
 5Feb18: * Extended the tutorial on exploring the container's environment and file system
         * Updated the README.md file to include links to the tutorial and install instructions of the Docker environment and container usage
 4Feb18: * -v flag also prints list of required system binaries, like GET_HOMOLOGUES; minor fix in cleanup code.
