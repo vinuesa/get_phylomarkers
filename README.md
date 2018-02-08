@@ -2,16 +2,11 @@
 
 <!--Version Dec. 29cnd, 2017.-->
 
-This repository hosts the code for the **GET_PHYLOMARKERS**, a software package designed to identify optimal genomic markers for phylogenomics, population genetics and genomic taxonomy. It implements a [pipeline](docs/GET_PHYLOMARKERS_manual.md#brief-presentation-and-graphical-overview-of-the-pipeline) to filter orthologous gene clusters computed by **GET_HOMOLOGUES** to exclude those with evidence for recombination, producing "outlier" and poorly resolved gene trees. The top-scoring markers are concatenated into a supermatrix, which is used to estimate species trees under the maximum-likelihood (ML) criterion, using state-of-the-art fast ML tree searching algorithms. **GET_PHYLOMARKERS** can also estimate ML and parsimony trees from the pan-genome matrix, including unsupervised learning methods to detect optimal clusters of genomes from pan-genome and average genomic distance matrices. [A detailed manual](docs/GET_PHYLOMARKERS_manual.md) explains the implementation and usage details and a [tutorial](https://github.com/vinuesa/get_phylomarkers/blob/master/docs/GET_PHYLOMARKERS_manual.md#get_phylomarkers-tutorial) provides plenty of usage examples. A manuscript reporting a thorough benchmark analysis of its performance with large empirical phylogenomic datasets and its application in microbial genomic taxonomy has been recently submitted [Vinuesa et al. (2018)](https://github.com/vinuesa/get_phylomarkers#citation).
+This repository hosts the code for **GET_PHYLOMARKERS**, a software package designed to identify optimal genomic markers for phylogenomics, population genetics and genomic taxonomy. It implements a [**pipeline**](docs/GET_PHYLOMARKERS_manual.md#brief-presentation-and-graphical-overview-of-the-pipeline) to filter orthologous gene clusters computed by the companion package **GET_HOMOLOGUES** to select those with optimal phylogenetic attributes. Top-scoring alignments are concatenated into a supermatrix, which is used to estimate the species tree under the maximum-likelihood (ML) criterion with state-of-the-art fast ML tree searching algorithms. **GET_PHYLOMARKERS** can also estimate ML and parsimony trees from the pan-genome matrix, including unsupervised learning methods to determine the optimal number of clusters from pan-genome and average genomic distance matrices. 
 
-The code is developed and maintained by [Pablo Vinuesa](http://www.ccg.unam.mx/~vinuesa/) 
-at [CCG-UNAM, Mexico](http://www.ccg.unam.mx/) and 
-[Bruno Contreras-Moreira](https://digital.csic.es/cris/rp/rp02661/) 
- at [EEAD-CSIC, Spain](http://www.eead.csic.es/). It is released to the public domain under the GNU GPLv3 [license](./LICENSE).
- 
 ## Installation, dependencies and Docker image
 
-For detailed instructions and dependencies please check [INSTALL.md](INSTALL.md).
+For detailed instructions and dependencies please check [**INSTALL.md**](INSTALL.md).
 
 A [**Docker image**](https://hub.docker.com/r/csicunam/get_homologues) is available with **GET_PHYLOMARKERS**
 bundled with [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues), ready to use. Detailed instructions on setting up the Docker environment [**INSTALL.md**](INSTALL.md) and running container instances with the test sequences distributed with **GET_PHYLOMARKERS** are provided in the [**tutorial**](https://github.com/vinuesa/get_phylomarkers/blob/master/docs/GET_PHYLOMARKERS_manual.md#get_phylomarkers-tutorial).
@@ -33,7 +28,7 @@ the pipeline should be run using protein instead of DNA sequences.
 
 ## Manual and tutorials
 
-Please, follow the link for a detailed [manual](docs/GET_PHYLOMARKERS_manual.md) and [tutorials](docs/GET_PHYLOMARKERS_manual.md#get_phylomarkers-tutorial), including a [graphical flowchart](docs/GET_PHYLOMARKERS_manual.md#brief-presentation-and-graphical-overview-of-the-pipeline) of the pipeline and explanations of the implementation details.
+Please, follow the link for a detailed [**manual**](docs/GET_PHYLOMARKERS_manual.md) and [**tutorials**](docs/GET_PHYLOMARKERS_manual.md#get_phylomarkers-tutorial), including a [**graphical flowchart**](docs/GET_PHYLOMARKERS_manual.md#brief-presentation-and-graphical-overview-of-the-pipeline) of the pipeline and explanations of the implementation details.
 
 ## Citation.
 
@@ -41,6 +36,12 @@ On Jaunary 15th, 2018 we submitted a manuscript to the [Research Topic of Fronti
 
 Meanwhile, if you find the code useful for your academic work, please use the following citation:
 Pablo Vinuesa and Bruno Contreras-Moreira 2018. GET_PHYLOMARKERS, a pipeline to select optimal markers for microbial phylogenomics, systematics and genomic taxomy. Available at https://github.com/vinuesa/get_phylomarkers and released under the GNU GPLv3 license.
+
+## Developers
+The code is developed and maintained by [Pablo Vinuesa](http://www.ccg.unam.mx/~vinuesa/) 
+at [CCG-UNAM, Mexico](http://www.ccg.unam.mx/) and 
+[Bruno Contreras-Moreira](https://digital.csic.es/cris/rp/rp02661/) 
+ at [EEAD-CSIC, Spain](http://www.eead.csic.es/). It is released to the public domain under the GNU GPLv3 [license](./LICENSE).
 
 ## Acknowledgements
 
