@@ -62,7 +62,7 @@ topdir=$(pwd)
 declare -A pids
 
 # initialize variables
-runmode=""
+runmode=
 criterion=ML
 discrete_model=BIN
 input_fasta=
@@ -79,6 +79,8 @@ rnd_no=33
 outgroup=1
 phylo=
 pars_tree=
+
+check_version=0
 
 #---------------------------------------------------------------------------------#
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>> FUNCTION DEFINITIONS <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<#
@@ -197,7 +199,6 @@ function wait_for_PIDs_to_finish
 }
 #--------------------------------------------- #
 
-
 function check_scripts_in_path()
 {
     [ "$DEBUG" -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
@@ -205,8 +206,8 @@ function check_scripts_in_path()
     not_in_path=0
     homebinflag=0
     homebinpathflag=0
-
-    [ "$DEGUB" -eq 1 ] && msg "check_scripts_in_path() distrodir:$distrodir" DEBUG NC
+    
+    [ "$DEBUG" -eq 1 ] && msg "check_scripts_in_path() distrodir:$distrodir" DEBUG NC
 
     perl_scripts=( run_parallel_cmmds.pl rename.pl add_labels2tree.pl )
 
@@ -252,7 +253,7 @@ function check_scripts_in_path()
 	  export PATH="${distrodir}:${PATH}" # prepend $distrodir to $PATH
        fi
     fi
-    #echo "$homebinflag $homebinpathflag"
+    [ "$DEBUG" -eq 1 ] && echo "$homebinflag $homebinpathflag"
     [ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
@@ -260,6 +261,9 @@ function check_scripts_in_path()
 function check_dependencies
 {
     local VERBOSITY=$1
+    local GREEN='\033[0;32m'
+    local NC='\033[0m'
+
     # check if scripts are in path; if not, set flag
     [ "$DEBUG" -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
 
@@ -613,13 +617,13 @@ while getopts ':b:c:j:m:n:f:i:r:R:t:T:hsDv' OPTIONS; do
         ;;
    t)   t_jumbles=$OPTARG
         ;;
-   v)   echo "$progname v$VERSION" && check_dependencies 1 && exit 0
+   v)   echo "$progname v$VERSION" && check_version=1 && check_dependencies 1  && exit 0
+        ;;
+   D)   DEBUG=1
         ;;
    T)   pars_tree=$OPTARG
         ;;
    R)   runmode=$OPTARG
-        ;;
-   D)   DEBUG=1
         ;;
    :)   printf "argument missing from -%s option\n" "$OPTARG"
    	 print_help
@@ -664,13 +668,13 @@ export R_LIBS="$R_LIBS:${distrodir}/lib/R"
 # 0.4 append the $distrodir/lib/perl to PERL5LIB and export
 export PERL5LIB="${PERL5LIB}:${distrodir}/lib/perl:${distrodir}/lib/perl/bioperl-1.5.2_102"
 
-# 0.5 check all dependencies are in place
-check_dependencies 0
-
 
 #--------------------------------------#
 # >>> BLOCK 0.2 CHECK USER OPTIONS <<< #
 #--------------------------------------#
+
+
+[ "$check_version" -eq 1 ] && exit 0
 
 
 if [ "$criterion" == "ML" ]; then
