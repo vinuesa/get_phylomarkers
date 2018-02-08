@@ -13,9 +13,7 @@ This manual provides the usage details for **GET_PHYLOMARKERS**, a software pack
 ![Figure 1](pics/getphylo_flowchart_FINAL.png)
 
 <!--
-```{r, fig.align='center', out.width = "100%", echo = FALSE}
-knitr::include_graphics("pics/getphylo_flowchart_FINAL.png")
-```
+<img src="pics/getphylo_flowchart_FINAL.png" width="100%" height="1200px" style="display: block; margin: auto;" />
 -->
 
 <!--<img src="pics/getphylo_flowchart_FINAL.png" alt="GET_PHYLOMARKERS pipeline workflow"
@@ -145,15 +143,15 @@ to evaluate the free-rates and clock hypothesis using likelihood ratio tests com
 
 ### On tree searching: 
 #### ModelFinder + IQ-TREE searches:
-As of version 1.9.9.0_22Dec17, **GET_PHYLOMERKERS** implements the **-A I** option, which calls [**IQ-TREE**](http://www.iqtree.org/) for ML tree searching [**Nguyen et. al (2015)**](https://academic.oup.com/mbe/article/32/1/268/2925592). This is the most recent fast ML software on the scene, which was developed with the aim of escaping from early local maxima encountered during "hill-climbing" by generating multiple seed trees to intiate tree searches, maintaining a pool of candidate trees during the entire run. Overall, it was the best-performing ML tree search algorithm among those evaluated by [Zhou et al. (2017)](https://www.ncbi.nlm.nih.gov/pubmed/29177474) in their above-mentioned benchmarking paper, at least for datasets < 200 taxa. For larger datasets (several hudreds to thousands of sequencs), current implementations of algorithms like RAxML and ExaML, which make hevay use of SPR-moves, will most likey outperform IQ-TREE, which makes more intensive use of local NNI-moves. 
+As of version 1.9.9.0_22Dec17, **GET_PHYLOMERKERS** implements the **-A I** option, which calls [**IQ-TREE**](http://www.iqtree.org/) for ML tree searching [**Nguyen et. al (2015)**](https://academic.oup.com/mbe/article/32/1/268/2925592). This is the most recent fast ML software on the scene, which was developed with the aim of escaping from early local maxima encountered during "hill-climbing" by generating multiple seed trees to initiate tree searches, maintaining a pool of candidate trees during the entire run. Overall, it was the best-performing ML tree search algorithm among those evaluated by [Zhou et al. (2017)](https://www.ncbi.nlm.nih.gov/pubmed/29177474) in their above-mentioned benchmarking paper, at least for datasets < 200 taxa. For larger datasets (several hudreds to thousands of sequences), current implementations of RAxML and ExaML, which make heavy use of SPR-moves, may outperform IQ-TREE, which makes more intensive use of local NNI-moves. 
 
 - Our benchmark analyses have shown that [IQ-TREE](http://www.iqtree.org/) (v1.6.1) [Nguyen et. al (2015)](https://academic.oup.com/mbe/article/32/1/268/2925592) runs quickly enough when the **-fast** flag is passed to make it feasible to include a model selection step using  [ModelFinder](http://www.iqtree.org/ModelFinder/) [(Kalyaanamoorthy et al. 2017)](https://www.nature.com/articles/nmeth.4285) withouth incurring in excessively long computation times. 
 
-- Combined with its superior tree-searching algorithm allows IQT to rank asthe clear winner in our benchmarks. Therefore, **from version 2.0 onwards, *GET_PHYLOMARKERS* uses IQT as its default tree searching algorithm**, both for the estimation of gene-trees and the species-tree (from the concatenated, top-scoring alignments).
+- Combined with its superior tree-searching algorithm allows IQT to rank as the clear winner in our benchmarks. Therefore, **from version 2.0 onwards, *GET_PHYLOMARKERS* uses IQT as its default tree searching algorithm**, both for the estimation of gene-trees and the species-tree (from the concatenated, top-scoring alignments).
 
 - All **gene tree searches are run in parallel** under the modelset with the following parameters: -mset XXX -m MFP -nt 1 -alrt 1000 -fast
 
-- However, the number of models evaluated by ModelFinder (integrated in IQ-TREE) differ for the gene-tree and species-tree search phases, as shown below: 
+- To keep computation times within reasonable bounds, the number of models evaluated by ModelFinder (integrated in IQ-TREE) differ for the gene-tree and species-tree search phases, as shown below: 
 
 ```
 # IQT gene tree searches (hard-coded): -T <high|medium|low|lowest> [default: medium]
@@ -248,6 +246,45 @@ run_get_phylomarkers_pipeline.sh -R 1 -A F -t PROT -m 0.6 -k 1.0 -T lowest
 run_get_phylomarkers_pipeline.sh -R 1 -A F -t DNA -m 0.7 -k 1.0 -T high -s 20 -l 12
 
 ```
+
+## Credits and references
+GET_PHYLOMARKERS is designed, created and maintained at the Center for Genomic Sciences of Universidad Nacional Autónoma de México [(CCG/UNAM)](http://www.ccg.unam.mx/~vinuesa/) and the Laboratory of Computational Biology at Estación Experimental de Aula [Dei/CSIC](http://www.eead.csic.es/compbio/) in Zaragoza (Spain).  
+
+The pipeline code and accessory scripts were written Pablo Vinuesa and Bruno Contreras-Moreira, making use of the  third party code libraries and binaries listed below. Please refer to [INSTALL.md](https://github.com/vinuesa/get_phylomarkers/blob/master/INSTALL.md) for installation instructions.
+
+### Third-party binaries distributed with GET_PHYLOMARKERS
+* [clustal omega](http://www.clustal.org/omega/). Multiple sequence alignment software. [Sievers et al. 2011](http://msb.embopress.org/content/7/1/539.long). On Ubuntu try: 'sudo apt-get install clustalo'
+* [parallel](https://www.gnu.org/software/parallel/). Executes processes in parallel on multicore machines.
+* [Phi test](https://www.maths.otago.ac.nz/~dbryant/software/PhiPack.tar.gz). Recombination test software. [Bruen et al. 2006](http://www.genetics.org/content/172/4/2665.long)
+* [FastTree](http://microbesonline.org/fasttree/): Fast maximum-likelihood tree searching program. [Price et al. 2010](http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0009490). 
+* [ModelFinder](http://www.iqtree.org/ModelFinder/): Fast model selection for accurate phylogenetic estimates. [(Kalyaanamoorthy et al. 2017)](https://www.nature.com/articles/nmeth.4285)
+* [IQ-TREE](http://www.iqtree.org/). Highly accurate maximum-likelihood tree searching program. [Nguyen et. al (2015)](https://academic.oup.com/mbe/article/32/1/268/2925592). [paup*](https://people.sc.fsu.edu/~dswofford/paup_test/). Multipurpose phylogenetics software package developed by David Swofford and colleagues. NOTE: This is a test version that expires every 6 months! So please update regularly.
+* pars, seqboot and consense from Joe Felsenstein's [PHYLIP](http://evolution.genetics.washington.edu/phylip.html) package.
+* nw_reroot and nw_support from the [Newick utilities](http://bioinformatics.oxfordjournals.org/cgi/content/abstract/btq243v1) package.
+* you may also need to install [**bc**](https://www.gnu.org/software/bc/),an arbitrary-precision language for performing math calculations with Bash and other shells
+
+
+
+### Perl modules
+- [File::Rename](http://search.cpan.org/~rmbarker/File-Rename-0.06/rename.PL)
+
+From the [BioPerl](http://bioperl.org/) suite: 
+
+- Bio::AlignIO;
+- Bio::PopGen::IO
+- Bio::PopGen::Utilities
+- Bio::PopGen::Statistics
+- Bio::SeqIO;
+  
+### R packages
+- [ape](https://cran.r-project.org/web/packages/ape/index.html)
+- [kdetrees](https://cran.r-project.org/web/packages/kdetrees/index.html)
+- [stingr](https://cran.r-project.org/web/packages/stringr/index.html)
+- [vioplot](https://cran.r-project.org/web/packages/vioplot/index.html)
+- [ggplot2](https://cran.r-project.org/web/packages/ggplot2/index.html)
+- [gplots]((https://cran.r-project.org/web/packages/gplots/index.html))
+- [dplyr](https://cran.r-project.org/web/packages/dplyr/index.html)
+- [seqinr](https://cran.r-project.org/web/packages/seqinr/index.html)
 
 # GET_PHYLOMARKERS TUTORIAL
 
