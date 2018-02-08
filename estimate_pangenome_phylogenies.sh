@@ -678,7 +678,7 @@ export PERL5LIB="${PERL5LIB}:${distrodir}/lib/perl:${distrodir}/lib/perl/bioperl
 
 
 if [ "$criterion" == "ML" ]; then
-    [ -z "$input_fasta" ] && msg "# ERROR: no input phylip file defined!" ERROR RED && print_help
+    [ -z "$input_fasta" ] && msg "# ERROR: no input phylip file defined!" ERROR RED && print_help && exit 1
     [ "$discrete_model" != "BIN" -a "$discrete_model" != "MORPH" ] && msg "# ERROR: discrete model has to be 'BIN|MORPH'" ERROR RED && print_help && exit 1
     [ "$num_IQT_runs" -lt 1 -o "$num_IQT_runs" -gt 100 ] && msg "# ERROR: the number of IQT runs should be in the 1:100 range" ERROR RED && print_help && exit 1
 fi
