@@ -1,4 +1,7 @@
+8Feb18: # 1. Changes to estimate_pangenome_phylogenies.sh v1.0.1_8Feb18
+          * Added: -v flag; check_scripts_in_path(); check_dependencies with verbosity; activated set_pipeline_environment; should find dependencies: Thanks to Felipe Lira
 7Feb18: * Moved print_codon_tables() back from get_phylomarkers_fun_lib to run_get_phylomarkers_pipeline.sh v2.1.3_7Feb18 so that -C can print them; Thanks to Stefano Romano!
+        * relocated the assignment of logdir to top of main script; edited INSTALL.md, README.md and manual.md
 5Feb18: * Extended the tutorial on exploring the container's environment and file system
         * Updated the README.md file to include links to the tutorial and install instructions of the Docker environment and container usage
 4Feb18: * -v flag also prints list of required system binaries, like GET_HOMOLOGUES; minor fix in cleanup code.
