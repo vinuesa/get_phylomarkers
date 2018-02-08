@@ -603,6 +603,8 @@ shift $((OPTIND - 1))
 # >>>BLOCK 0.1 SET THE ENVIRONMENT FOR THE PIPELINE <<< #
 #-------------------------------------------------------#
 
+logdir=$(pwd)
+
 # 0. Set the distribution base directory and OS-specific (linux|darwin) bindirs
 env_vars=$(set_pipeline_environment) # returns: $distrodir $bindir $OS $no_proc
 [ "$DEBUG" -eq 1 ] && echo "env_vars:$env_vars"
@@ -615,6 +617,8 @@ no_proc=$(echo "$env_vars"|awk '{print $4}')
 . "${distrodir}"/lib/get_phylomarkers_fun_lib
 
 #-----------------------------------------------------------------------------------------
+
+
 
 [ "$DEBUG" -eq 1 ] && msg "distrodir:$distrodir|bindir:$bindir|OS:$OS|no_proc:$no_proc" DEBUG LBLUE
 
@@ -639,8 +643,6 @@ check_dependencies 0
 #--------------------------------------#
 
 # check for bare minimum dependencies: bash R perl awk cut grep sed sort uniq Rscript
-
-logdir=$(pwd)
 
 if [ -z "$runmode" ]
 then
