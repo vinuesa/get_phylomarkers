@@ -326,7 +326,7 @@ function run_IQT_discrete
 	
 	lmsg=" # running iqtree -s $input_fasta -st $discrete_model -m MFP -nt AUTO -abayes -bb 1000 &> /dev/null"
 	print_start_time && msg "$lmsg" PROGR BLUE
-        iqtree -s "$input_fasta" -st "$discrete_model" -m MFP -nt AUTO -abayes -bb 1000 &> /dev/null 
+        "${bindir}"/iqtree -s "$input_fasta" -st "$discrete_model" -m MFP -nt AUTO -abayes -bb 1000 &> /dev/null 
 	
 	best_model=$(grep '^Best-fit model' "${input_fasta}".log | cut -d' ' -f 3)
 	msg " >>> Best-fit model: ${best_model} ..." PROGR GREEN
@@ -341,7 +341,7 @@ function run_IQT_discrete
     else
 	# 1. first run without testing branch supports, to find the best-fitting model
 	print_start_time && msg " >>> running iqtree -s $input_fasta -st $discrete_model to find best model" PROGR GREEN
-        iqtree -s "$input_fasta" -st "$discrete_model" -m MFP -nt AUTO &> /dev/null
+        "${bindir}"iqtree -s "$input_fasta" -st "$discrete_model" -m MFP -nt AUTO &> /dev/null
 	
 	best_model=$(grep '^Best-fit model' "${input_fasta}".log | cut -d' ' -f 3)
 	msg " >>> Best-fit model: ${best_model} ..." PROGR GREEN
