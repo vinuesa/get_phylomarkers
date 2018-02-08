@@ -39,3 +39,8 @@ cd ../..
 # PAUP
 
 # Please visit https://people.sc.fsu.edu/~dswofford/paup_test/ , download the appropriate version and put in bin/
+
+# bc
+
+please install from your package manager (apt, yum ...)
+
