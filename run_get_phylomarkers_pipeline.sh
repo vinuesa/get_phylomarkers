@@ -76,23 +76,23 @@ function print_start_time()
 
 function set_pipeline_environment()
 {
-  [ "$DEBUG" -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
   if [[ "$OSTYPE" == "linux-gnu" ]]
   then
-    scriptdir=$(readlink -f ${BASH_SOURCE[0]})
-    distrodir=$(dirname $scriptdir) #echo "scriptdir: $scriptdir|basedir:$distrodir|OSTYPE:$OSTYPE"
-    bindir=$distrodir/bin/linux
+    scriptdir=$(readlink -f "${BASH_SOURCE[0]}")
+    distrodir=$(dirname "$scriptdir") #echo "scriptdir: $scriptdir|basedir:$distrodir|OSTYPE:$OSTYPE"
+    bindir="$distrodir/bin/linux"
     OS='linux'
     no_cores=$(awk '/^processor/{n+=1}END{print n}' /proc/cpuinfo)
   elif [[ "$OSTYPE" == "darwin"* ]]
   then
-    distrodir=$(cd "$(dirname "$0")"; pwd)
-    bindir=$distrodir/bin/macosx-intel
+    scriptdir=$(readlink -f "${BASH_SOURCE[0]}")
+    distrodir=$(dirname "$scriptdir")
+    # distrodir=$(cd "$(dirname "$0")"; pwd)
+    bindir="$distrodir/bin/macosx-intel"
     OS='darwin'
     no_cores=$(sysctl -n hw.ncpu)
   fi
   echo "$distrodir $bindir $OS $no_cores"
-  [ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 function print_codontables()
@@ -126,7 +126,6 @@ exit 0
 
 function check_dependencies()
 {
-
     local VERBOSITY="$1"
     # check if scripts are in path; if not, set flag
     [ "$DEBUG" -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
