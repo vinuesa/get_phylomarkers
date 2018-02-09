@@ -25,7 +25,7 @@
 #              along with graphics and tables summarizing the results of the pipeline obtained at different levels.
 #
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.1.3_7Feb18'
+VERSION='2.1.5_8Feb18'
 
 # Set GLOBALS
 DEBUG=0
@@ -85,9 +85,9 @@ function set_pipeline_environment()
     no_cores=$(awk '/^processor/{n+=1}END{print n}' /proc/cpuinfo)
   elif [[ "$OSTYPE" == "darwin"* ]]
   then
-    scriptdir=$(readlink -f "${BASH_SOURCE[0]}")
+    scriptdir=$(readlink -n "${BASH_SOURCE[0]}")
     distrodir=$(dirname "$scriptdir")
-    # distrodir=$(cd "$(dirname "$0")"; pwd)
+    #distrodir=$(cd "$(dirname "$0")" && pwd)
     bindir="$distrodir/bin/macosx-intel"
     OS='darwin'
     no_cores=$(sysctl -n hw.ncpu)
