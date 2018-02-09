@@ -42,7 +42,7 @@
 #-------------------------------------------------------------------------------------------------------
 
 progname=${0##*/}
-VERSION='1.0.1_8Feb18' # added -v; 
+VERSION='1.0.1_8Feb18' # added -v; check_scripts_in_path(); check_dependencies with verbosity; activated set_pipeline_environment; Thanks Felipe Lira!
        # v1.0_23Jan18 added code to run IQ-TREE on PGM, including alrt/UFBoot and model selection
        # v0.2_2Nov17; added runmodes and code to run parallel pars searches with different 
                    #            random seeds; Selects best tree; improved/fixed basic documentation
@@ -133,23 +133,25 @@ function set_bindirs()
 
 function set_pipeline_environment()
 {
-  [ "$DEBUG" -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
-  if [[ "$OSTYPE" == "linux-gnu" ]]
+   distrodir=
+   bindir=
+   OS=
+   no_cores=
+   if [[ "$OSTYPE" == "linux-gnu" ]]
   then
     scriptdir=$(readlink -f "${BASH_SOURCE[0]}")
     distrodir=$(dirname "$scriptdir") #echo "scriptdir: $scriptdir|basedir:$distrodir|OSTYPE:$OSTYPE"
-    bindir="$distrodir"/bin/linux
+    bindir="$distrodir/bin/linux"
     OS='linux'
     no_cores=$(awk '/^processor/{n+=1}END{print n}' /proc/cpuinfo)
   elif [[ "$OSTYPE" == "darwin"* ]]
   then
-    distrodir=$(cd "$(dirname "$0")"; pwd)
-    bindir="$distrodir"/bin/macosx-intel
+    distrodir=$(cd "$scriptdir")
+    bindir="$distrodir/bin/macosx-intel"
     OS='darwin'
     no_cores=$(sysctl -n hw.ncpu)
   fi
   echo "$distrodir $bindir $OS $no_cores"
-  [ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
 #----------------------------------------------------------------------------------------------#
 
@@ -166,11 +168,11 @@ function get_script_PID()
 }
 #-----------------------------------------------------------------------------------------
 
-
 function print_start_time()
 {
    echo -n "[$(date +%T)] "
 }
+
 #----------------------------------------------------------------------------------
 function wait_for_PIDs_to_finish
 {
@@ -323,7 +325,7 @@ function run_IQT_discrete
     
     if [ "$nrep_IQT_searches" -eq 1 ]; then
         wkdir=$(pwd)
-	
+	[ "$DEBUG" -eq 1 ] && msg "working in $wkdir" DEBUG NC	
 	lmsg=" # running iqtree -s $input_fasta -st $discrete_model -m MFP -nt AUTO -abayes -bb 1000 &> /dev/null"
 	print_start_time && msg "$lmsg" PROGR BLUE
         "${bindir}"/iqtree -s "$input_fasta" -st "$discrete_model" -m MFP -nt AUTO -abayes -bb 1000 &> /dev/null 
@@ -339,9 +341,11 @@ function run_IQT_discrete
         # cleanup
 	rm ./*.ckp.gz
     else
+        wkdir=$(pwd)
+	[ "$DEBUG" -eq 1 ] && msg "working in $wkdir" DEBUG NC
 	# 1. first run without testing branch supports, to find the best-fitting model
 	print_start_time && msg " >>> running iqtree -s $input_fasta -st $discrete_model to find best model" PROGR GREEN
-        "${bindir}"iqtree -s "$input_fasta" -st "$discrete_model" -m MFP -nt AUTO &> /dev/null
+        "${bindir}"/iqtree -s "$input_fasta" -st "$discrete_model" -m MF -nt AUTO &> /dev/null
 	
 	best_model=$(grep '^Best-fit model' "${input_fasta}".log | cut -d' ' -f 3)
 	msg " >>> Best-fit model: ${best_model} ..." PROGR GREEN
@@ -528,7 +532,7 @@ function print_help
  OPTIONAL to control IQ-TREE ML searches (-c ML)     [default: $discrete_model]
    -m <BIN|MORPH> discrete model category 
    -r <integer> number of independent iqtree runs    [default: $num_IQT_runs]           
-                in the range 1:1000
+                in the range 1:100
 
  OPTIONAL to control parsimony searches when -c PARS:
    -n <number of compute cores to use to launch independent 
@@ -653,7 +657,7 @@ no_proc=$(echo "$env_vars" | awk '{print $4}')
 
 #-----------------------------------------------------------------------------------------
 
-[ "$DEBUG" -eq 1 ] && msg "distrodir:$distrodir|bindir:$bindir|OS:$OS|no_proc:$no_proc" DEBUG LBLUE
+[ "$DEBUG" -eq 1 ] && echo "distrodir:$distrodir|bindir:$bindir|OS:$OS|no_proc:$no_proc"
 
 # 0.1 Determine if pipeline scripts are in $PATH;
 # if not, add symlinks from ~/bin, if available
@@ -678,7 +682,7 @@ export PERL5LIB="${PERL5LIB}:${distrodir}/lib/perl:${distrodir}/lib/perl/bioperl
 
 
 if [ "$criterion" == "ML" ]; then
-    [ -z "$input_fasta" ] && msg "# ERROR: no input phylip file defined!" ERROR RED && print_help && exit 1
+    [ -z "$input_fasta" ] && msg "# ERROR: no input fasta file defined!" ERROR RED && print_help && exit 1
     [ "$discrete_model" != "BIN" -a "$discrete_model" != "MORPH" ] && msg "# ERROR: discrete model has to be 'BIN|MORPH'" ERROR RED && print_help && exit 1
     [ "$num_IQT_runs" -lt 1 -o "$num_IQT_runs" -gt 100 ] && msg "# ERROR: the number of IQT runs should be in the 1:100 range" ERROR RED && print_help && exit 1
 fi
@@ -745,12 +749,14 @@ if [ "$criterion" == "ML" ]; then
     msg " >>>>>>>>>>>>>>> ModelFinder + IQ-TREE run on pan-genome matrix <<<<<<<<<<<<<<< " PROGR YELLOW
     msg " " PROGR NC
    
-   iqt_dir="iqtree_PGM_${num_IQT_runs}_runs"
+    iqt_dir="iqtree_PGM_${num_IQT_runs}_runs"
    
-    [ -d "$iqt_dir" ] && msg "# WARNING: iqtree_pgm exists in $topdir!. Need to remove or rename it." WARNING LRED && exit 1
+    [ -d "$iqt_dir" ] && msg "# WARNING: $iqt_dir exists in $topdir!. Need to remove or rename it." WARNING LRED && exit 1
     mkdir "$iqt_dir" && cd "$iqt_dir" && ln -s ../"$input_fasta" .
+    [ -d "$iqt_dir" ] && msg "...created and moved into subdir $iqt_dir" PROGR LBLUE
     sed 's#\.gb[fk]##g' "$input_fasta" > "${input_fasta}ed"
-    msg "...created and moved into subdir $iqt_dir" PROGR LBLUE
+    [ "$DEBUG" -eq 1 ] && check_output "${input_fasta}ed"
+    [ "$DEBUG" -eq 1 ] && msg "calling: run_IQT_discrete ${input_fasta}ed $discrete_model $num_IQT_runs in dir: $wkdir" DEBUG NC
     run_IQT_discrete "${input_fasta}ed" "$discrete_model" "$num_IQT_runs"
 fi
 
