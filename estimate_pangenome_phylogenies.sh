@@ -42,7 +42,8 @@
 #-------------------------------------------------------------------------------------------------------
 
 progname=${0##*/}
-VERSION='1.0.1_8Feb18' # added -v; check_scripts_in_path(); check_dependencies with verbosity; activated set_pipeline_environment; Thanks Felipe Lira!
+VERSION='1.0.3_8Feb18' # added -v; check_scripts_in_path(); check_dependencies with verbosity; activated set_pipeline_environment; Thanks Felipe Lira!
+                       # fix in set_pipeline_environment: changed to readlink -n when "$OSTYPE" == "darwin" 
        # v1.0_23Jan18 added code to run IQ-TREE on PGM, including alrt/UFBoot and model selection
        # v0.2_2Nov17; added runmodes and code to run parallel pars searches with different 
                    #            random seeds; Selects best tree; improved/fixed basic documentation
