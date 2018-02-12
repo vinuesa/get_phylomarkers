@@ -25,7 +25,7 @@
 #              along with graphics and tables summarizing the results of the pipeline obtained at different levels.
 #
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.1.5_8Feb18'
+VERSION='2.1.6_11Feb18'
 
 # Set GLOBALS
 DEBUG=0
@@ -33,13 +33,13 @@ wkdir=$(pwd) #echo "# working in $wkdir"
 
 dir_suffix=
 gene_tree_ext=
-sp_tree_ext=
+#sp_tree_ext=
 
 DATEFORMAT_SHORT="%d%b%y"
 TIMESTAMP_SHORT=$(date +${DATEFORMAT_SHORT})
 
 DATEFORMAT_HMS="%H:%M:%S"
-TIMESTAMP_HMS=$(date +${DATEFORMAT_HMS})
+#TIMESTAMP_HMS=$(date +${DATEFORMAT_HMS})
 
 TIMESTAMP_SHORT_HMS=$(date +${DATEFORMAT_SHORT}-${DATEFORMAT_HMS})
 
@@ -57,10 +57,10 @@ TIMESTAMP_SHORT_HMS=$(date +${DATEFORMAT_SHORT}-${DATEFORMAT_HMS})
 RED='\033[0;31m'
 LRED='\033[1;31m'
 GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
+#YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-LBLUE='\033[1;34m'
-CYAN='\033[0;36m'
+#LBLUE='\033[1;34m'
+#CYAN='\033[0;36m'
 NC='\033[0m' # No Color => end color
 #printf "${RED}%s${NC} ${GREEN}%s${NC}\n" "I like" "GitHub"
 
@@ -130,7 +130,7 @@ function check_dependencies()
     # check if scripts are in path; if not, set flag
     [ "$DEBUG" -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
     system_binaries=(bash R perl awk bc cut grep sed sort uniq Rscript find)
-    for prog in bash R perl awk bc cut grep sed sort uniq Rscript find
+    for prog in ${system_binaries[@]} 
     do
        bin=$(type -P $prog)
        if [ -z $bin ]; then
@@ -856,12 +856,12 @@ NSEQSFASTA=$(grep -c "^>" ./*.f[na]a | cut -d":" -f 2 | sort | uniq | wc -l)
 for file in ./*faa; do awk 'BEGIN {FS = "|"}{print $1, $2, $3}' "$file"|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > ${file}ed; done
 for file in ./*fna; do awk 'BEGIN {FS = "|"}{print $1, $2, $3}' "$file"|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > ${file}ed; done
 
-print_start_time && printf "${BLUE}# Performing strain composition check on f?aed files ...${NC}\n"
+print_start_time && msg  "# Performing strain composition check on f?aed files ..." PROGR BLUE
 faaed_strain_intersection_check=$(grep '>' ./*faaed | cut -d: -f2 | sort | uniq -c | awk '{print $1}' | sort | uniq -c | wc -l)
 fnaed_strain_intersection_check=$(grep '>' ./*fnaed | cut -d: -f2 | sort | uniq -c | awk '{print $1}' | sort | uniq -c | wc -l)
 
 # check that each file has the same number of strains and a single instance for each strain
-if [ $faaed_strain_intersection_check -eq 1 -a "$fnaed_strain_intersection_check" -eq 1 ]
+if [ "$faaed_strain_intersection_check" -eq 1 -a "$fnaed_strain_intersection_check" -eq 1 ]
 then
    msg " >>> Strain check OK: each f?aed file has the same number of strains and a single instance for each strain" PROGR GREEN
 else
@@ -872,11 +872,11 @@ fi
 
 
 # 1.2 add_nos2fasta_header.pl to avoid problems with duplicate labels
-[ "$DEBUG" -eq 1 ] && msg " > ${distrodir}/run_parallel_cmmds.pl faaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null" DEBUG NC
-"${distrodir}"/run_parallel_cmmds.pl faaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null
+[ "$DEBUG" -eq 1 ] && msg " > ${distrodir}/run_parallel_cmmds.pl faaed 'add_nos2fasta_header.pl $file > ${file}no' "$n_cores" &> /dev/null" DEBUG NC
+"${distrodir}"/run_parallel_cmmds.pl faaed 'add_nos2fasta_header.pl $file > ${file}no' "$n_cores" &> /dev/null
 
-[ "$DEBUG" -eq 1 ] && msg " > ${distrodir}/run_parallel_cmmds.pl fnaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null" DEBUG NC
-"${distrodir}"/run_parallel_cmmds.pl fnaed 'add_nos2fasta_header.pl $file > ${file}no' $n_cores &> /dev/null
+[ "$DEBUG" -eq 1 ] && msg " > ${distrodir}/run_parallel_cmmds.pl fnaed 'add_nos2fasta_header.pl $file > ${file}no' "$n_cores" &> /dev/null" DEBUG NC
+"${distrodir}"/run_parallel_cmmds.pl fnaed 'add_nos2fasta_header.pl $file > ${file}no' "$n_cores" &> /dev/null
 
 no_alns=$(find . -name "*.fnaedno" | wc -l)
 
@@ -1002,7 +1002,7 @@ done > Phi_results_${TIMESTAMP_SHORT}.tsv
 check_output Phi_results_${TIMESTAMP_SHORT}.tsv $parent_PID | tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
 no_non_recomb_alns_perm_test=$(awk '$2 > 5e-02 && $3 > 5e-02' Phi_results_${TIMESTAMP_SHORT}.tsv | wc -l)
-total_no_cdn_alns=$(ls ./*_cdnAln.fasta | wc -l)
+total_no_cdn_alns=$(find . -name '*_cdnAln.fasta' | wc -l)
 
 # 3.4 Check the number of non-recombinant alignments remaining
 if [ ${#nonInfoAln[@]} == 0 ]
@@ -1137,8 +1137,8 @@ then
     no_tree_counter=0
     for phy in $(grep -v '^#Tree' no_tree_branches.list | awk -v min_no_ext_branches=$min_no_ext_branches 'BEGIN{FS="\t"; OFS="\t"}$7 < min_no_ext_branches' |cut -f1)
     do
-         [ "$search_algorithm" == "F" ] && base=$(echo ${phy//_FTGTR\.ph/})
-	 [ "$search_algorithm" == "I" ] && base=$(echo ${phy//\.treefile/})
+         [ "$search_algorithm" == "F" ] && base=${phy//_FTGTR\.ph/}
+	 [ "$search_algorithm" == "I" ] && base=${phy//\.treefile/}
 	 print_start_time && msg " >>> will remove ${base}* because it has < 5 branches" WARNING LRED
 	 rm ${base}*
 	 let no_tree_counter++
@@ -1196,7 +1196,7 @@ then
     then
         print_start_time && msg "# making dir kde_ok/ and linking $no_kde_ok selected files into it ..." PROGR BLUE
         mkdir kde_ok
-        cd kde_ok
+        cd kde_ok || exit 1
         ln -s ../*.${gene_tree_ext} .
 
         print_start_time && msg "# labeling $no_kde_ok gene trees in dir kde_ok/ ..." PROGR BLUE
@@ -1457,7 +1457,7 @@ then
              #run_molecClock_test_jmodeltest2_paup.sh -R 1 -M $base_mod -t ph -e fasta -b molec_clock -q $q &> /dev/null
 
 	     # 2. >>> print table header and append results to it
-             no_dot_q=$(echo ${q//\./})
+             no_dot_q=${q//\./}
              results_table=mol_clock_M${base_mod}G_r${rooting_method}_o${outgroup_OTU_nomol}_q${no_dot_q}_ClockTest.tab
              echo -e "#nexfile\tlnL_unconstr\tlnL_clock\tLRT\tX2_crit_val\tdf\tp-val\tmol_clock" > $results_table
 
@@ -1698,7 +1698,7 @@ then
 	estimate_IQT_gene_trees $mol_type $search_thoroughness $IQT_models
 
 	# 4.1.1 check that IQT computed the expected gene trees
-	no_gene_trees=$(ls ./*.treefile | wc -l)
+	no_gene_trees=$(find . -name '*.treefile' | wc -l)
         [ $no_gene_trees -lt 1 ] && print_start_time && msg " >>> ERROR: There are no gene tree to work on in non_recomb_cdn_alns/. will exit now!" ERROR RED && exit 3
 
 	# 4.1.2 generate computation-time, lnL and best-model stats
@@ -1723,8 +1723,8 @@ then
     no_tree_counter=0
     for phy in $(grep -v '^#Tree' no_tree_branches.list | awk -v min_no_ext_branches=$min_no_ext_branches 'BEGIN{FS="\t"; OFS="\t"}$7 < min_no_ext_branches' |cut -f1)
     do
-         [ "$search_algorithm" == "F" ] && base=$(echo ${phy//_allFT\.ph/}) 
-	 [ "$search_algorithm" == "I" ] && base=$(echo ${phy//\.treefile/})
+         [ "$search_algorithm" == "F" ] && base=${phy//_allFT\.ph/}
+	 [ "$search_algorithm" == "I" ] && base=${phy//\.treefile/}
 	 print_start_time && msg " >>> will remove ${base}* because it has < 5 branches" WARNING LRED
 	 rm ${base}*
 	 let no_tree_counter++
@@ -1780,7 +1780,7 @@ then
     then
         print_start_time && msg "# making dir kde_ok/ and linking $no_kde_ok selected files into it ..." PROGR BLUE
         mkdir kde_ok
-        cd kde_ok
+        cd kde_ok || exit 1
         ln -s ../*.${gene_tree_ext} .
 
         print_start_time && msg "# labeling $no_kde_ok gene trees in dir kde_ok/ ..." PROGR BLUE
