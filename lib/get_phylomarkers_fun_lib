@@ -1,4 +1,4 @@
-
+#: VERSION: 11022018
 #: LIBRARY: get_phylomarkers_fun_lib
 #     * functions called by run_get_phylomarkers_pipeline.sh
 #     * part of the GET_PHYLOMARKERS software package
@@ -38,13 +38,15 @@
 
 function get_script_PID()
 {
-    [ $DEBUG -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
+    #[ $DEBUG -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
     # returns the PID of the script, run by USER
     prog=${0%.*} # remove the script's .extension_name
     #proc_ID=$(ps -eaf|grep "$prog"|grep -v grep|grep '-'|grep $USER|awk '{print $2}')
-    proc_ID=$(ps aux|grep "$prog"|grep -v grep|grep '-'|grep $USER|awk '{print $2}')
-    echo $proc_ID
-    [ $DEBUG -eq 1 ] && msg "$progname PID is: $proc_ID" DEBUG NC
+    #proc_ID=$(ps aux|grep "$prog"|grep -v grep|grep '-'|grep $USER|awk '{print $2}')
+    pgrep -u "$USER" "$prog"
+    echo "$proc_ID"
+    #[ $DEBUG -eq 1 ] && msg "$progname PID is: $proc_ID" DEBUG NC
+    
 }
 #-----------------------------------------------------------------------------------------
 
