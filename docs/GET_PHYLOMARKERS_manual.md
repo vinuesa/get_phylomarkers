@@ -1,8 +1,8 @@
-# GET_PHYLOMARKERS MANUAL
+# GET_PHYLOMARKERS MANUAL (v.2018-02-12)
 
 ## Brief presentation and graphical overview of the pipeline
 
-This manual provides the usage details for **GET_PHYLOMARKERS**, a software package designed to select "well-behaved" phylogenetic markers to estimate a **maximum likelihoood (ML) species tree** from the supermatrix of concatenated, top-scoring alignments. These are identified through a series of sequential filters that operate on orthologous gene/protein clusters computed by **GET_HOMOLOGUES** to exclude:
+This manual provides the usage details for [**GET_PHYLOMARKERS**](https://github.com/vinuesa/get_phylomarkers), a software package designed to select "well-behaved" phylogenetic markers to estimate a **maximum likelihoood (ML) species tree** from the supermatrix of concatenated, top-scoring alignments. These are identified through a series of sequential filters that operate on orthologous gene/protein clusters computed by [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues) to exclude:
 
 1. alignments with evidence for **recombinant sequences**
 2. sequences that yield "**outlier gene trees**" in the context of the distributions of topologies and tree-lengths expected under the multispecies coalescent
@@ -23,9 +23,15 @@ This manual provides the usage details for **GET_PHYLOMARKERS**, a software pack
 
 ## Installation, dependencies and Docker image
 
-The **GET_PHYLOMARKERS** pagacke can be conveniently downloaded as a [**GitHub release**](https://github.com/vinuesa/get_phylomarkers/releases). For detailed instructions on installing the external dependencies please check [**INSTALL.md**](https://github.com/vinuesa/get_phylomarkers/blob/master/INSTALL.md).
+The [**GET_PHYLOMARKERS**](https://github.com/vinuesa/get_phylomarkers) pagacke is distributed in three formats:
 
-A [**Docker image**](https://hub.docker.com/r/csicunam/get_homologues) is available that bundles **GET_PHYLOMARKERS** with [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues), ready to use. We highly recommend installing the docker image to avoid potential problems with the installation of the many second-party dependencies. If you have not set a Docker environment on your machine, please see the instructions provied in the [**INSTALL.md**](https://github.com/vinuesa/get_phylomarkers/blob/master/INSTALL.md) document for installing Docker on different platforms and downloading/upgrading the [**Docker image**](https://hub.docker.com/r/csicunam/get_homologues/) from Docker hub.
+1. as a [**GitHub release**](https://github.com/vinuesa/get_phylomarkers/releases).
+2. as source code that can be cloned from the project's repository [**GitHub repository**](https://github.com/vinuesa/get_phylomarkers/).
+3. as a [**Docker image**](https://hub.docker.com/r/csicunam/get_homologues) is available that bundles [**GET_PHYLOMARKERS**](https://github.com/vinuesa/get_phylomarkers) with [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues), ready to use.
+
+For detailed instructions on installing the external dependencies please check [**INSTALL.md**](https://github.com/vinuesa/get_phylomarkers/blob/master/INSTALL.md).
+
+We highly recommend installing the [**Docker image**](https://hub.docker.com/r/csicunam/get_homologues) to avoid potential problems with the installation of the many dependencies. If you have not set a Docker environment on your machine, please see the instructions provied in the [**INSTALL.md**](https://github.com/vinuesa/get_phylomarkers/blob/master/INSTALL.md) document for installing Docker on different platforms and downloading/upgrading the [**Docker image**](https://hub.docker.com/r/csicunam/get_homologues/) from Docker hub.
 
 ## Aim
 **GET_PHYLOMARKERS** implements a series of sequential filters (**Fig. 1** and explained below) to selects markers from the homologous gene clusters produced by [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues) with optimal attributes for phylogenomic inference. It estimates **gene-trees** and **species-trees** under the **maximum likelihood (ML) optimality criterion** using *state-of-the-art* fast ML tree searching algorithms. The species tree is estimated from the supermatrix of concatenated, top-scoring alignments that passed the quality filters (Fig. 1). The stringency of these filters and the thoroughness of the ML tree searches can be controlled by the user, although sensible defaults are provided, making it an easy-to-use, **user-friendly software**.
