@@ -13,7 +13,7 @@ This manual provides the usage details for **GET_PHYLOMARKERS**, a software pack
 <!--![Figure 1](pics/getphylo_flowchart_FINAL.png) -->
 
 
-<img src="pics/getphylo_flowchart_FINAL.png" width="80%" height="1200px" style="display: block; margin: auto;" />
+<img src="pics/getphylo_flowchart_FINAL.png" width="0.33\textheight" height="1200px" style="display: block; margin: auto;" />
 
 
 <!--<img src="pics/getphylo_flowchart_FINAL.png" alt="GET_PHYLOMARKERS pipeline workflow"
@@ -799,7 +799,7 @@ figtree full_pars_tree_rooted_withBoot_ed.ph &
 **Figure 9** displays the **most parsimonious pan-genome tree**, again using figtree. The nodes are colored according to the legend. The nodes are colored according to the legend, which represents standard bootstrap support values computed by seqboot from the PHYLIP package.
 
 
-<img src="pics/full_pars_tree_rooted_withBoot_ed.ph.png" width="90%" height="1200px" style="display: block; margin: auto;" />
+<img src="pics/full_pars_tree_rooted_withBoot_ed.ph.png" width="0.33\textheight" height="1200px" style="display: block; margin: auto;" />
 
 
 <!--![Fig. 9 most parsimonious pan-genome tree](pics/full_pars_tree_rooted_withBoot_ed.ph.png)-->
