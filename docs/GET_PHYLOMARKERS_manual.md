@@ -10,11 +10,11 @@ This manual provides the usage details for **GET_PHYLOMARKERS**, a software pack
 
 **Figure 1** provides a graphical overview of the **GET_PHYLOMARKERS** pipeline. The Manual will describe in detail each of these steps along with the options available to the user to control the pipeline's behaviour, the stringency of the filters, as well as the number of substitution models evaluated and tree-search thoroughness. In addition, the script *estimate_pangenome_phylogenies.sh* can search for ML and parsimony **pan-genome phylogenies** using the pan-genome matrix computed by *compare_clusters.pl* from the **GET_HOMOLOGUES** suite, as shown in the **pipeline's flowchart** below.
 
-![Figure 1](pics/getphylo_flowchart_FINAL.png)
+<!--![Figure 1](pics/getphylo_flowchart_FINAL.png) -->
 
-<!--
-<img src="pics/getphylo_flowchart_FINAL.png" width="100%" height="1200px" style="display: block; margin: auto;" />
--->
+
+<img src="pics/getphylo_flowchart_FINAL.png" width="80%" height="1200px" style="display: block; margin: auto;" />
+
 
 <!--<img src="pics/getphylo_flowchart_FINAL.png" alt="GET_PHYLOMARKERS pipeline workflow"
      width="600px" height="1500px"></img>-->
@@ -286,6 +286,9 @@ From the [BioPerl](http://bioperl.org/) suite:
 - [dplyr](https://cran.r-project.org/web/packages/dplyr/index.html)
 - [seqinr](https://cran.r-project.org/web/packages/seqinr/index.html)
 
+
+***
+
 # GET_PHYLOMARKERS TUTORIAL
 
 ## Test datasets
@@ -513,7 +516,10 @@ compare_clusters.pl -d ./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_12taxa_al
 
 **Figure 2**. Venn diagram depicting the **consensus core-genome** of 31 genes for the 12 input pIncA/C sequences. This is the consensus set provided in the test_sequences/core_genome/ directory
 
-![**Fig. 2. Consensus core-genome**](pics/venn_t12_90x90mm.png)
+
+<img src="pics/venn_t12_90x90mm.png" width="50%" height="1200px" style="display: block; margin: auto;" />
+
+<!--![**Fig. 2. Consensus core-genome**](pics/venn_t12_90x90mm.png)-->
 
 
 ## Computing a consensus pan-genome with GET_HOMOLOGUES
@@ -534,7 +540,8 @@ compare_clusters.pl -d ./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_alg
 
 **Figure 3.** Venn diagram depicting the **consensus pan-genome clusters** for the 12 input pIncA/C sequences contains 373 cluster. The corresponding pan-genome matrix is provided in the test_sequences/pan_genome/ directory
 
-![**Figure 3. Consensus pan-genome**](pics/venn_t0_90x60mm.png)
+<img src="pics/venn_t0_90x60mm.png" width="50%" height="1200px" style="display: block; margin: auto;" />
+<!--![**Figure 3. Consensus pan-genome**](pics/venn_t0_90x60mm.png)-->
 
 
 
@@ -601,56 +608,61 @@ ls kde_outliers
 
 # 1.2 the details of the kdetrees test are provided in tsv-formatted file kde_dfr_file_all_gene_trees.tre.tab
 head kde_dfr_file_all_gene_trees.tre.tab
-#file	kde_topo_dens	kde_topo_test	kde_bl_dens	kde_bl_test	kde_bl_topo_test
-#1961_hypothetical_protein_cdnAln.fasta.treefile	0.288751935193142	ok	63.2675110841703	ok	ok
-#1962_DNA_topoisomerase_II_cdnAln.fasta.treefile	0.252919761356219	ok	28.7241410392773	ok	ok
-#1964_hypothetical_protein_cdnAln.fasta.treefile	0.287751455109637	ok	17.2677657886815	ok	ok
-#1966_site-specific_DNA_me_cdnAln.fasta.treefile	0.240400359789596	outlier	27.0113341481227	ok	outlier
-#1967_hypothetical_protein_cdnAln.fasta.treefile	0.252639796140819	ok	95.8112601171774	ok	ok
-#1968_hypothetical_protein_cdnAln.fasta.treefile	0.297536609843425	ok	96.2903342166101	ok	ok
-#1969_putative_type_I_rest_cdnAln.fasta.treefile	0.314498361683638	ok	95.2603170008101	ok	ok
-#1970_KorB_cdnAln.fasta.treefile	0.331685645962565	ok	79.0447022830493	ok	ok
-#1971_ParA_cdnAln.fasta.treefile	0.334991727858742	ok	55.4211725899592	ok	ok
+## file	kde_topo_dens	kde_topo_test	kde_bl_dens	kde_bl_test	kde_bl_topo_test
+## 1961_hypothetical_protein_cdnAln.fasta.treefile	0.288751935193142	ok	63.2675110841703	ok	ok
+## 1962_DNA_topoisomerase_II_cdnAln.fasta.treefile	0.252919761356219	ok	28.7241410392773	ok	ok
+## 1964_hypothetical_protein_cdnAln.fasta.treefile	0.287751455109637	ok	17.2677657886815	ok	ok
+## 1966_site-specific_DNA_me_cdnAln.fasta.treefile	0.240400359789596	outlier	27.0113341481227	ok	outlier
+## 1967_hypothetical_protein_cdnAln.fasta.treefile	0.252639796140819	ok	95.8112601171774	ok	ok
+## 1968_hypothetical_protein_cdnAln.fasta.treefile	0.297536609843425	ok	96.2903342166101	ok	ok
+## 1969_putative_type_I_rest_cdnAln.fasta.treefile	0.314498361683638	ok	95.2603170008101	ok	ok
+## 1970_KorB_cdnAln.fasta.treefile	0.331685645962565	ok	79.0447022830493	ok	ok
+## 1971_ParA_cdnAln.fasta.treefile	0.334991727858742	ok	55.4211725899592	ok	ok
 
 # 2.1 have a look at the counts of best-fitting models selected
 cat IQT_best_model_counts_for_gene_trees.tsv
-#model	count
-#HKY+F	2
-#HKY+F+G4	1
-#K2P	26
-#K2P+G4	1
-#TIMe	1
+## model	count
+## HKY+F	2
+## HKY+F+G4	1
+## K2P	26
+## K2P+G4	1
+## TIMe	1
 
 # 2.2 and locus-specific stats are provied in IQT_DNA_gene_tree_Tmedium_stats.tsv
 head  IQT_DNA_gene_tree_Tmedium_stats.tsv
-#alignment	wc_secs	CPU_secs	lnL	model	s_type
-#./1961_hypothetical_protein_cdnAln.fasta.log	0.164	0.112	-1107.994	 K2P	IQTdnaTmedium
-#./1962_DNA_topoisomerase_II_cdnAln.fasta.log	0.251	0.184	-4124.482	 HKY+F+G4	IQTdnaTmedium
-#./1964_hypothetical_protein_cdnAln.fasta.log	0.284	0.172	-1225.145	 K2P+G4	IQTdnaTmedium
-#./1966_site-specific_DNA_me_cdnAln.fasta.log	0.204	0.108	-2183.089	 K2P	IQTdnaTmedium
-#./1967_hypothetical_protein_cdnAln.fasta.log	0.089	0.072	-870.935	 K2P	IQTdnaTmedium
-#./1968_hypothetical_protein_cdnAln.fasta.log	0.099	0.076	-1179.667	 K2P	IQTdnaTmedium
-#./1969_putative_type_I_rest_cdnAln.fasta.log	0.064	0.060	-1111.931	 K2P	IQTdnaTmedium
-#./1970_KorB_cdnAln.fasta.log	0.130	0.116	-2112.818	 TIMe	IQTdnaTmedium
-#./1971_ParA_cdnAln.fasta.log	0.129	0.072	-1157.621	 K2P	IQTdnaTmedium
+## alignment	wc_secs	CPU_secs	lnL	model	s_type
+## ./1961_hypothetical_protein_cdnAln.fasta.log	0.164	0.112	-1107.994	 K2P	IQTdnaTmedium
+## ./1962_DNA_topoisomerase_II_cdnAln.fasta.log	0.251	0.184	-4124.482	 HKY+F+G4	IQTdnaTmedium
+## ./1964_hypothetical_protein_cdnAln.fasta.log	0.284	0.172	-1225.145	 K2P+G4	IQTdnaTmedium
+## ./1966_site-specific_DNA_me_cdnAln.fasta.log	0.204	0.108	-2183.089	 K2P	IQTdnaTmedium
+## ./1967_hypothetical_protein_cdnAln.fasta.log	0.089	0.072	-870.935	 K2P	IQTdnaTmedium
+## ./1968_hypothetical_protein_cdnAln.fasta.log	0.099	0.076	-1179.667	 K2P	IQTdnaTmedium
+## ./1969_putative_type_I_rest_cdnAln.fasta.log	0.064	0.060	-1111.931	 K2P	IQTdnaTmedium
+## ./1970_KorB_cdnAln.fasta.log	0.130	0.116	-2112.818	 TIMe	IQTdnaTmedium
+## ./1971_ParA_cdnAln.fasta.log	0.129	0.072	-1157.621	 K2P	IQTdnaTmedium
 
 # 3. graphical summaries of the results of the kdetrees and the distribuions of support-values are provided as svg files.
 ls -1 *svg
-#dotplot_and_bxplot_kdeDensity_dist_dissim_topo_TRUE.svg
-#parallel_bxplots_kdeDensity_dist_dissim_topo_TRUE-FALSE.svg
-#scatterplot_for_gene_tree_support_values.svg
+## dotplot_and_bxplot_kdeDensity_dist_dissim_topo_TRUE.svg
+## parallel_bxplots_kdeDensity_dist_dissim_topo_TRUE-FALSE.svg
+## scatterplot_for_gene_tree_support_values.svg
 
 ```
 
 **Figure 4** below depicts the **results of the non-parametric *kdetrees* test**, run at the default stringency level of k = 1.5. As depicted on the graph, only one outlier is detected based on the topology (lower panel). 
 
-![Fig.4 results of the kdetrees test](pics/dotplot_and_bxplot_kdeDensity_dist_dissim_topo_TRUE_90x90mm.png)
+<img src="pics/dotplot_and_bxplot_kdeDensity_dist_dissim_topo_TRUE_90x90mm.png" width="50%" height="1200px" style="display: block; margin: auto;" />
+
+<!--![Fig.4 results of the kdetrees test](pics/dotplot_and_bxplot_kdeDensity_dist_dissim_topo_TRUE_90x90mm.png)-->
 
 **IMPORTANT NOTE**: to visualize the figures, you need to access the corresponding files from your local host, as the Docker container does not provide a graphical environment with visualization tools.
 
 **Figure 5** depicts a **scatterplot and a histogram summarizing the distribution of mean SH-support values for the 25 gene trees** that reached this point in the pipeline.
 
-![Fig. 5. Distribution of SHalrt support values](pics/scatterplot_for_gene_tree_support_values_90x90.png)
+
+<img src="pics/scatterplot_for_gene_tree_support_values_90x90.png" width="50%" height="1200px" style="display: block; margin: auto;" />
+
+<!--![Fig. 5. Distribution of SHalrt support values](pics/scatterplot_for_gene_tree_support_values_90x90.png)-->
 
 Finally we will inspect the contents of the **top_15_markers_ge70perc/ directory**, which holds the top-scoring markers that passed the above-mentioned filters, the supermatrix resulting from their concatenation and the "species-tree" estimated from it under the best-fitting model identified by ModelFinder/IQ-TREE.
 
@@ -660,22 +672,22 @@ cd top_15_markers_ge70perc
 
 # The concatenation coordinates for the supermatrix are saved in concatenation_coordinates.txt
 cat concatenation_coordinates.txt
-# concatenation coordinates:
-1961_hypothetical_protein_cdnAln.fasta = 1-615
-1967_hypothetical_protein_cdnAln.fasta = 616-1113
-1968_hypothetical_protein_cdnAln.fasta = 1114-1785
-1970_KorB_cdnAln.fasta = 1786-2961
-1971_ParA_cdnAln.fasta = 2962-3642
-1984_hypothetical_protein_cdnAln.fasta = 3643-3975
-1989_hypothetical_protein_cdnAln.fasta = 3976-4830
-1990_hypothetical_protein_cdnAln.fasta = 4831-5346
-1994_DSBA_oxidoreductase_cdnAln.fasta = 5347-6204
-1995_putative_signal_pept_cdnAln.fasta = 6205-7110
-1996_hypothetical_protein_cdnAln.fasta = 7111-7962
-1997_hypothetical_protein_cdnAln.fasta = 7963-8403
-1998_hypothetical_protein_cdnAln.fasta = 8404-8922
-1999_hypothetical_protein_cdnAln.fasta = 8923-9381
-2012_TraF_cdnAln.fasta = 9382-10395
+## concatenation coordinates:
+# 1961_hypothetical_protein_cdnAln.fasta = 1-615
+## 1967_hypothetical_protein_cdnAln.fasta = 616-1113
+## 1968_hypothetical_protein_cdnAln.fasta = 1114-1785
+## 1970_KorB_cdnAln.fasta = 1786-2961
+## 1971_ParA_cdnAln.fasta = 2962-3642
+## 1984_hypothetical_protein_cdnAln.fasta = 3643-3975
+## 1989_hypothetical_protein_cdnAln.fasta = 3976-4830
+## 1990_hypothetical_protein_cdnAln.fasta = 4831-5346
+## 1994_DSBA_oxidoreductase_cdnAln.fasta = 5347-6204
+## 1995_putative_signal_pept_cdnAln.fasta = 6205-7110
+## 1996_hypothetical_protein_cdnAln.fasta = 7111-7962
+## 1997_hypothetical_protein_cdnAln.fasta = 7963-8403
+## 1998_hypothetical_protein_cdnAln.fasta = 8404-8922
+## 1999_hypothetical_protein_cdnAln.fasta = 8923-9381
+## 2012_TraF_cdnAln.fasta = 9382-10395
 
 # some phylogenetic properties of the markers are summarized in sorted_aggregated_support_values4loci.tab
 # graphical analysis of RF-distances of gene-trees to the species-tree is found in scatterplot_RF-dist_of_gene_trees2concat_phylo.svg
@@ -683,15 +695,22 @@ cat concatenation_coordinates.txt
 # The final tree concat_nonRecomb_KdeFilt_iqtree_GTR+F+ASC_ed.sptree can be conveniently visualized and edited with figtree
 figtree concat_nonRecomb_KdeFilt_iqtree_GTR+F+ASC_ed.sptree &
 
-# 
 
 ```
+
+
 **Figure 6** depicts the **RF-distances of the 15 top-scoring markers to the ML tree** inferred under the GTR+F+ASC substitution model from the concatenation of these loci (shown in Fig. 7)
-![**Fig. 6 RF-distances to the "species-tree"**](pics/scatterplot_RF-dist_of_gene_trees2concat_phylo_70x70mm.png)
+<!--![**Fig. 6 RF-distances to the "species-tree"**](pics/scatterplot_RF-dist_of_gene_trees2concat_phylo_70x70mm.png)-->
+
+
+<img src="pics/scatterplot_RF-dist_of_gene_trees2concat_phylo_70x70mm.png" width="50%" height="1200px" style="display: block; margin: auto;" />
+
 
 **Figure 7** depicts the  **best ML "species tree"** inferred under the GTR+F+ASC substitution model from the supermatrix of 15 top-scoring markers. The nodes are colored according to the legend. The first value corresponds to approximate Bayes branch support values and second ones to the UFBoot values described in the manual.
 
-![**Fig. 7 the "species-tree**"](pics/concat_nonRecomb_KdeFilt_iqtree_GTR+F+ASC_ed.sptree.png)
+<img src="pics/concat_nonRecomb_KdeFilt_iqtree_GTR+F+ASC_ed.sptree.png" width="90%" height="1200px" style="display: block; margin: auto;" />
+
+<!--![**Fig. 7 the "species-tree**"](pics/concat_nonRecomb_KdeFilt_iqtree_GTR+F+ASC_ed.sptree.png)-->
 
 
 ## Estimating the ML pan-genome phylogeny of the pIncA/C plasmids with GET_PHYLOMARKERS
@@ -724,16 +743,16 @@ Lets have a look at the tree search profile
 cd iqtree_PGM_10_runs/iqtree_10_runs
 
 cat sorted_lnL_scores_IQ-TREE_searches.out
-#abayes_UFBboot_run9.log:BEST SCORE FOUND : -1897.260
-#abayes_UFBboot_run8.log:BEST SCORE FOUND : -1897.260
-#abayes_UFBboot_run7.log:BEST SCORE FOUND : -1897.260
-#abayes_UFBboot_run6.log:BEST SCORE FOUND : -1897.260
-#abayes_UFBboot_run5.log:BEST SCORE FOUND : -1897.260
-#abayes_UFBboot_run4.log:BEST SCORE FOUND : -1897.260
-#abayes_UFBboot_run3.log:BEST SCORE FOUND : -1897.260
-#abayes_UFBboot_run2.log:BEST SCORE FOUND : -1897.260
-#abayes_UFBboot_run1.log:BEST SCORE FOUND : -1897.260
-#abayes_UFBboot_run10.log:BEST SCORE FOUND : -1897.260
+## abayes_UFBboot_run9.log:BEST SCORE FOUND : -1897.260
+## abayes_UFBboot_run8.log:BEST SCORE FOUND : -1897.260
+## abayes_UFBboot_run7.log:BEST SCORE FOUND : -1897.260
+## abayes_UFBboot_run6.log:BEST SCORE FOUND : -1897.260
+## abayes_UFBboot_run5.log:BEST SCORE FOUND : -1897.260
+## abayes_UFBboot_run4.log:BEST SCORE FOUND : -1897.260
+## abayes_UFBboot_run3.log:BEST SCORE FOUND : -1897.260
+## abayes_UFBboot_run2.log:BEST SCORE FOUND : -1897.260
+## abayes_UFBboot_run1.log:BEST SCORE FOUND : -1897.260
+## abayes_UFBboot_run10.log:BEST SCORE FOUND : -1897.260
 ```
 No wonder, in such a small dataset, all searches find exactly the same best tree. However, this will be less likely the case as the number of sequences in the dataset increases, as the size of the tree-spece increases factorialy with each new sequence.
 
@@ -745,7 +764,10 @@ figtree best_PGM_IQT_abayes_UFBboot_run9_GTR2+FO.treefile &
 
 **Figure 8** displays the **best ML pan-genome tree**, again using figtree. The nodes are colored according to the legend. The first value corresponds to approximate Bayes branch support values and second ones to the UFBoot values described in the manual.
 
-![Fig. 8. best ML pan-genome tree](pics/best_PGM_IQT_abayes_UFBboot_run9_GTR2+FO.treefile.png)
+<img src="pics/best_PGM_IQT_abayes_UFBboot_run9_GTR2+FO.treefile.png" width="90%" height="1200px" style="display: block; margin: auto;" />
+
+
+<!--![Fig. 8. best ML pan-genome tree](pics/best_PGM_IQT_abayes_UFBboot_run9_GTR2+FO.treefile.png)-->
 
 
 ## Estimating the pan-genome phylogeny of the pIncA/C plasmids under the parsimony criterion with GET_PHYLOMARKERS
@@ -776,12 +798,16 @@ figtree full_pars_tree_rooted_withBoot_ed.ph &
 
 **Figure 9** displays the **most parsimonious pan-genome tree**, again using figtree. The nodes are colored according to the legend. The nodes are colored according to the legend, which represents standard bootstrap support values computed by seqboot from the PHYLIP package.
 
-![Fig. 9 most parsimonious pan-genome tree](pics/full_pars_tree_rooted_withBoot_ed.ph.png)
+
+<img src="pics/full_pars_tree_rooted_withBoot_ed.ph.png" width="90%" height="1200px" style="display: block; margin: auto;" />
+
+
+<!--![Fig. 9 most parsimonious pan-genome tree](pics/full_pars_tree_rooted_withBoot_ed.ph.png)-->
 
 If you are running the tutorials from a Docker image instance, do you remember how to exit the container?
 It's with exit
 
-That's it.
+That's it, enjoy!
 
 # Developers
 The code is developed and maintained by [Pablo Vinuesa](http://www.ccg.unam.mx/~vinuesa/) 
