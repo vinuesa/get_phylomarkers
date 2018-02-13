@@ -1,3 +1,5 @@
+12Feb18  * added html-based manual and tutorial, with table of contents, under https://vinuesa.github.io/get_phylomarkers
+
 11Feb18: * run_get_phylomarkers_pipeline.sh 'v2.1.5_118Feb18' is more shellcheck-compliant
          * get_script_PID in get_phylomarkers_fun_lib now uses pgrep; the library is more shellcheck-compliant
 
