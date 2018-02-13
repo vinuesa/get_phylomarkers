@@ -28,7 +28,7 @@ the pipeline should be run using protein instead of DNA sequences.
 
 ## Manual and tutorials
 
-Please, follow the link for a detailed [**manual**](docs/GET_PHYLOMARKERS_manual.md) and [**tutorials**](docs/GET_PHYLOMARKERS_manual.md#get_phylomarkers-tutorial), including a [**graphical flowchart**](docs/GET_PHYLOMARKERS_manual.md#brief-presentation-and-graphical-overview-of-the-pipeline) of the pipeline and explanations of the implementation details.
+Please, follow the links for a detailed [**manual**](https://vinuesa.github.io/get_phylomarkers/#get_phylomarkers-manual) and [**tutorials**](https://vinuesa.github.io/get_phylomarkers/#get_phylomarkers-tutorial), including a [**graphical flowchart**](https://vinuesa.github.io/get_phylomarkers/#brief-presentation-and-graphical-overview-of-the-pipeline) of the pipeline and explanations of the implementation details.
 
 ## Citation.
 
