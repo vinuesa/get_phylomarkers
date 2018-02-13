@@ -11,6 +11,7 @@
 
 <meta name="author" content="Pablo Vinuesa, CCG-UNAM (http://www.ccg.unam.mx/~vinuesa/) and Bruno Contreras-Moreira, EEAD-CSIC (https://digital.csic.es/cris/rp/rp02661/)" />
 
+<meta name="date" content="2018-02-12" />
 
 <title>GET_PHYLOMARKERS manual and tutorial</title>
 
@@ -120,7 +121,7 @@ $(document).ready(function () {
 
 <h1 class="title toc-ignore">GET_PHYLOMARKERS manual and tutorial</h1>
 <h4 class="author"><em>Pablo Vinuesa, CCG-UNAM (<a href="http://www.ccg.unam.mx/~vinuesa/" class="uri">http://www.ccg.unam.mx/~vinuesa/</a>) and Bruno Contreras-Moreira, EEAD-CSIC (<a href="https://digital.csic.es/cris/rp/rp02661/" class="uri">https://digital.csic.es/cris/rp/rp02661/</a>)</em></h4>
-<h4 class="date"><em>February 12th, 2018</em></h4>
+<h4 class="date"><em>2018-02-12</em></h4>
 
 </div>
 
@@ -182,7 +183,7 @@ $(document).ready(function () {
 <h1><span class="header-section-number">1</span> GET_PHYLOMARKERS MANUAL</h1>
 <div id="brief-presentation-and-graphical-overview-of-the-pipeline" class="section level2">
 <h2><span class="header-section-number">1.1</span> Brief presentation and graphical overview of the pipeline</h2>
-<p>This manual provides the usage details for <strong>GET_PHYLOMARKERS</strong>, a software package designed to select “well-behaved” phylogenetic markers to estimate a <strong>maximum likelihoood (ML) species tree</strong> from the supermatrix of concatenated, top-scoring alignments. These are identified through a series of sequential filters that operate on orthologous gene/protein clusters computed by <strong>GET_HOMOLOGUES</strong> to exclude:</p>
+<p>This manual provides the usage details for <a href="https://github.com/vinuesa/get_phylomarkers"><strong>GET_PHYLOMARKERS</strong></a>, a software package designed to select “well-behaved” phylogenetic markers to estimate a <strong>maximum likelihoood (ML) species tree</strong> from the supermatrix of concatenated, top-scoring alignments. These are identified through a series of sequential filters that operate on orthologous gene/protein clusters computed by <a href="https://github.com/eead-csic-compbio/get_homologues"><strong>GET_HOMOLOGUES</strong></a> to exclude:</p>
 <ol style="list-style-type: decimal">
 <li>alignments with evidence for <strong>recombinant sequences</strong></li>
 <li>sequences that yield “<strong>outlier gene trees</strong>” in the context of the distributions of topologies and tree-lengths expected under the multispecies coalescent</li>
@@ -196,8 +197,14 @@ $(document).ready(function () {
 </div>
 <div id="installation-dependencies-and-docker-image" class="section level2">
 <h2><span class="header-section-number">1.2</span> Installation, dependencies and Docker image</h2>
-<p>The <strong>GET_PHYLOMARKERS</strong> pagacke can be conveniently downloaded as a <a href="https://github.com/vinuesa/get_phylomarkers/releases"><strong>GitHub release</strong></a>. For detailed instructions on installing the external dependencies please check <a href="https://github.com/vinuesa/get_phylomarkers/blob/master/INSTALL.md"><strong>INSTALL.md</strong></a>.</p>
-<p>A <a href="https://hub.docker.com/r/csicunam/get_homologues"><strong>Docker image</strong></a> is available that bundles <strong>GET_PHYLOMARKERS</strong> with <a href="https://github.com/eead-csic-compbio/get_homologues"><strong>GET_HOMOLOGUES</strong></a>, ready to use. We highly recommend installing the docker image to avoid potential problems with the installation of the many second-party dependencies. If you have not set a Docker environment on your machine, please see the instructions provied in the <a href="https://github.com/vinuesa/get_phylomarkers/blob/master/INSTALL.md"><strong>INSTALL.md</strong></a> document for installing Docker on different platforms and downloading/upgrading the <a href="https://hub.docker.com/r/csicunam/get_homologues/"><strong>Docker image</strong></a> from Docker hub.</p>
+<p>The <a href="https://github.com/vinuesa/get_phylomarkers"><strong>GET_PHYLOMARKERS</strong></a> pagacke is distributed in three formats:</p>
+<ol style="list-style-type: decimal">
+<li>as a <a href="https://github.com/vinuesa/get_phylomarkers/releases"><strong>GitHub release</strong></a>.</li>
+<li>as source code that can be cloned from the project’s repository <a href="https://github.com/vinuesa/get_phylomarkers/"><strong>GitHub repository</strong></a>.</li>
+<li>as a <a href="https://hub.docker.com/r/csicunam/get_homologues"><strong>Docker image</strong></a> is available that bundles <a href="https://github.com/vinuesa/get_phylomarkers"><strong>GET_PHYLOMARKERS</strong></a> with <a href="https://github.com/eead-csic-compbio/get_homologues"><strong>GET_HOMOLOGUES</strong></a>, ready to use.</li>
+</ol>
+<p>For detailed instructions on installing the external dependencies please check <a href="https://github.com/vinuesa/get_phylomarkers/blob/master/INSTALL.md"><strong>INSTALL.md</strong></a>.</p>
+<p>We highly recommend installing the <a href="https://hub.docker.com/r/csicunam/get_homologues"><strong>Docker image</strong></a> to avoid potential problems with the installation of the many dependencies. If you have not set a Docker environment on your machine, please see the instructions provied in the <a href="https://github.com/vinuesa/get_phylomarkers/blob/master/INSTALL.md"><strong>INSTALL.md</strong></a> document for installing Docker on different platforms and downloading/upgrading the <a href="https://hub.docker.com/r/csicunam/get_homologues/"><strong>Docker image</strong></a> from Docker hub.</p>
 </div>
 <div id="aim" class="section level2">
 <h2><span class="header-section-number">1.3</span> Aim</h2>
