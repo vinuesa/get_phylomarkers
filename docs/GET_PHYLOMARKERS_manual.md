@@ -13,7 +13,7 @@ This manual provides the usage details for **GET_PHYLOMARKERS**, a software pack
 <!--![Figure 1](pics/getphylo_flowchart_FINAL.png) -->
 
 
-<img src="pics/getphylo_flowchart_FINAL.png" width="0.33\textheight" height="1200px" style="display: block; margin: auto;" />
+<img src="pics/getphylo_flowchart_FINAL.png" width="80%" height="80%" style="display: block; margin: auto;" />
 
 
 <!--<img src="pics/getphylo_flowchart_FINAL.png" alt="GET_PHYLOMARKERS pipeline workflow"
@@ -517,7 +517,7 @@ compare_clusters.pl -d ./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_12taxa_al
 **Figure 2**. Venn diagram depicting the **consensus core-genome** of 31 genes for the 12 input pIncA/C sequences. This is the consensus set provided in the test_sequences/core_genome/ directory
 
 
-<img src="pics/venn_t12_90x90mm.png" width="50%" height="1200px" style="display: block; margin: auto;" />
+<img src="pics/venn_t12_90x90mm.png" width="50%" height="900px" style="display: block; margin: auto;" />
 
 <!--![**Fig. 2. Consensus core-genome**](pics/venn_t12_90x90mm.png)-->
 
@@ -540,7 +540,7 @@ compare_clusters.pl -d ./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_alg
 
 **Figure 3.** Venn diagram depicting the **consensus pan-genome clusters** for the 12 input pIncA/C sequences contains 373 cluster. The corresponding pan-genome matrix is provided in the test_sequences/pan_genome/ directory
 
-<img src="pics/venn_t0_90x60mm.png" width="50%" height="1200px" style="display: block; margin: auto;" />
+<img src="pics/venn_t0_90x60mm.png" width="50%" height="50%" style="display: block; margin: auto;" />
 <!--![**Figure 3. Consensus pan-genome**](pics/venn_t0_90x60mm.png)-->
 
 
@@ -651,7 +651,7 @@ ls -1 *svg
 
 **Figure 4** below depicts the **results of the non-parametric *kdetrees* test**, run at the default stringency level of k = 1.5. As depicted on the graph, only one outlier is detected based on the topology (lower panel). 
 
-<img src="pics/dotplot_and_bxplot_kdeDensity_dist_dissim_topo_TRUE_90x90mm.png" width="50%" height="1200px" style="display: block; margin: auto;" />
+<img src="pics/dotplot_and_bxplot_kdeDensity_dist_dissim_topo_TRUE_90x90mm.png" width="50%" height="50%" style="display: block; margin: auto;" />
 
 <!--![Fig.4 results of the kdetrees test](pics/dotplot_and_bxplot_kdeDensity_dist_dissim_topo_TRUE_90x90mm.png)-->
 
@@ -660,7 +660,7 @@ ls -1 *svg
 **Figure 5** depicts a **scatterplot and a histogram summarizing the distribution of mean SH-support values for the 25 gene trees** that reached this point in the pipeline.
 
 
-<img src="pics/scatterplot_for_gene_tree_support_values_90x90.png" width="50%" height="1200px" style="display: block; margin: auto;" />
+<img src="pics/scatterplot_for_gene_tree_support_values_90x90.png" width="50%" height="50%" style="display: block; margin: auto;" />
 
 <!--![Fig. 5. Distribution of SHalrt support values](pics/scatterplot_for_gene_tree_support_values_90x90.png)-->
 
@@ -703,12 +703,12 @@ figtree concat_nonRecomb_KdeFilt_iqtree_GTR+F+ASC_ed.sptree &
 <!--![**Fig. 6 RF-distances to the "species-tree"**](pics/scatterplot_RF-dist_of_gene_trees2concat_phylo_70x70mm.png)-->
 
 
-<img src="pics/scatterplot_RF-dist_of_gene_trees2concat_phylo_70x70mm.png" width="50%" height="1200px" style="display: block; margin: auto;" />
+<img src="pics/scatterplot_RF-dist_of_gene_trees2concat_phylo_70x70mm.png" width="50%" height="50%" style="display: block; margin: auto;" />
 
 
 **Figure 7** depicts the  **best ML "species tree"** inferred under the GTR+F+ASC substitution model from the supermatrix of 15 top-scoring markers. The nodes are colored according to the legend. The first value corresponds to approximate Bayes branch support values and second ones to the UFBoot values described in the manual.
 
-<img src="pics/concat_nonRecomb_KdeFilt_iqtree_GTR+F+ASC_ed.sptree.png" width="90%" height="1200px" style="display: block; margin: auto;" />
+<img src="pics/concat_nonRecomb_KdeFilt_iqtree_GTR+F+ASC_ed.sptree.png" width="90%" height="90%" style="display: block; margin: auto;" />
 
 <!--![**Fig. 7 the "species-tree**"](pics/concat_nonRecomb_KdeFilt_iqtree_GTR+F+ASC_ed.sptree.png)-->
 
@@ -764,7 +764,7 @@ figtree best_PGM_IQT_abayes_UFBboot_run9_GTR2+FO.treefile &
 
 **Figure 8** displays the **best ML pan-genome tree**, again using figtree. The nodes are colored according to the legend. The first value corresponds to approximate Bayes branch support values and second ones to the UFBoot values described in the manual.
 
-<img src="pics/best_PGM_IQT_abayes_UFBboot_run9_GTR2+FO.treefile.png" width="90%" height="1200px" style="display: block; margin: auto;" />
+<img src="pics/best_PGM_IQT_abayes_UFBboot_run9_GTR2+FO.treefile.png" width="90%" height="90%" style="display: block; margin: auto;" />
 
 
 <!--![Fig. 8. best ML pan-genome tree](pics/best_PGM_IQT_abayes_UFBboot_run9_GTR2+FO.treefile.png)-->
@@ -799,7 +799,7 @@ figtree full_pars_tree_rooted_withBoot_ed.ph &
 **Figure 9** displays the **most parsimonious pan-genome tree**, again using figtree. The nodes are colored according to the legend. The nodes are colored according to the legend, which represents standard bootstrap support values computed by seqboot from the PHYLIP package.
 
 
-<img src="pics/full_pars_tree_rooted_withBoot_ed.ph.png" width="0.33\textheight" height="1200px" style="display: block; margin: auto;" />
+<img src="pics/full_pars_tree_rooted_withBoot_ed.ph.png" width="90%" height="90%" style="display: block; margin: auto;" />
 
 
 <!--![Fig. 9 most parsimonious pan-genome tree](pics/full_pars_tree_rooted_withBoot_ed.ph.png)-->
