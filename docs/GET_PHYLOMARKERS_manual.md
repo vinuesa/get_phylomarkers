@@ -517,7 +517,7 @@ compare_clusters.pl -d ./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_12taxa_al
 **Figure 2**. Venn diagram depicting the **consensus core-genome** of 31 genes for the 12 input pIncA/C sequences. This is the consensus set provided in the test_sequences/core_genome/ directory
 
 
-<img src="pics/venn_t12_90x90mm.png" width="50%" height="900px" style="display: block; margin: auto;" />
+<img src="pics/venn_t12_90x90mm.png" width="50%" height="50%" style="display: block; margin: auto;" />
 
 <!--![**Fig. 2. Consensus core-genome**](pics/venn_t12_90x90mm.png)-->
 
