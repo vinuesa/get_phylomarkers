@@ -162,7 +162,8 @@ function get_script_PID()
     # returns the PID of the script, run by USER
     prog=${0%.*} # remove the script's .extension_name
     #proc_ID=$(ps -eaf|grep "$prog"|grep -v grep|grep '-'|grep $USER|awk '{print $2}')
-    proc_ID=$(ps aux|grep "$prog"|grep -v grep|grep '-'|grep "$USER" |awk '{print $2}')
+    #proc_ID=$(ps aux|grep "$prog"|grep -v grep|grep '-'|grep "$USER" |awk '{print $2}')
+    proc_ID=$(pgrep -u "$USER" "$prog")
     echo "$proc_ID"
     [ "$DEBUG" -eq 1 ] && msg "$progname PID is: $proc_ID" DEBUG NC
     [ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
