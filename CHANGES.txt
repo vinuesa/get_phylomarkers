@@ -1,6 +1,7 @@
+15Feb18  * run_get_phylomarkers_pipeline.sh 'v2.1.7_15Feb18'; added more DEBUG INFO to initial FASTA sanity checks
 12Feb18  * added html-based manual and tutorial, with table of contents, under https://vinuesa.github.io/get_phylomarkers
 
-11Feb18: * run_get_phylomarkers_pipeline.sh 'v2.1.5_118Feb18' is more shellcheck-compliant
+11Feb18: * run_get_phylomarkers_pipeline.sh 'v2.1.5_11Feb18' is more shellcheck-compliant
          * get_script_PID in get_phylomarkers_fun_lib now uses pgrep; the library is more shellcheck-compliant
 
 8Feb18: # 1. Changes to estimate_pangenome_phylogenies.sh v1.0.1_8Feb18
