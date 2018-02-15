@@ -21,11 +21,13 @@
 #           which is freely available from GitHub @ https://github.com/eead-csic-compbio/get_homologues
 #
 #: OUTPUT: multiple sequence alignments (of protein and DNA sequences) of selected markers, gene trees and species tree 
-#              inferred from concatenated supermatrix of top-ranking markers, 
-#              along with graphics and tables summarizing the results of the pipeline obtained at different levels.
-#
+#              inferred from the concatenated supermatrix of top-ranking markers, along with graphics and tables summarizing 
+#              the results of the pipeline obtained at the different filtering steps.
+# 
+#: MANUAL: a detailed manual and tutorial are available at: https://vinuesa.github.io/get_phylomarkers/
+# 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.1.6_11Feb18'
+VERSION='2.1.7_15Feb18'
 
 # Set GLOBALS
 DEBUG=0
@@ -848,9 +850,8 @@ $distrodir/rename.pl 's/\.\.\./\./g' ./*.faa
 $distrodir/rename.pl 's/\.\.\./\./g' ./*.fna
 
 # 1.0 check that all fasta files contain the same number of sequences
-FASTASIZES=$(grep -c "^>" ./*.f[na]a | cut -d":" -f 2 | sort | uniq)
 NSEQSFASTA=$(grep -c "^>" ./*.f[na]a | cut -d":" -f 2 | sort | uniq | wc -l)
-[ $NSEQSFASTA -gt 1 ] && msg " >>> ERROR: Input FASTA files do not contain the same number of sequences...${NC}\n$FASTASIZES\n" ERROR RED && exit 4
+[ $NSEQSFASTA -gt 1 ] && msg " >>> ERROR: Input FASTA files do not contain the same number of sequences..." ERROR RED && grep -c "^>" ./*.f[na]a | cut -d":" -f 2 | sort | uniq && exit 4
 
 # 1.1 fix fastaheaders of the source protein and DNA fasta files
 for file in ./*faa; do awk 'BEGIN {FS = "|"}{print $1, $2, $3}' "$file"|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > ${file}ed; done
@@ -860,18 +861,29 @@ print_start_time && msg  "# Performing strain composition check on f?aed files .
 faaed_strain_intersection_check=$(grep '>' ./*faaed | cut -d: -f2 | sort | uniq -c | awk '{print $1}' | sort | uniq -c | wc -l)
 fnaed_strain_intersection_check=$(grep '>' ./*fnaed | cut -d: -f2 | sort | uniq -c | awk '{print $1}' | sort | uniq -c | wc -l)
 
-# check that each file has the same number of strains and a single instance for each strain
+
+# 1.2 check that each file has the same number of strains and a single instance for each strain
 if [ "$faaed_strain_intersection_check" -eq 1 -a "$fnaed_strain_intersection_check" -eq 1 ]
 then
    msg " >>> Strain check OK: each f?aed file has the same number of strains and a single instance for each strain" PROGR GREEN
 else
-     msg " >>> ERROR: Input f?aed files do not contain the same number of strains and a single instance for each strain...\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES]\n\tPlease check the GET_HOMOLOGUES manual" ERROR RED
+     if [ "$DEBUG" -eq 1 ]; then
+         grep '>' ./*faaed | cut -d: -f2 | sort | uniq -c | awk '{print $1}' | sort | uniq -c | wc -l
+         grep '>' ./*faaed | cut -d: -f2 | sort | uniq -c
+         grep '>' ./*fnaed | cut -d: -f2 | sort | uniq -c | awk '{print $1}' | sort | uniq -c | wc -l
+         grep '>' ./*fnaed | cut -d: -f2 | sort | uniq -c
+     fi
+     msg " >>> ERROR: Input f?aed files do not contain the same number of strains and a single instance for each strain...
+         Please run again -with -D (DEBUGGING INFO) flag and check input FASTA files as follows: 
+	 1. Revise the output above to make sure that all genomes have a strain assignation. If not, add manually or exclude 
+	 2. You may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES to get clusters of equal sizes
+	     Please check the GET_HOMOLOGUES manual" ERROR RED
      msg "http://eead-csic-compbio.github.io/get_homologues/manual" ERROR BLUE
      exit 5
 fi
 
 
-# 1.2 add_nos2fasta_header.pl to avoid problems with duplicate labels
+# 1.3 add_nos2fasta_header.pl to avoid problems with duplicate labels
 [ "$DEBUG" -eq 1 ] && msg " > ${distrodir}/run_parallel_cmmds.pl faaed 'add_nos2fasta_header.pl $file > ${file}no' "$n_cores" &> /dev/null" DEBUG NC
 "${distrodir}"/run_parallel_cmmds.pl faaed 'add_nos2fasta_header.pl $file > ${file}no' "$n_cores" &> /dev/null
 
@@ -1514,8 +1526,8 @@ then
 	    concat_logfile=$(find . -name 'concat*log')
 	    [ -s $concat_logfile ] && gzip $concat_logfile
 
-            cd $non_recomb_cdn_alns_dir
-	    [ "$DEBUG" -eq 1 ] && echo "... working in: $non_recomb_cdn_alns_dir ]"	
+            cd $non_recomb_cdn_alns_dir || msg "ERROR: cannot cd into $non_recomb_cdn_alns_dir ..." ERROR RED
+	    [ "$DEBUG" -eq 1 ] && echo "... working in: $non_recomb_cdn_alns_dir"	
 	    rm Rplots.pdf ./sorted*perc.tab ./all_*trees.tre top100_median_support_values4loci.tab 
 	    rm kde_outlier_files_all_gene_trees.tre.out kde_stats_all_gene_trees.tre.out
 	    [ "$DEBUG" -eq 0 ] && tar -czf non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln.fasta
@@ -1525,8 +1537,8 @@ then
 	    tar -czf FastTree_logfiles.tgz ./*.log 
             [ "$DEBUG" -eq 0 ] && [ -s FastTree_logfiles.tgz ] && rm ./*.log
 	    
-	    cd $top_dir
-	    [ "$DEBUG" -eq 1 ] && echo "... working in: $top_dir ]"	
+	    cd $top_dir || msg "ERROR: cannot cd into $top_dir ..." ERROR RED
+	    [ "$DEBUG" -eq 1 ] && echo "... working in: $top_dir"	
 	    tar -czf codon_alignments.tgz ./*_cdnAln.fasta
             [ "$DEBUG" -eq 0 ] && [ -s codon_alignments.tgz ] && rm ./*_cdnAln.fasta clustalo.log
             tar -czf protein_alignments.tgz ./*.faaln
@@ -1546,8 +1558,8 @@ then
 	    [ "$DEBUG" -eq 0 ] && rm ./*ckp.gz ./*model.gz ./*uniqueseq.phy
             [ "$DEBUG" -eq "0" ] && rm list2concat Rplots.pdf ./*cdnAln.ph 
 
-            cd $non_recomb_cdn_alns_dir
-	    [ "$DEBUG" -eq 1 ] && echo "... working in: $non_recomb_cdn_alns_dir ]"	
+            cd $non_recomb_cdn_alns_dir || msg "ERROR: cannot cd into $non_recomb_cdn_alns_dir ..." ERROR RED
+	    [ "$DEBUG" -eq 1 ] && echo "... working in: $non_recomb_cdn_alns_dir"	
 	    [ "$DEBUG" -eq 0 ] && rm ./Rplots.pdf sorted_aggregated_*tab ./all_*trees.tre kde_*out ./top100_median_support_values4loci.tab
 	    tar -czf non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln.fasta
 	    [ "$DEBUG" -eq 0 ] && [ -s non_recombinant_kdeOK_codon_alignments.tgz ] && rm ./*_cdnAln.fasta
@@ -1556,8 +1568,8 @@ then
 	    tar -czf IQT_gene_tree_logfiles.tgz ./*fasta.log
 	    [ "$DEBUG" -eq 0 ] && [ -s IQT_gene_tree_logfiles.tgz ] && rm ./*fasta.log
 	    
-	    cd $top_dir
-	    [ "$DEBUG" -eq 1 ] && echo "... working in: $top_dir ]"	
+	    cd $top_dir || msg "ERROR: cannot cd into $top_dir ..." ERROR RED
+	    [ "$DEBUG" -eq 1 ] && echo "... working in: $top_dir"	
 	    tar -czf codon_alignments.tgz ./*_cdnAln.fasta
             [ "$DEBUG" -eq 0 ] && [ -s codon_alignments.tgz ] && rm ./*_cdnAln.fasta clustalo.log
             tar -czf protein_alignments.tgz ./*.faaln
@@ -1627,8 +1639,8 @@ then
 #            [ "$DEBUG" -eq 0 ] && rm list2concat Rplots.pdf header.tmp list2grep.tmp
 #	fi
 # 
-	cd $non_recomb_cdn_alns_dir
-	[ "$DEBUG" -eq 1 ] && echo "... working in: $non_recomb_cdn_alns_dir ]"	
+	cd $non_recomb_cdn_alns_dir || msg "ERROR: cannot cd into $non_recomb_cdn_alns_dir ..." ERROR RED
+	[ "$DEBUG" -eq 1 ] && echo "... working in: $non_recomb_cdn_alns_dir"	
         tar -czf non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln.fasta
         [ "$DEBUG" -eq 0 ] && [ -s non_recombinant_kdeOK_codon_alignments.tgz ] && rm ./*_cdnAln.fasta ./all_*trees.tre ./Rplots.pdf
 	
@@ -1641,8 +1653,8 @@ then
             [ "$DEBUG" -eq 0 ] && [ -s IQT_gene_trees_from_non_recombinant_kdeOK_codon_alignments.tgz ] && rm ./*.fasta.log ./*.fasta.treefile
         fi
 
-        cd $top_dir
-	[ "$DEBUG" -eq 1 ] && echo "... working in: $top_dir ]"	
+        cd $top_dir || msg "ERROR: cannot cd into $top_dir ..." ERROR RED
+	[ "$DEBUG" -eq 1 ] && echo "... working in: $top_dir"	
         tar -czf codon_alignments.tgz ./*_cdnAln.fasta
         [ -s codon_alignments.tgz ] && rm ./*_cdnAln.fasta clustalo.log
         tar -czf protein_alignments.tgz ./*.faaln
@@ -2022,7 +2034,7 @@ then
 
     # >>> 5.9 CLEANUP <<< #
 
-    if [ $search_algorithm == "F" ]
+    if [ "$search_algorithm" == "F" ]
     then
         [ "$DEBUG" -eq 0 ] && rm list2concat Rplots.pdf sorted*perc.tab ./*.ph ./*faaln ./*log top*tab
         tar -czf concatenated_alignment_files.tgz concat_protAlns.faa concat_protAlns.faainf
@@ -2030,16 +2042,16 @@ then
         [ "$DEBUG" -eq 0 ] && rm ../sorted*perc.tab sorted_aggregated_*tab | \
         tee -a ${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log
 
-        cd $non_recomb_FAA_alns_dir
-	[ "$DEBUG" -eq 1 ] && echo "... working in: $non_recomb_FAA_alns_dir ]"	
+        cd "$non_recomb_FAA_alns_dir" || msg "ERROR: cannot cd into $non_recomb_FAA_alns_dir ..." ERROR RED
+	[ "$DEBUG" -eq 1 ] && echo "... working in: $non_recomb_FAA_alns_dir"	
         tar -czf non_recomb_kdeOK_FAA_alignments.tgz ./*_cluo.faaln
         [ -s non_recomb_kdeOK_FAA_alignments.tgz ] && rm ./*_cluo.faaln
         tar -czf non_recomb_kdeOK_prot_trees.tgz ./*_cluo_*.ph ./*.log
         [ -s non_recomb_kdeOK_prot_trees.tgz ] && rm ./*_cluo_*.ph ./*.log top100* kde*out
 	rm Rplots.pdf no_tree_branches.list
 
-        cd $top_dir
- 	[ "$DEBUG" -eq 1 ] && echo "... working in: $top_dir ]"	
+        cd $top_dir || msg "ERROR: cannot cd into $top_dir ..." ERROR RED
+ 	[ "$DEBUG" -eq 1 ] && echo "... working in: $top_dir"	
         tar -czf codon_alignments.tgz ./*_cdnAln.fasta
         [ -s codon_alignments.tgz ] && rm ./*_cdnAln.fasta clustalo.log
         tar -czf protein_alignments.tgz ./*.faaln
@@ -2052,15 +2064,15 @@ then
         [ -s concatenated_alignment_files.tgz ] && rm concat_protAlns.faa concat_protAlns.faainf
         [ "$DEBUG" -eq 0 ] && rm  ../Rplots.pdf ../sorted*perc.tab 
 
-        cd $non_recomb_FAA_alns_dir
+        cd $non_recomb_FAA_alns_dir || msg "ERROR: cannot cd into $non_recomb_FAA_alns_dir ..." ERROR RED
 	[ "$DEBUG" -eq 1 ] && echo "... working in: $non_recomb_FAA_alns_dir ]"	
         tar -czf non_recomb_kdeOK_FAA_alignments.tgz ./*_cluo.faaln
         [ -s non_recomb_kdeOK_FAA_alignments.tgz ] && rm ./*_cluo.faaln
         tar -czf non_recomb_kdeOK_prot_trees.tgz ./*faaln.treefile ./*.faaln.log all_gene_trees.tre
         [ -s non_recomb_kdeOK_prot_trees.tgz ] && rm ./*faaln.treefile all_gene_trees.tre ./*.faaln.log kde*.out top100_median_support_values4loci.tab no_tree_branches.list
 
-        cd $top_dir
-	[ "$DEBUG" -eq 1 ] && echo "... working in: $top_dir ]"	
+        cd $top_dir || msg "ERROR: cannot cd into $top_dir ..." ERROR RED
+	[ "$DEBUG" -eq 1 ] && echo "... working in: $top_dir"	
         tar -czf codon_alignments.tgz ./*_cdnAln.fasta
         [ -s codon_alignments.tgz ] && rm ./*_cdnAln.fasta clustalo.log
         tar -czf protein_alignments.tgz ./*.faaln
