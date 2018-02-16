@@ -60,7 +60,7 @@ RED='\033[0;31m'
 LRED='\033[1;31m'
 GREEN='\033[0;32m'
 #YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
+#BLUE='\033[0;34m'
 #LBLUE='\033[1;34m'
 #CYAN='\033[0;36m'
 NC='\033[0m' # No Color => end color
@@ -132,7 +132,7 @@ function check_dependencies()
     # check if scripts are in path; if not, set flag
     [ "$DEBUG" -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
     system_binaries=(bash R perl awk bc cut grep sed sort uniq Rscript find)
-    for prog in ${system_binaries[@]} 
+    for prog in "${system_binaries[@]}" 
     do
        bin=$(type -P $prog)
        if [ -z $bin ]; then
@@ -867,16 +867,16 @@ if [ "$faaed_strain_intersection_check" -eq 1 -a "$fnaed_strain_intersection_che
 then
    msg " >>> Strain check OK: each f?aed file has the same number of strains and a single instance for each strain" PROGR GREEN
 else
-     if [ "$DEBUG" -eq 1 ]; then
          grep '>' ./*faaed | cut -d: -f2 | sort | uniq -c | awk '{print $1}' | sort | uniq -c | wc -l
          grep '>' ./*faaed | cut -d: -f2 | sort | uniq -c
          grep '>' ./*fnaed | cut -d: -f2 | sort | uniq -c | awk '{print $1}' | sort | uniq -c | wc -l
          grep '>' ./*fnaed | cut -d: -f2 | sort | uniq -c
-     fi
      msg " >>> ERROR: Input f?aed files do not contain the same number of strains and a single instance for each strain...
-         Please run again -with -D (DEBUGGING INFO) flag and check input FASTA files as follows: 
-	 1. Revise the output above to make sure that all genomes have a strain assignation. If not, add manually or exclude 
-	 2. You may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES to get clusters of equal sizes
+         Please check input FASTA files as follows: 
+	 1. Revise the output above to make sure that all genomes have a strain assignation and the same number of associated sequences. 
+	      If not, add strain name manually to the corresponding fasta files or exclude them.
+	 2. Make sure that only one genome/gbk file is provided for each strain.     
+	 3. You may need to run get_homologues.pl with -e or compare_clusters.pl with -t NUM_OF_INPUT_GENOMES to get clusters of equal sizes
 	     Please check the GET_HOMOLOGUES manual" ERROR RED
      msg "http://eead-csic-compbio.github.io/get_homologues/manual" ERROR BLUE
      exit 5
