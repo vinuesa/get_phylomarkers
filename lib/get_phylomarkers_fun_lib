@@ -1,4 +1,4 @@
-#: VERSION: 17022018
+#: VERSION: 18022018
 #: LIBRARY: get_phylomarkers_fun_lib
 #     * functions called by run_get_phylomarkers_pipeline.sh
 #     * part of the GET_PHYLOMARKERS software package
@@ -247,7 +247,7 @@ function compute_FT_gene_tree_stats()
             # paste src files into table
 	    paste "FT_lnL_cdnAln_FTGTRG_T${search_thoroughness}.tsv" "FT_tot_wc_seconds_cdnAln_FTGTRG_T${search_thoroughness}.tsv" s_type.txt > \
 	    "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv"
-	    check_output "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv" | tee -a "${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log"
+	    check_output "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv"
         
 	    # add header
 	    cat "FT_gene_tree_stats.header FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv" > ed && \
@@ -277,7 +277,7 @@ function compute_FT_gene_tree_stats()
             # paste src files into table
 	    paste "FT_lnL_protAln_FTlgG_T${search_thoroughness}.tsv" "FT_tot_wc_seconds_protAln_FTlgG_T${search_thoroughness}.tsv" s_type.txt > \
 	    "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv"
-	    check_output "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv" | tee -a "${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log"
+	    check_output "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv"
         
 	    # add header
 	    cat "FT_gene_tree_stats.header FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv" > ed && mv ed "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv"
@@ -366,7 +366,7 @@ function compute_IQT_gene_tree_stats()
     	# paste src files into table
     	paste tot_wcsecs_IQT_mset_gtrees.tsv tot_CPUsecs_IQT_mset_gtrees.tsv sorted_by_FILE_NAME_lnL_mset_gene_trees.tsv IQT_best_models_for_gene_tree.tsv s_type.txt > \
     	"IQT_${mol_type}_gene_tree_T${search_thoroughness}_stats.tsv"
-    	check_output "IQT_${mol_type}_gene_tree_T${search_thoroughness}_stats.tsv" | tee -a "${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log" 
+    	check_output "IQT_${mol_type}_gene_tree_T${search_thoroughness}_stats.tsv"
     
     	# fix columns and add header
     	cut -f1,2,4,6,8,9 "IQT_${mol_type}_gene_tree_T${search_thoroughness}_stats.tsv" > ed && mv ed "IQT_${mol_type}_gene_tree_T${search_thoroughness}_stats.tsv"
@@ -379,7 +379,7 @@ function compute_IQT_gene_tree_stats()
     
     	mkdir iqtree_output_files && mv ./*.iqtree ./*.bionj ./*.mldist ./*model.gz ./*uniqueseq.phy iqtree_output_files
     	[ -d iqtree_output_files ] && tar -czf iqtree_output_files.tgz iqtree_output_files && rm -rf iqtree_output_files
-    	check_output iqtree_output_files.tgz  | tee -a "${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log"
+    	check_output iqtree_output_files.tgz
     fi
    [ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
@@ -404,8 +404,7 @@ compute_MJRC_tree()
     
     [ -s alltrees.nwk ] && iqtree -con alltrees.nwk &> /dev/null 
     [ -s alltrees.nwk.contree ] && mv alltrees.nwk.contree $contree_outfile && rm alltrees.nwk.log
-    check_output "$contree_outfile" | tee -a "${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log"
- 
+    check_output "$contree_outfile"
     [ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
     
     #"$distrodir"/add_labels2tree.pl "$top_dir"/tree_labels.list $contree_outfile &> /dev/null
@@ -451,7 +450,7 @@ function process_IQT_species_trees_for_molClock()
     print_start_time && msg "# Adding labels back to ${best_tree_file} ..." PRGR BLUE
     [ "$DEBUG" -eq 1 ] && msg " > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${best_tree_file} &> /dev/null" DEBUG NC
     "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list "${best_tree_file}" &> /dev/null
-    #check_output ${best_tree_file} "$parent_PID"
+    check_output "${best_tree_file}" "$parent_PID"
 
     rm ./*.ckp.gz concat_cdnAlns.fnainf
     mkdir iqtree_output_files && mv ./*.iqtree ./*.bionj ./*.mldist ./*.uniqueseq.phy "${best_tree_file}" iqtree_output_files
@@ -461,7 +460,7 @@ function process_IQT_species_trees_for_molClock()
     cp ./*_ed.sptree sorted_IQ-TREE_searches.out "$top_markers_dir"
     
     [ -d iqtree_output_files ] && tar -czf iqtree_output_files.tgz iqtree_output_files && rm -rf iqtree_output_files
-    check_output iqtree_output_files.tgz "$parent_PID"  | tee -a "${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log"
+    check_output iqtree_output_files.tgz "$parent_PID"
 
     cd "$top_markers_dir"
     rm concat_cdnAlns.fnainf.treefile 
@@ -476,7 +475,7 @@ function process_IQT_species_trees_for_molClock()
     [ "$DEBUG" -eq 1 ] && msg " > ${distrodir}/compute_suppValStas_and_RF-dist.R $top_markers_dir 2 fasta treefile 1 &> /dev/null" DEBUG NC
     "${distrodir}"/compute_suppValStas_and_RF-dist.R "$top_markers_dir" 2 fasta treefile 1 &> /dev/null
     
-    check_output gene_trees2_concat_tree_RF_distances.tab "$parent_PID" | tee -a "${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log"
+    check_output gene_trees2_concat_tree_RF_distances.tab "$parent_PID"
     
     # remove the unlabeled concat*treefile species tree required for compute_suppValStas_and_RF-dist.R
     # to avoid interference with clock-test, if required
@@ -511,11 +510,10 @@ function concat_alns()
         concat_file="concat_protAlns.faa"
     fi
 
-    "${distrodir}"/concat_alignments.pl list2concat > $concat_file
+    "${distrodir}"/concat_alignments.pl list2concat > "$concat_file"
     #concat_alignments.pl list2concat > $concat_file
-    check_output $concat_file "$pPID"
-    perl -ne 'if (/^#|^$/){ next }else{print}' $concat_file > ed && mv ed $concat_file
-    check_output $concat_file "$pPID"
+    check_output "$concat_file" "$pPID"
+    perl -ne 'if (/^#|^$/){ next }else{print}' "$concat_file" > ed && mv ed "$concat_file"
    [ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
@@ -558,8 +556,8 @@ function get_critical_FuLi_values()
 function check_output()
 {
     [ "$DEBUG" -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
-    outfile=$1
-    pPID=$2
+    local outfile=$1
+    local pPID=$2
 
     if [ -s "$outfile" ]
     then
