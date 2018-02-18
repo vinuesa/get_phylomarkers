@@ -763,7 +763,7 @@ lmsg="Run started on $TIMESTAMP_SHORT_HMS under $OSTYPE on $HOSTNAME with $n_cor
      IQT_models:$IQT_models|search_thoroughness:$search_thoroughness|nrep_IQT_searches:$nrep_IQT_searches
  > Molecular Clock parmeters:
      eval_clock:$eval_clock|root_method:$root_method|base_model:$base_mod|ChiSq_quantile:$q
-
+     
  DEBUG=$DEBUG"
  
 msg "$lmsg" PROGR YELLOW
