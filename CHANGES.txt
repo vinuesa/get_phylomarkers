@@ -1,4 +1,8 @@
-18Feb18  * More detailed and structured manual in html and md formats
+18Feb18  # Code run_get_phylomarkers_pipeline.sh v2.1.9_18Feb18 and get_phylomarkers_fun_lib v18022018
+            * fixed redundant output messages written to logfile
+	    * made more shellcheck compliant
+         # Manual
+            * More detailed and structured manual in html and md formats
 
 17Feb18  * added $distrodir to a nw_reroot call that was missing it
          * made lib/get_phylomarkers_fun_lib more shellcheck compliant 
