@@ -27,7 +27,7 @@
 #: MANUAL: a detailed manual and tutorial are available at: https://vinuesa.github.io/get_phylomarkers/
 # 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.1.7_15Feb18'
+VERSION='2.1.8_17Feb18'
 
 # Set GLOBALS
 DEBUG=0
@@ -619,8 +619,6 @@ no_proc=$(echo "$env_vars"|awk '{print $4}')
 
 #-----------------------------------------------------------------------------------------
 
-
-
 [ "$DEBUG" -eq 1 ] && msg "distrodir:$distrodir|bindir:$bindir|OS:$OS|no_proc:$no_proc" DEBUG LBLUE
 
 # 0.1 Determine if pipeline scripts are in $PATH;
@@ -837,7 +835,7 @@ then
   msg "  http://eead-csic-compbio.github.io/get_homologues/manual/" ERROR LBLUE
 fi
 
-mkdir "get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}" && cd get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}
+mkdir "get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}" && cd "get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}"
 top_dir=$(pwd)
 
 print_start_time && msg "# processing source fastas in directory get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT} ..." PROGR BLUE
@@ -850,12 +848,17 @@ $distrodir/rename.pl 's/\.\.\./\./g' ./*.faa
 $distrodir/rename.pl 's/\.\.\./\./g' ./*.fna
 
 # 1.0 check that all fasta files contain the same number of sequences
-NSEQSFASTA=$(grep -c "^>" ./*.f[na]a | cut -d":" -f 2 | sort | uniq | wc -l)
-[ $NSEQSFASTA -gt 1 ] && msg " >>> ERROR: Input FASTA files do not contain the same number of sequences..." ERROR RED && grep -c "^>" ./*.f[na]a | cut -d":" -f 2 | sort | uniq && exit 4
+NSEQSFASTA=$(grep -c '^>' ./*.f[na]a | cut -d: -f 2 | sort | uniq | wc -l)
+if [ $NSEQSFASTA -gt 1 ]
+then
+  msg " >>> ERROR: Input FASTA files do not contain the same number of sequences..." ERROR RED
+  grep -c '^>' ./*.f[na]a | cut -d: -f 2 | sort | uniq 
+  exit 4
+fi 
 
 # 1.1 fix fastaheaders of the source protein and DNA fasta files
 for file in ./*faa; do awk 'BEGIN {FS = "|"}{print $1, $2, $3}' "$file"|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > ${file}ed; done
-for file in ./*fna; do awk 'BEGIN {FS = "|"}{print $1, $2, $3}' "$file"|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > ${file}ed; done
+for file in ./*fna; do awk 'BEGIN {FS = "|"}{print $1, $2, $3}' "$file"|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}ed"; done
 
 print_start_time && msg  "# Performing strain composition check on f?aed files ..." PROGR BLUE
 faaed_strain_intersection_check=$(grep '>' ./*faaed | cut -d: -f2 | sort | uniq -c | awk '{print $1}' | sort | uniq -c | wc -l)
@@ -867,10 +870,11 @@ if [ "$faaed_strain_intersection_check" -eq 1 -a "$fnaed_strain_intersection_che
 then
    msg " >>> Strain check OK: each f?aed file has the same number of strains and a single instance for each strain" PROGR GREEN
 else
-         grep '>' ./*faaed | cut -d: -f2 | sort | uniq -c | awk '{print $1}' | sort | uniq -c | wc -l
-         grep '>' ./*faaed | cut -d: -f2 | sort | uniq -c
-         grep '>' ./*fnaed | cut -d: -f2 | sort | uniq -c | awk '{print $1}' | sort | uniq -c | wc -l
-         grep '>' ./*fnaed | cut -d: -f2 | sort | uniq -c
+     grep '>' ./*faaed | cut -d: -f2 | sort | uniq -c | awk '{print $1}' | sort | uniq -c | wc -l
+     grep '>' ./*faaed | cut -d: -f2 | sort | uniq -c
+     grep '>' ./*fnaed | cut -d: -f2 | sort | uniq -c | awk '{print $1}' | sort | uniq -c | wc -l
+     grep '>' ./*fnaed | cut -d: -f2 | sort | uniq -c
+    
      msg " >>> ERROR: Input f?aed files do not contain the same number of strains and a single instance for each strain...
          Please check input FASTA files as follows: 
 	 1. Revise the output above to make sure that all genomes have a strain assignation and the same number of associated sequences. 
@@ -881,7 +885,6 @@ else
      msg "http://eead-csic-compbio.github.io/get_homologues/manual" ERROR BLUE
      exit 5
 fi
-
 
 # 1.3 add_nos2fasta_header.pl to avoid problems with duplicate labels
 [ "$DEBUG" -eq 1 ] && msg " > ${distrodir}/run_parallel_cmmds.pl faaed 'add_nos2fasta_header.pl $file > ${file}no' "$n_cores" &> /dev/null" DEBUG NC
