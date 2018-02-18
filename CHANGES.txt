@@ -1,3 +1,5 @@
+18Feb18  * More detailed and structured manual in html and md formats
+
 17Feb18  * added $distrodir to a nw_reroot call that was missing it
          * made lib/get_phylomarkers_fun_lib more shellcheck compliant 
 	 
