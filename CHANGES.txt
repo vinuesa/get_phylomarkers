@@ -1,3 +1,6 @@
+17Feb18  * added $distrodir to a nw_reroot call that was missing it
+         * made lib/get_phylomarkers_fun_lib more shellcheck compliant 
+	 
 15Feb18  * run_get_phylomarkers_pipeline.sh 'v2.1.7_15Feb18'; added more DEBUG INFO to initial FASTA sanity checks
          * fixed typos in manual
 

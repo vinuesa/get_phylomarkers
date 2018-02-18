@@ -42,8 +42,9 @@
 #-------------------------------------------------------------------------------------------------------
 
 progname=${0##*/}
-VERSION='1.0.3_8Feb18' # added -v; check_scripts_in_path(); check_dependencies with verbosity; activated set_pipeline_environment; Thanks Felipe Lira!
-                       # fix in set_pipeline_environment: changed to readlink -n when "$OSTYPE" == "darwin" 
+VERSION='1.0.4_17Feb18' # prepended $bindir/ to a nw_reroot call that was missing it
+       # 1.0.3_8Feb18 added -v; check_scripts_in_path(); check_dependencies with verbosity; activated set_pipeline_environment; Thanks Felipe Lira!
+        # fix in set_pipeline_environment: changed to readlink -n when "$OSTYPE" == "darwin" 
        # v1.0_23Jan18 added code to run IQ-TREE on PGM, including alrt/UFBoot and model selection
        # v0.2_2Nov17; added runmodes and code to run parallel pars searches with different 
                    #            random seeds; Selects best tree; improved/fixed basic documentation
@@ -1058,7 +1059,7 @@ then
   perl -pe 's/\n//; s/;/;\n/' full_pars_tree.ph > ed && mv ed full_parsimony_tree.ph 
 
   # we may already have the file all_boottrees_rooted.ph in wkdir from a previous -R 3 run
-  [ ! -s all_boottrees_rooted.ph ] && nw_reroot all_boottrees.ph 0000000000 > all_boottrees_rooted.ph
+  [ ! -s all_boottrees_rooted.ph ] && "${bindir}"/nw_reroot all_boottrees.ph 0000000000 > all_boottrees_rooted.ph
 
   # 3. add bootstrap values to full_pars_tree_rooted.ph with nw_support
   # https://www.biostars.org/p/99308/ # Treeio And Bootstrap Values
