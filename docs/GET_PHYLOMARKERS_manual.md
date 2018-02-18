@@ -1,6 +1,6 @@
 # GET_PHYLOMARKERS MANUAL
 
-Manual compiled on: 2018-02-15
+version 2018-02-18
 
 ## Brief presentation and graphical overview of the pipeline
 
@@ -612,6 +612,8 @@ run_get_phylomarkers_pipeline.sh -R 1 -t DNA # takes 55 seconds on the above-men
 - IQ-TREE searches for the best model and tree for the supermatrix, reporting the best model and lnL score found
 - the script finally does some cleanup in the different working directories
 
+#### The PhiPac directory holds the results of the recombination tests
+
 ```
 
 # >>> explore the directories:
@@ -623,17 +625,23 @@ cd PhiPack
 
 # have a peak a the file
 head Phi_results_30Jan18.tsv
-#./1961_hypothetical_protein_cdnAln_Phi.log	1.00e+00	1.00e+00
-#./1962_DNA_topoisomerase_II_cdnAln_Phi.log	1.00e+00	1.00e+00
-#./1964_hypothetical_protein_cdnAln_Phi.log	1.00e+00	1.00e+00
-#./1966_site-specific_DNA_me_cdnAln_Phi.log	1.00e+00	1.00e+00
-#./1967_hypothetical_protein_cdnAln_Phi.log	1	1	TOO_FEW_INFORMATIVE_SITES
-#./1968_hypothetical_protein_cdnAln_Phi.log	1.00e+00	1.00e+00
-#./1969_putative_type_I_rest_cdnAln_Phi.log	1	1	TOO_FEW_INFORMATIVE_SITES
-#./1970_KorB_cdnAln_Phi.log	1.00e+00	1.00e+00
-#./1971_ParA_cdnAln_Phi.log	1.00e+00	1.00e+00
-#./1984_hypothetical_protein_cdnAln_Phi.log	1.00e+00	1.00e+00
+## ./1961_hypothetical_protein_cdnAln_Phi.log	1.00e+00	1.00e+00
+## ./1962_DNA_topoisomerase_II_cdnAln_Phi.log	1.00e+00	1.00e+00
+## ./1964_hypothetical_protein_cdnAln_Phi.log	1.00e+00	1.00e+00
+## ./1966_site-specific_DNA_me_cdnAln_Phi.log	1.00e+00	1.00e+00
+## ./1967_hypothetical_protein_cdnAln_Phi.log	1	1	TOO_FEW_INFORMATIVE_SITES
+## ./1968_hypothetical_protein_cdnAln_Phi.log	1.00e+00	1.00e+00
+## ./1969_putative_type_I_rest_cdnAln_Phi.log	1	1	TOO_FEW_INFORMATIVE_SITES
+## ./1970_KorB_cdnAln_Phi.log	1.00e+00	1.00e+00
+## ./1971_ParA_cdnAln_Phi.log	1.00e+00	1.00e+00
+## ./1984_hypothetical_protein_cdnAln_Phi.log	1.00e+00	1.00e+00
 
+```
+#### The non_recomb_cdn_alns/non_recomb_FAA_alns directories hold the results of phylogenetic tests on gene trees: kdetrees, model-selection and signal
+
+Depending on the type of the input sequences (-t DNA|PROT), the results of the different phylogenetic filters performed on gene trees will live either in the non_recomb_cdn_alns (-t DNA) or in the non_recomb_FAA_alns (-t PROT) directories.
+
+```
 # >>> cd into the directory holding the non-recombinant sequences, 
 # which contains the results of several phylogenetic attributes of the loci
 cd non_recomb_cdn_alns/
@@ -684,22 +692,26 @@ ls -1 *svg
 
 ```
 
-**Figure 4** below depicts the **results of the non-parametric *kdetrees* test**, run at the default stringency level of k = 1.5. As depicted on the graph, only one outlier is detected based on the topology (lower panel). 
+**Figure 4** below depicts the **results of the non-parametric *kdetrees* test**, run at the default stringency level of k = 1.5. As depicted on the graph, only one outlier is detected based on the topology (lower panel). Note that this and following graphs plot the results of a small (toy) dataset. They become more useful with larger ones.
 
 <img src="pics/dotplot_and_bxplot_kdeDensity_dist_dissim_topo_TRUE_90x90mm.png" width="50%" height="50%" style="display: block; margin: auto;" />
 
 <!--![Fig.4 results of the kdetrees test](pics/dotplot_and_bxplot_kdeDensity_dist_dissim_topo_TRUE_90x90mm.png)-->
 
-**IMPORTANT NOTE**: to visualize the figures, you need to access the corresponding files from your local host, as the Docker container does not provide a graphical environment with visualization tools.
+**IMPORTANT NOTE**: to visualize the figures, you need to access the corresponding files from your local host, as the Docker container does not provide a graphical environment with visualization tools! Just open a second terminal (or use your system's file browser) to access the working directory and display the figures.
 
-**Figure 5** depicts a **scatterplot and a histogram summarizing the distribution of mean SH-support values for the 25 gene trees** that reached this point in the pipeline.
+**Figure 5** depicts a **scatterplot and a histogram summarizing the distribution of mean SH-support values** for the 25 gene trees that reached this point in the pipeline.
 
 
 <img src="pics/scatterplot_for_gene_tree_support_values_90x90.png" width="50%" height="50%" style="display: block; margin: auto;" />
 
 <!--![Fig. 5. Distribution of SHalrt support values](pics/scatterplot_for_gene_tree_support_values_90x90.png)-->
 
-Finally we will inspect the contents of the **top_15_markers_ge70perc/ directory**, which holds the top-scoring markers that passed the above-mentioned filters, the supermatrix resulting from their concatenation and the "species-tree" estimated from it under the best-fitting model identified by ModelFinder/IQ-TREE.
+
+#### The top_N_markers_geNperc directory holds the supermatrix and species tree estimated from the concatenated top-ranking markers and other phylogenetic analyses performed on them
+
+
+Finally we will inspect the contents of the **top_15_markers_ge70perc/ directory**, which holds the top-scoring markers that passed the above-mentioned filters (**Fig. 1**). In this directory you will find the supermatrix resulting from their concatenation and the "species-tree" estimated from it under the best-fitting model identified by ModelFinder/IQ-TREE. It contains also the resutls of RF-distances of gene trees to species-tree and the global molecular clock test results if the main script was invoked with -R 1 -t DNA -K 
 
 ```
 # >>> inspecting the contents of the top_15_markers_ge70perc/ directory
@@ -707,8 +719,9 @@ cd top_15_markers_ge70perc
 
 # The concatenation coordinates for the supermatrix are saved in concatenation_coordinates.txt
 cat concatenation_coordinates.txt
+
 ## concatenation coordinates:
-# 1961_hypothetical_protein_cdnAln.fasta = 1-615
+## 1961_hypothetical_protein_cdnAln.fasta = 1-615
 ## 1967_hypothetical_protein_cdnAln.fasta = 616-1113
 ## 1968_hypothetical_protein_cdnAln.fasta = 1114-1785
 ## 1970_KorB_cdnAln.fasta = 1786-2961
@@ -741,7 +754,7 @@ figtree concat_nonRecomb_KdeFilt_iqtree_GTR+F+ASC_ed.sptree &
 <img src="pics/scatterplot_RF-dist_of_gene_trees2concat_phylo_70x70mm.png" width="50%" height="50%" style="display: block; margin: auto;" />
 
 
-**Figure 7** depicts the  **best ML "species tree"** inferred under the GTR+F+ASC substitution model from the supermatrix of 15 top-scoring markers. The nodes are colored according to the legend. The first value corresponds to approximate Bayes branch support values and second ones to the UFBoot values described in the manual.
+**Figure 7** depicts the  **best ML "species tree"** inferred under the GTR+F+ASC substitution model from the supermatrix of 15 top-scoring markers. The nodes are colored according to the legend. The values on the left correspond to approximate Bayes branch support values and those to the right to the UFBoot values described in the manual.
 
 <img src="pics/concat_nonRecomb_KdeFilt_iqtree_GTR+F+ASC_ed.sptree.png" width="90%" height="90%" style="display: block; margin: auto;" />
 
@@ -764,7 +777,7 @@ estimate_pangenome_phylogenies.sh -f pangenome_matrix_t0.fasta -r 10
 
 ```
 
-### Inspecting and visualizing the output
+### Inspecting and visualizing the output of the ML pan-genome tree
 The *estimate_pangenome_phylogenies.sh* reports its progress to the screen, informing that:
 - it created and moved into subdir iqtree_PGM_10_runs, which holds the results of the analysis
 - the best-fitting binary model was GTR2+FO
@@ -821,7 +834,7 @@ estimate_pangenome_phylogenies.sh -c PARS -R 3 -i pangenome_matrix_t0.phylip -n 
 
 ```
 
-### Inspect and visualize the output
+### Inspect and visualize the output of the parsimony pan-genome tree
 
 After changing into the boot_pars/ dir we can edit and visualize the most parsimonious tree found among 100 pars (from the PHYLIP package) searches split on 4 cores (-n 4) with 10 taxon jumples searches using again figtree. See the manual for the details.
 
