@@ -2080,9 +2080,10 @@ cat <<REF
 If you find the code useful for your academic work, please use the following citation:
 
 Pablo Vinuesa, Luz-Edith Ochoa-Sanchez and Bruno Contreras-Moreira 2018.
-GET_PHYLOMARKERS, a pipeline to select optimal phylogenetic markers for phylogenomics
-and inference of pan-genome phylogenies: identification of cryptic species in
-the Stenotrophomonas maltophilia complex.
+GET_PHYLOMARKERS, a pipeline to select optimal orthologs for phylogenomics 
+and estimation of pan-genome phylogenies: identification of cryptic species 
+in the Stenotrophomonas maltophilia complex.
+
 Available at https://github.com/vinuesa/get_phylomarkers
 
 The manuscript was submitted to Frontiers in Microbiology and is now in the interactive review stage.
