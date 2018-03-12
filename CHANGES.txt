@@ -1,3 +1,5 @@
+10Mar18  * updated linux and macOSX iqtree binaries to version 1.6.2
+
 18Feb18  # Code run_get_phylomarkers_pipeline.sh v2.1.9_18Feb18 and get_phylomarkers_fun_lib v18022018
             * fixed redundant output messages written to logfile
 	    * made more shellcheck compliant
