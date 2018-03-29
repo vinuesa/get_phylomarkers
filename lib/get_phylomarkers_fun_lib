@@ -1,4 +1,4 @@
-#: VERSION: 18022018
+#: VERSION: 29032018
 #: LIBRARY: get_phylomarkers_fun_lib
 #     * functions called by run_get_phylomarkers_pipeline.sh
 #     * part of the GET_PHYLOMARKERS software package
@@ -250,11 +250,11 @@ function compute_FT_gene_tree_stats()
 	    check_output "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv"
         
 	    # add header
-	    cat "FT_gene_tree_stats.header FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv" > ed && \
+	    cat "FT_gene_tree_stats.header" "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv" > ed && \
 	    mv ed "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv"
 	
 	    # cleanup
-	    rm "FT_gene_tree_stats.header FT_lnL_cdnAln_FTGTRG_T${search_thoroughness}.tsv" "FT_tot_wc_seconds_cdnAln_FTGTRG_T${search_thoroughness}.tsv" s_type.txt
+	    rm FT_gene_tree_stats.header "FT_lnL_cdnAln_FTGTRG_T${search_thoroughness}.tsv" "FT_tot_wc_seconds_cdnAln_FTGTRG_T${search_thoroughness}.tsv" s_type.txt
        fi
     else
         s_type="FTprotT${search_thoroughness}"
@@ -280,10 +280,10 @@ function compute_FT_gene_tree_stats()
 	    check_output "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv"
         
 	    # add header
-	    cat "FT_gene_tree_stats.header FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv" > ed && mv ed "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv"
+	    cat FT_gene_tree_stats.header "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv" > ed && mv ed "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv"
 	
 	    # cleanup
-	    rm "FT_gene_tree_stats.header FT_lnL_protAln_FTlgG_T${search_thoroughness}.tsv" "FT_tot_wc_seconds_protAln_FTlgG_T${search_thoroughness}.tsv" s_type.txt
+	    rm FT_gene_tree_stats.header "FT_lnL_protAln_FTlgG_T${search_thoroughness}.tsv" "FT_tot_wc_seconds_protAln_FTlgG_T${search_thoroughness}.tsv" s_type.txt
        fi
     fi
    [ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
@@ -404,7 +404,14 @@ compute_MJRC_tree()
     
     [ -s alltrees.nwk ] && iqtree -con alltrees.nwk &> /dev/null 
     [ -s alltrees.nwk.contree ] && mv alltrees.nwk.contree $contree_outfile && rm alltrees.nwk.log
-    check_output "$contree_outfile"
+    
+    # NOTE: Possible Bug in IQ-TREE v1.6.2 and v1.6.3, 
+    #          IQT v1.6.2 and v1.6.3, but not v1.6.1!, cannot compute the mjrc tree from the debug set,
+    #          claiming that the number of taxa are different across trees when running with FT ???
+    #          There is not problem with the IQ-TREE run on the same sequences...
+    #          >>> Therefore check_output was changed for simple warning messages to avoid premature exit <<<
+    [ ! -s "$contree_outfile" ] && msg " >>> Warning, $contree_outfile was not produced!" WARNING LRED
+    [ -s "$contree_outfile" ] && msg " >>> Wrote file $contree_outfile ... " PROGR GREEN
     [ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
     
     #"$distrodir"/add_labels2tree.pl "$top_dir"/tree_labels.list $contree_outfile &> /dev/null
