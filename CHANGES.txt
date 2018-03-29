@@ -1,3 +1,6 @@
+29Mar18   # Code run_get_phylomarkers_pipeline.sh v 2.1.10_29Mar18 and estimate_pangenome_phylogenies.sh v1.0.5_28Mar18
+             * check_scripts_in_path() checks wether USER is regular or root 
+	         to add symlinks to $HOME/bin or /usr/local/bin, respectively
 10Mar18  * updated linux and macOSX iqtree binaries to version 1.6.2
 
 18Feb18  # Code run_get_phylomarkers_pipeline.sh v2.1.9_18Feb18 and get_phylomarkers_fun_lib v18022018
