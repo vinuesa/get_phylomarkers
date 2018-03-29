@@ -1,6 +1,16 @@
-29Mar18   # Code run_get_phylomarkers_pipeline.sh v 2.1.10_29Mar18 and estimate_pangenome_phylogenies.sh v1.0.5_28Mar18
+29Mar18   # Code:
+           * get_phylomarkers_fun_lib 29032018; 
+	     - compute_MJRC_tree() fix to contend with possible Bug in IQ-TREE v1.6.2 and v1.6.3
+	       IQT v1.6.2 and v1.6.3, but not v1.6.1!, cannot compute the mjrc tree from the debug set,
+	       claiming that the number of taxa are different across trees when running with FT ???
+	       There is not problem with the IQ-TREE run on the same sequences...
+	       >>> Therefore check_output was changed for simple warning messages to avoid premature exit <<<
+	     - fixed quoting of variables passed to compute_FT_gene_tree_stats() as arguments
+	   * run_get_phylomarkers_pipeline.sh 2.2.1_29Mar18
+	     - fixed call of compute_MJRC_tree, properly adding the quotes around variables
+29Mar18   # Code run_get_phylomarkers_pipeline.sh v2.2.0_29Mar18 and estimate_pangenome_phylogenies.sh v1.0.5_28Mar18
              * check_scripts_in_path() checks wether USER is regular or root 
-	         to add symlinks to $HOME/bin or /usr/local/bin, respectively
+	         to add symlinks to $HOME/bin or /usr/local/bin, respectivel 	 
 10Mar18  * updated linux and macOSX iqtree binaries to version 1.6.2
 
 18Feb18  # Code run_get_phylomarkers_pipeline.sh v2.1.9_18Feb18 and get_phylomarkers_fun_lib v18022018
