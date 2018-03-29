@@ -150,7 +150,6 @@ function check_scripts_in_path()
 	      msg " >>>  Will generate a symlink from $HOME/bin or add it to \$PATH" WARNING CYAN
 	      not_in_path=1
 	  fi
-#	  done	
        fi
     done
 
