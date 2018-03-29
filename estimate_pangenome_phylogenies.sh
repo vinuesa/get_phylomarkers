@@ -42,7 +42,8 @@
 #-------------------------------------------------------------------------------------------------------
 
 progname=${0##*/}
-VERSION='1.0.4_17Feb18' # prepended $bindir/ to a nw_reroot call that was missing it
+VERSION='1.0.5_28Mar18' # check_scripts_in_path() checks wether USER is regular or root
+       #'1.0.4_17Feb18' # prepended $bindir/ to a nw_reroot call that was missing it
        # 1.0.3_8Feb18 added -v; check_scripts_in_path(); check_dependencies with verbosity; activated set_pipeline_environment; Thanks Felipe Lira!
         # fix in set_pipeline_environment: changed to readlink -n when "$OSTYPE" == "darwin" 
        # v1.0_23Jan18 added code to run IQ-TREE on PGM, including alrt/UFBoot and model selection
@@ -222,40 +223,76 @@ function check_scripts_in_path()
        bin=$(type -P "$prog")
        if [ -z "$bin" ]; then
           echo
-          msg "# WARNING: script $prog is not in \$PATH!" WARNING LRED
-	        msg " >>>  Will generate a symlink from $HOME/bin or add it to \$PATH" WARNING CYAN
-	        not_in_path=1
+          if [ "$USER" == "root" ]
+	  then
+	      msg "# WARNING: script $prog is not in \$PATH!" WARNING LRED
+	      msg " >>>  Will generate a symlink from /usr/local/bin or add it to \$PATH" WARNING CYAN
+	      not_in_path=1
+	  else
+	      msg "# WARNING: script $prog is not in \$PATH!" WARNING LRED
+	      msg " >>>  Will generate a symlink from $HOME/bin or add it to \$PATH" WARNING CYAN
+	      not_in_path=1
+	  fi
        fi
     done
 
     # if flag $not_in_path -eq 1, then either generate symlinks into $HOME/bin (if in $PATH) or export $distrodir to PATH
     if [ $not_in_path -eq 1 ]
     then
-       if [ ! -d "$HOME"/bin ]
+       if [ "$USER" == "root" ]
        then
-          msg "Could not find a $HOME/bin directory for $USER ..."  WARNING CYAN
-	  msg " ... will update PATH=$distrodir:$PATH"  WARNING CYAN
-	  export PATH="${distrodir}:${PATH}" # prepend $ditrodir to $PATH
-       else
-           homebinflag=1
-       fi
+       	   if [ ! -d /usr/local/bin ]
+       	   then
+          	   msg "Could not find a /usr/local/bin directory for $USER ..."  WARNING CYAN
+	  	   msg " ... will update PATH=$distrodir:$PATH"  WARNING CYAN
+	  	   export PATH="${distrodir}:${PATH}" # prepend $ditrodir to $PATH
+       	   else
+           	   homebinflag=1
+       	   fi
 
-       # check if $HOME/bin is in $PATH
-       echo "$PATH" | sed 's/:/\n/g'| grep "$HOME/bin$" &> /dev/null
-       if [ $? -eq 0 ]
-       then
-          homebinpathflag=1
+       	   # check if $HOME/bin is in $PATH
+       	   echo "$PATH" | sed 's/:/\n/g' | grep "/usr/local/bin$" &> /dev/null
+       	   if [ $? -eq 0 ]
+       	   then
+          	   homebinpathflag=1
 
-          msg "Found dir $HOME/bin for $USER in \$PATH ..." WARNING CYAN
-          msg " ... will generate symlinks in $HOME/bin to all scripts in $distrodir ..." WARNING CYAN
-          ln -s "$distrodir"/*.sh "$HOME"/bin &> /dev/null
-          ln -s "$distrodir"/*.R "$HOME"/bin &> /dev/null
-          ln -s "$distrodir"/*.pl "$HOME"/bin &> /dev/null
-          #ln -s "$distrodir"/rename.pl $HOME/bin &> /dev/null
-       else
-          msg " Found dir $HOME/bin for $USER, but it is NOT in \$PATH ..." WARNING CYAN
-          msg " ... updating PATH=$PATH:$distrodir" WARNING CYAN
-	  export PATH="${distrodir}:${PATH}" # prepend $distrodir to $PATH
+          	   msg "Found dir /usr/local/bin for $USER in \$PATH ..." WARNING CYAN
+          	   msg " ... will generate symlinks in /usr/local/bin to all scripts in $distrodir ..." WARNING CYAN
+          	   ln -s "$distrodir"/*.sh /usr/local/bin &> /dev/null
+          	   ln -s "$distrodir"/*.R /usr/local/bin &> /dev/null
+          	   ln -s "$distrodir"/*.pl /usr/local/bin &> /dev/null
+       	   else
+          	   msg " Found dir /usr/local/bin for $USER, but it is NOT in \$PATH ..." WARNING CYAN
+          	   msg " ... updating PATH=$PATH:$distrodir" WARNING CYAN
+	  	   export PATH="${distrodir}:${PATH}" # prepend $distrodir to $PATH
+       	   fi
+       else       
+       	   if [ ! -d "$HOME"/bin ]
+       	   then
+          	   msg "Could not find a $HOME/bin directory for $USER ..."  WARNING CYAN
+	  	   msg " ... will update PATH=$distrodir:$PATH"  WARNING CYAN
+	  	   export PATH="${distrodir}:${PATH}" # prepend $ditrodir to $PATH
+       	   else
+           	   homebinflag=1
+       	   fi
+
+       	   # check if $HOME/bin is in $PATH
+       	   echo "$PATH" | sed 's/:/\n/g'| grep "$HOME/bin$" &> /dev/null
+       	   if [ $? -eq 0 ]
+       	   then
+          	   homebinpathflag=1
+
+          	   msg "Found dir $HOME/bin for $USER in \$PATH ..." WARNING CYAN
+          	   msg " ... will generate symlinks in $HOME/bin to all scripts in $distrodir ..." WARNING CYAN
+          	   ln -s "$distrodir"/*.sh "$HOME"/bin &> /dev/null
+          	   ln -s "$distrodir"/*.R "$HOME"/bin &> /dev/null
+          	   ln -s "$distrodir"/*.pl "$HOME"/bin &> /dev/null
+          	   #ln -s $distrodir/rename.pl $HOME/bin &> /dev/null
+       	   else
+          	   msg " Found dir $HOME/bin for $USER, but it is NOT in \$PATH ..." WARNING CYAN
+          	   msg " ... updating PATH=$PATH:$distrodir" WARNING CYAN
+	  	   export PATH="${distrodir}:${PATH}" # prepend $distrodir to $PATH
+       	   fi
        fi
     fi
     [ "$DEBUG" -eq 1 ] && echo "$homebinflag $homebinpathflag"
