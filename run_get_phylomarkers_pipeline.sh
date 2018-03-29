@@ -27,7 +27,7 @@
 #: MANUAL: a detailed manual and tutorial are available at: https://vinuesa.github.io/get_phylomarkers/
 # 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.1.10_29Mar18'
+VERSION='2.2.1_29Mar18'
 
 # Set GLOBALS
 DEBUG=0
@@ -1107,7 +1107,6 @@ then
     non_recomb_cdn_alns_dir=$(pwd)
 
     print_start_time && msg "# working in dir non_recomb_cdn_alns ..." PROGR LBLUE
-    print_start_time && msg "# estimating $no_non_recomb_alns_perm_test gene trees from non-recombinant sequences ..." PROGR LBLUE
 
     # 4.1 >>> estimate_IQT_gene_trees | estimate_FT_gene_trees
     if [ "$search_algorithm" == "F" ]
@@ -1115,6 +1114,8 @@ then
 	msg "" PROGR NC
 	msg " >>>>>>>>>>>>>>> parallel FastTree runs to estimate gene trees <<<<<<<<<<<<<<< " PROGR YELLOW
 	msg "" PROGR NC
+
+        print_start_time && msg "# estimating $no_non_recomb_alns_perm_test gene trees from non-recombinant sequences ..." PROGR LBLUE
 
         gene_tree_ext="ph"
 	lmsg=" > running estimate_FT_gene_trees $mol_type $search_thoroughness ..."
@@ -1127,7 +1128,7 @@ then
 
 	# 4.1.2 generate computation-time and lnL stats
 	[ "$DEBUG" -eq 1 ] && msg "compute_FT_gene_tree_stats $mol_type $search_thoroughness" DEBUG NC
-	compute_FT_gene_tree_stats "$mol_type $search_thoroughness"
+	compute_FT_gene_tree_stats "$mol_type" "$search_thoroughness"
 	
 	print_start_time && msg "# running compute_MJRC_tree ph $search_algorithm ..." PROGR BLUE
 	compute_MJRC_tree ph "$search_algorithm" 
