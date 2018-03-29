@@ -27,7 +27,7 @@
 #: MANUAL: a detailed manual and tutorial are available at: https://vinuesa.github.io/get_phylomarkers/
 # 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.1.9_18Feb18'
+VERSION='2.1.10_29Mar18'
 
 # Set GLOBALS
 DEBUG=0
@@ -97,34 +97,6 @@ function set_pipeline_environment()
   echo "$distrodir $bindir $OS $no_cores"
 }
 #-----------------------------------------------------------------------------------------
-function print_codontables()
-{
-  cat <<CODONTBL
-    1  Universal code (default)
-    2  Vertebrate mitochondrial code
-    3  Yeast mitochondrial code
-    4  Mold, Protozoan, and Coelenterate Mitochondrial code
-       and Mycoplasma/Spiroplasma code
-    5  Invertebrate mitochondrial
-    6  Ciliate, Dasycladacean and Hexamita nuclear code
-    9  Echinoderm and Flatworm mitochondrial code
-   10  Euplotid nuclear code
-   11  Bacterial, archaeal and plant plastid code
-   12  Alternative yeast nuclear code
-   13  Ascidian mitochondrial code
-   14  Alternative flatworm mitochondrial code
-   15  Blepharisma nuclear code
-   16  Chlorophycean mitochondrial code
-   21  Trematode mitochondrial code
-   22  Scenedesmus obliquus mitochondrial code
-   23  Thraustochytrium mitochondrial code
-
-CODONTBL
-
-exit 0
-
-}
-#-----------------------------------------------------------------------------------------
 
 function check_dependencies()
 {
@@ -168,40 +140,77 @@ function check_scripts_in_path()
        bin=$(type -P "$prog")
        if [ -z "$bin" ]; then
           echo
-          msg "# WARNING: script $prog is not in \$PATH!" WARNING LRED
-	        msg " >>>  Will generate a symlink from $HOME/bin or add it to \$PATH" WARNING CYAN
-	        not_in_path=1
+          if [ "$USER" == "root" ]
+	  then
+	      msg "# WARNING: script $prog is not in \$PATH!" WARNING LRED
+	      msg " >>>  Will generate a symlink from /usr/local/bin or add it to \$PATH" WARNING CYAN
+	      not_in_path=1
+	  else
+	      msg "# WARNING: script $prog is not in \$PATH!" WARNING LRED
+	      msg " >>>  Will generate a symlink from $HOME/bin or add it to \$PATH" WARNING CYAN
+	      not_in_path=1
+	  fi
+#	  done	
        fi
     done
 
     # if flag $not_in_path -eq 1, then either generate symlinks into $HOME/bin (if in $PATH) or export $distrodir to PATH
     if [ $not_in_path -eq 1 ]
     then
-       if [ ! -d "$HOME"/bin ]
+       if [ "$USER" == "root" ]
        then
-          msg "Could not find a $HOME/bin directory for $USER ..."  WARNING CYAN
-	  msg " ... will update PATH=$distrodir:$PATH"  WARNING CYAN
-	  export PATH="${distrodir}:${PATH}" # prepend $ditrodir to $PATH
-       else
-           homebinflag=1
-       fi
+       	   if [ ! -d /usr/local/bin ]
+       	   then
+          	   msg "Could not find a /usr/local/bin directory for $USER ..."  WARNING CYAN
+	  	   msg " ... will update PATH=$distrodir:$PATH"  WARNING CYAN
+	  	   export PATH="${distrodir}:${PATH}" # prepend $ditrodir to $PATH
+       	   else
+           	   homebinflag=1
+       	   fi
 
-       # check if $HOME/bin is in $PATH
-       echo "$PATH" | sed 's/:/\n/g'| grep "$HOME/bin$" &> /dev/null
-       if [ $? -eq 0 ]
-       then
-          homebinpathflag=1
+       	   # check if $HOME/bin is in $PATH
+       	   echo "$PATH" | sed 's/:/\n/g' | grep "/usr/local/bin$" &> /dev/null
+       	   if [ $? -eq 0 ]
+       	   then
+          	   homebinpathflag=1
 
-          msg "Found dir $HOME/bin for $USER in \$PATH ..." WARNING CYAN
-          msg " ... will generate symlinks in $HOME/bin to all scripts in $distrodir ..." WARNING CYAN
-          ln -s "$distrodir"/*.sh "$HOME"/bin &> /dev/null
-          ln -s "$distrodir"/*.R "$HOME"/bin &> /dev/null
-          ln -s "$distrodir"/*.pl "$HOME"/bin &> /dev/null
-          #ln -s $distrodir/rename.pl $HOME/bin &> /dev/null
-       else
-          msg " Found dir $HOME/bin for $USER, but it is NOT in \$PATH ..." WARNING CYAN
-          msg " ... updating PATH=$PATH:$distrodir" WARNING CYAN
-	  export PATH="${distrodir}:${PATH}" # prepend $distrodir to $PATH
+          	   msg "Found dir /usr/local/bin for $USER in \$PATH ..." WARNING CYAN
+          	   msg " ... will generate symlinks in /usr/local/bin to all scripts in $distrodir ..." WARNING CYAN
+          	   ln -s "$distrodir"/*.sh /usr/local/bin &> /dev/null
+          	   ln -s "$distrodir"/*.R /usr/local/bin &> /dev/null
+          	   ln -s "$distrodir"/*.pl /usr/local/bin &> /dev/null
+       	   else
+          	   msg " Found dir /usr/local/bin for $USER, but it is NOT in \$PATH ..." WARNING CYAN
+          	   msg " ... updating PATH=$PATH:$distrodir" WARNING CYAN
+	  	   export PATH="${distrodir}:${PATH}" # prepend $distrodir to $PATH
+       	   fi
+       else       
+       	   if [ ! -d "$HOME"/bin ]
+       	   then
+          	   msg "Could not find a $HOME/bin directory for $USER ..."  WARNING CYAN
+	  	   msg " ... will update PATH=$distrodir:$PATH"  WARNING CYAN
+	  	   export PATH="${distrodir}:${PATH}" # prepend $ditrodir to $PATH
+       	   else
+           	   homebinflag=1
+       	   fi
+
+       	   # check if $HOME/bin is in $PATH
+       	   echo "$PATH" | sed 's/:/\n/g'| grep "$HOME/bin$" &> /dev/null
+       	   if [ $? -eq 0 ]
+       	   then
+          	   homebinpathflag=1
+
+          	   msg "Found dir $HOME/bin for $USER in \$PATH ..." WARNING CYAN
+          	   msg " ... will generate symlinks in $HOME/bin to all scripts in $distrodir ..." WARNING CYAN
+          	   ln -s "$distrodir"/*.sh "$HOME"/bin &> /dev/null
+          	   ln -s "$distrodir"/*.R "$HOME"/bin &> /dev/null
+          	   ln -s "$distrodir"/*.pl "$HOME"/bin &> /dev/null
+          	   #ln -s $distrodir/rename.pl $HOME/bin &> /dev/null
+       	   else
+          	   msg " Found dir $HOME/bin for $USER, but it is NOT in \$PATH ..." WARNING CYAN
+          	   msg " ... updating PATH=$PATH:$distrodir" WARNING CYAN
+	  	   export PATH="${distrodir}:${PATH}" # prepend $distrodir to $PATH
+       	   fi
        fi
     fi
     #echo "$homebinflag $homebinpathflag"
@@ -243,6 +252,34 @@ function set_bindirs()
 #   fi
    #echo $setbindir_flag
    [ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
+}
+#-----------------------------------------------------------------------------------------
+function print_codontables()
+{
+  cat <<CODONTBL
+    1  Universal code (default)
+    2  Vertebrate mitochondrial code
+    3  Yeast mitochondrial code
+    4  Mold, Protozoan, and Coelenterate Mitochondrial code
+       and Mycoplasma/Spiroplasma code
+    5  Invertebrate mitochondrial
+    6  Ciliate, Dasycladacean and Hexamita nuclear code
+    9  Echinoderm and Flatworm mitochondrial code
+   10  Euplotid nuclear code
+   11  Bacterial, archaeal and plant plastid code
+   12  Alternative yeast nuclear code
+   13  Ascidian mitochondrial code
+   14  Alternative flatworm mitochondrial code
+   15  Blepharisma nuclear code
+   16  Chlorophycean mitochondrial code
+   21  Trematode mitochondrial code
+   22  Scenedesmus obliquus mitochondrial code
+   23  Thraustochytrium mitochondrial code
+
+CODONTBL
+
+exit 0
+
 }
 #-----------------------------------------------------------------------------------------
 
