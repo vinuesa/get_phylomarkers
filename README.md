@@ -17,7 +17,7 @@ bundled with [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homol
 **GET_HOMOLOGUES** is a genome-analysis software package for microbial pan-genomics and comparative genomics originally described in the following publications: 
 
 - [Contreras-Moreira and Vinuesa, AEM 2013](https://www.ncbi.nlm.nih.gov/pubmed/24096415)
-- [Vinuesa and Contreras-Moreira, 2015](https://www.ncbi.nlm.nih.gov/pubmed/25343868) 
+- [Vinuesa and Contreras-Moreira, Meth. Mol. Biol. 2015](https://www.ncbi.nlm.nih.gov/pubmed/25343868) 
 
 More recently we have developed [GET_HOMOLOGUES-EST](https://github.com/eead-csic-compbio/get_homologues), 
 which can be used to cluster eukaryotic genes and transcripts, as described in [Contreras-Moreira et al., 2017](http://journal.frontiersin.org/article/10.3389/fpls.2017.00184/full).
@@ -32,10 +32,10 @@ Please, follow the links for a detailed [**manual**](https://vinuesa.github.io/g
 
 ## Citation.
 
-On Jaunary 15th, 2018 we submitted a manuscript to the [Research Topic of Frontiers in Microbiology: Microbial Taxonomy, Phylogeny and Biodiversity](http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity) describing the implementation of the GET_PHYLOMARKERS pipeline along with a thorough benchmark analysis comparing the performance of FastTree vs IQ-TREE, and its use in genomic taxonomy and population genomics of *Stenotrophomonas* bacteria.
+On Jaunary 15th, 2018 we submitted a manuscript to the [Research Topic of Frontiers in Microbiology: Microbial Taxonomy, Phylogeny and Biodiversity](http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity) describing the implementation of the GET_PHYLOMARKERS pipeline along with a thorough benchmark analysis comparing the performance of FastTree *vs*. IQ-TREE, and its use in genomic taxonomy and population genomics of *Stenotrophomonas* bacteria. The revised version was returned to the reviewers on March 22, 2018.
 
 Meanwhile, if you find the code useful for your academic work, please use the following citation:
-Pablo Vinuesa and Bruno Contreras-Moreira 2018. GET_PHYLOMARKERS, a pipeline to select optimal markers for microbial phylogenomics, systematics and genomic taxomy. Available at https://github.com/vinuesa/get_phylomarkers and released under the GNU GPLv3 license.
+Pablo Vinuesa and Bruno Contreras-Moreira 2018. GET_PHYLOMARKERS, a pipeline to select optimal markers for microbial phylogenomics, and genomic taxomy. Available at https://github.com/vinuesa/get_phylomarkers and released under the GNU GPLv3 license.
 
 ## Developers
 The code is developed and maintained by [Pablo Vinuesa](http://www.ccg.unam.mx/~vinuesa/) 
