@@ -10,15 +10,15 @@ It assumes that recent versions of Bash, Perl and R are installed on a multicore
 
 ## Quick install and test notes
 
-- We highly recommend that you download the [**Docker image**](https://hub.docker.com/r/csicunam/get_homologues), which bundles GET_PHYLOMARKERS with [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues), ready to use. This is the easiest way to get the full pipeline up and running, avoiding potential architecture-specific configuration and installation problems of the diverse dependencies (Perl modules, R packages, binaries ...). 
+- We highly recommend that you download the [**Docker image**](https://hub.docker.com/r/csicunam/get_homologues), which bundles GET_PHYLOMARKERS with [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues), ready to use. This is probably the easiest way to get the full pipeline up and running, avoiding potential architecture-specific configuration and installation problems of the diverse dependencies (Perl modules, R packages, binaries ...). 
 
-- To get a quick impression of the capabilities of the [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues) + **GET_PHYLOMARKERS** combo, We recommend following the [**tutorial**](docs/GET_PHYLOMARKERS_manual.md#get_phylomarkers-tutorial) with the test sequences provided in the test_sequences/ directory (and subdirectories contained therein). Read the [**manual**](docs/GET_PHYLOMARKERS_manual.md) for the implementation and advanced usage details.
+- To get a quick impression of the capabilities of the **GET_HOMOLOGUES + GET_PHYLOMARKERS** combo, We recommend following the [**tutorial**](docs/GET_PHYLOMARKERS_manual.md#get_phylomarkers-tutorial) with the test sequences provided in the test_sequences/ directory (and subdirectories contained therein). Read the [**manual**](docs/GET_PHYLOMARKERS_manual.md) for the implementation and advanced usage details.
 
 Alternatively, you can try to perform a manual install, as follows:
 
-1. Download the [latest release](https://github.com/vinuesa/get_phylomarkers/releases) or clone the repository into a suitable directory (e.g. $HOME/src/gitHub/). To clone the repo, issue the command 'git clone https://github.com/vinuesa/get_phylomarkers.git' from within $HOME/src/gitHub/
+1. Download the [latest release](https://github.com/vinuesa/get_phylomarkers/releases) or clone the repository into a suitable directory (e.g. $HOME/GitHub/). To clone the repo, issue the command 'git clone https://github.com/vinuesa/get_phylomarkers.git' from within $HOME/GitHub/
 
-2. Make sure a recent version of R is configured in your system. If not, please install R package (r-base in linux). See CRAN packages for OSX [here](https://cran.r-project.org/bin/macosx/). Your system will also need recent versions of Bash and Perl installed.
+2. Make sure a recent version of R is configured in your system. If not, please install R package (r-base in linux). See CRAN packages for MACOSX [here](https://cran.r-project.org/bin/macosx/). Your system will also need recent versions of Bash and Perl installed.
 
 3. cd into get_phylomarkers/ and run './install_R_deps.R', which will install R packages into get_phylomarkers/lib/R
 
@@ -26,9 +26,13 @@ Alternatively, you can try to perform a manual install, as follows:
 
 5. cd into the test_sequences dir (e.g. 'cd $HOME/test_sequences/core_genome')
 
+5.1 NOTE: if you want to perform a system-wide install, you will have to become the superuser and execute the same commands.
+
 6. Issue the following command to test if the distro is working on your system: '/path/to/get_phylomarkers/run_get_phylomarkers_pipeline.sh -R 1 -t DNA', which will run in phylogenomics mode (-R 1), on DNA sequences (-t DNA). 
  
-7. Check it now on the protein level: 'run_get_phylomarkers_pipeline.sh -R 1 -t PROT'. Note that for this second invocation, you will probably not need to prepend the full path to the script anymore, as symlinks are created to the scripts from your $HOME/bin dir (see NOTES below).
+7. Check it now on the protein level: 'run_get_phylomarkers_pipeline.sh -R 1 -t PROT'. Note that for this second invocation, you will probably not need to prepend the full path to the script anymore, as symlinks are created to the scripts from your $HOME/bin dir (see NOTES below). 
+
+7.1 NOTE: if you run the lines above as a superuser, the symlinks will have been created in /usr/local/bin
 
 8. Explore the help menu of the main script to see the options available for customization of the run. It is printed to STDOUT when issuing run_get_phylomarkers_pipeline.sh -h or simply run_get_phylomarkers_pipeline.sh
 
@@ -204,7 +208,7 @@ All scripts display usage instructions and describe their aims.
 
 ### Bash scripts
 
-* run_get_phylomarkers_pipeline.sh (the main script to run the pipeline)
+* run_get_phylomarkers_pipeline.sh (the master script to run the pipeline)
 * run_parallel_molecClock_test_with_paup.sh
 * estimate_pangenome_phylogenies.sh
 
@@ -266,7 +270,7 @@ NOTES:
 
 * [ModelFinder](http://www.iqtree.org/ModelFinder/): Fast model selection for accurate phylogenetic estimates. [(Kalyaanamoorthy et al. 2017)](https://www.nature.com/articles/nmeth.4285)
 * [IQ-TREE](http://www.iqtree.org/). Highly accurate maximum-likelihood tree searching program. [Nguyen et. al (2015)](https://academic.oup.com/mbe/article/32/1/268/2925592). You will need to install the latest version 1.6.\*, not the old 1.5.\* version installed on ubuntu with the 'sudo apt install iqtree' option.
-* [paup*](https://people.sc.fsu.edu/~dswofford/paup_test/). Multipurpose phylogenetics software package developed by David Swofford and colleagues. NOTE: This is a test version that expires every 6 months! So please update regularly. Shipped version will expire on April 1st, 2018.
+* [paup*](https://people.sc.fsu.edu/~dswofford/paup_test/). Multipurpose phylogenetics software package developed by David Swofford and colleagues. NOTE: This is a test version that changes quickly and expires every 6 months! So please update regularly.
 * pars, seqboot and consense from Joe Felsenstein's [PHYLIP](http://evolution.genetics.washington.edu/phylip.html) package.
 * nw_reroot and nw_support from the [Newick utilities](http://bioinformatics.oxfordjournals.org/cgi/content/abstract/btq243v1) package.
 * you may also need to install **bc**,an arbitrary-precision language for performing math calculations with Bash and other shells
