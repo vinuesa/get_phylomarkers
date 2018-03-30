@@ -1,3 +1,4 @@
+30Mar18  * updated linux and macosx binaries for iqtree (v1.6.3) and paup (v4a161)
 29Mar18   # Code:
            * get_phylomarkers_fun_lib 29032018; 
 	     - compute_MJRC_tree() fix to contend with possible Bug in IQ-TREE v1.6.2 and v1.6.3
