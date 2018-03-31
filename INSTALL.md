@@ -1,8 +1,3 @@
----
-output:
-  html_document: default
-  pdf_document: default
----
 # Installation and execution notes for GET_PHYLOMARKERS
 
 This file lists the software components of the **GET_PHYLOMARKERS** software package and its dependencies, briefly describing how to install them. It also provides instructions on how to prepare your Docker environment to run local instances (containers) of the [**GET_HOMOLOGUES + GET_PHYLOMARKERS Docker image**](https://hub.docker.com/r/csicunam/get_homologues/) available on Docker hub. We highly recommend installing the platform-independent, ready-to-use Docker version, which will free you from struggling with system-specific configuration issues.  
