@@ -1,46 +1,49 @@
-# Installation and execution notes for the get_phylomarkers pipeline
+---
+output:
+  html_document: default
+  pdf_document: default
+---
+# Installation and execution notes for GET_PHYLOMARKERS
 
-This file lists the software components of the **GET_PHYLOMARKERS** pipeline and its dependencies, briefly describing how to install them. It also provides instructions on how to prepare your Docker environment to run local instances (containers) of the [**GET_HOMOLOGUES + GET_PHYLOMARKERS Docker image**](https://hub.docker.com/r/csicunam/get_homologues/) available on Docker hub. We highly recommend installing the platform-independent, ready-to-use Docker version, which will free you from struggling with system-specific configuration issues.  
+This file lists the software components of the **GET_PHYLOMARKERS** software package and its dependencies, briefly describing how to install them. It also provides instructions on how to prepare your Docker environment to run local instances (containers) of the [**GET_HOMOLOGUES + GET_PHYLOMARKERS Docker image**](https://hub.docker.com/r/csicunam/get_homologues/) available on Docker hub. We highly recommend installing the platform-independent, ready-to-use Docker version, which will free you from struggling with system-specific configuration issues.  
 
-The pipeline has been developed and extensively tested on Linux (Ubuntu and RedHat distros). It should also run on Mac OS X machines, but it has been less tested in this environment.
+The pipeline has been developed and extensively tested on Linux (Ubuntu and RedHat distros). It should also run on Mac OS X machines, but it has been less tested in that environment.
 
 It assumes that recent versions of Bash, Perl and R are installed on a multicore (64bit) machine, ideally a server running Linux.
-**The pipeline is designed to take advantage of modern multicore machines to parallelize all repetitive tasks** that have to be performed on each entry sequence, like tagging sequences, generating multiple sequence alignments, deriving codon alignments, runnig the Phi test on them and inferring maximum likelihood phylogenies from each alignment. We recommend running the pipeline on a multiprocessor/multicore server to speed up these  computations.
+**The pipeline is designed to take advantage of modern multicore machines to parallelize all repetitive tasks** that have to be performed on each cluster of homologous sequences, like tagging sequences, generating multiple sequence alignments, deriving codon alignments, runnig the Phi test on them and inferring maximum likelihood phylogenies from each alignment. For large genomic datasets, the pipeline should be run on a multiprocessor/multicore server to speed up these computations.
 
 
 ## Quick install and test notes
 
-- We highly recommend that you download the [**Docker image**](https://hub.docker.com/r/csicunam/get_homologues), which bundles GET_PHYLOMARKERS with [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues), ready to use. This is probably the easiest way to get the full pipeline up and running, avoiding potential architecture-specific configuration and installation problems of the diverse dependencies (Perl modules, R packages, binaries ...). 
+### Installing the Docker image
+We highly recommend that you download the [**Docker image**](https://hub.docker.com/r/csicunam/get_homologues), which bundles **GET_PHYLOMARKERS** with [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues), ready to use. This is probably the easiest way to get the full pipeline up and running with minimal fuzz, avoiding potential architecture-specific configuration and installation problems of the diverse dependencies (Perl modules, R packages, binaries ...). Detailed instructions are provided below.
 
-- To get a quick impression of the capabilities of the **GET_HOMOLOGUES + GET_PHYLOMARKERS** combo, We recommend following the [**tutorial**](docs/GET_PHYLOMARKERS_manual.md#get_phylomarkers-tutorial) with the test sequences provided in the test_sequences/ directory (and subdirectories contained therein). Read the [**manual**](docs/GET_PHYLOMARKERS_manual.md) for the implementation and advanced usage details.
-
+### Cloning the repository
 Alternatively, you can try to perform a manual install, as follows:
 
-1. Download the [latest release](https://github.com/vinuesa/get_phylomarkers/releases) or clone the repository into a suitable directory (e.g. $HOME/GitHub/). To clone the repo, issue the command 'git clone https://github.com/vinuesa/get_phylomarkers.git' from within $HOME/GitHub/
+1. **GET_PHYLOMARKERS** requires recent versions of Bash and Perl installed on your system. In addition, make sure a recent version of R is configured in your system. If not, please install base R (r-base in linux) and recommended packages. See CRAN packages for MACOSX [here](https://cran.r-project.org/bin/macosx/).
 
-2. Make sure a recent version of R is configured in your system. If not, please install R package (r-base in linux). See CRAN packages for MACOSX [here](https://cran.r-project.org/bin/macosx/). Your system will also need recent versions of Bash and Perl installed.
+2. Download the [latest release](https://github.com/vinuesa/get_phylomarkers/releases) or clone the repository into a suitable directory (e.g. $HOME/GitHub/). To clone the repo, issue the command 'git clone https://github.com/vinuesa/get_phylomarkers.git' from within $HOME/GitHub/
 
 3. cd into get_phylomarkers/ and run './install_R_deps.R', which will install R packages into get_phylomarkers/lib/R
 
-4. Copy the test_sequences directory into a suitable place (e.g. 'cp -r test_sequences $HOME)
+4. cd into the test_sequences/core_genome directory, or copy that directory into a suitable place (e.g. 'cp -r test_sequences $HOME && cd $HOME/test_sequences/core_genome')
 
-5. cd into the test_sequences dir (e.g. 'cd $HOME/test_sequences/core_genome')
+5. If you want to perform a system-wide install, you will have to become the superuser (e.g. 'sudo su').
 
-5.1 NOTE: if you want to perform a system-wide install, you will have to become the superuser and execute the same commands.
-
-6. Issue the following command to test if the distro is working on your system: '/path/to/get_phylomarkers/run_get_phylomarkers_pipeline.sh -R 1 -t DNA', which will run in phylogenomics mode (-R 1), on DNA sequences (-t DNA). 
+6. Issue the following command from within /path/to/test_sequences/core_genome to test if the distro is working on your system: '/path/to/get_phylomarkers/run_get_phylomarkers_pipeline.sh -R 1 -t DNA', which will run in phylogenomics mode (-R 1), on DNA sequences (-t DNA). 
  
-7. Check it now on the protein level: 'run_get_phylomarkers_pipeline.sh -R 1 -t PROT'. Note that for this second invocation, you will probably not need to prepend the full path to the script anymore, as symlinks are created to the scripts from your $HOME/bin dir (see NOTES below). 
+7. Check it now on the protein level: 'run_get_phylomarkers_pipeline.sh -R 1 -t PROT'. Note that for this second invocation, you will probably not need to prepend the full path to the script anymore, as symlinks were created to the scripts from your $HOME/bin dir, or if you run the lines above with root privileges, from /usr/local/bin.
 
-7.1 NOTE: if you run the lines above as a superuser, the symlinks will have been created in /usr/local/bin
+8. Explore the help menu of the master script to see the options available for customizing the runs. It is printed to STDOUT when issuing run_get_phylomarkers_pipeline.sh -h or simply run_get_phylomarkers_pipeline.sh
 
-8. Explore the help menu of the main script to see the options available for customization of the run. It is printed to STDOUT when issuing run_get_phylomarkers_pipeline.sh -h or simply run_get_phylomarkers_pipeline.sh
+That's it, enjoy!
 
-9. Work out through the  [**tutorial**](https://github.com/vinuesa/get_phylomarkers/blob/master/docs/GET_PHYLOMARKERS_manual.md#get_phylomarkers-tutorial) to get a quick grasp of its possibilities.
+## Test the pipeline by running the tutorial execises
 
-10.  Read the [**manual**](docs/GET_PHYLOMARKERS_manual.md) for the implementation details and additional functionality not described in the [tutorial](https://github.com/vinuesa/get_phylomarkers/blob/master/docs/GET_PHYLOMARKERS_manual.md#get_phylomarkers-tutorial).
+To get a quick impression of the capabilities of the **GET_HOMOLOGUES + GET_PHYLOMARKERS** combo, we recommend that you run the [**tutorial**](docs/GET_PHYLOMARKERS_manual.md#get_phylomarkers-tutorial) with the test sequences provided in the test_sequences/ directory (and subdirectories contained therein). This will provide you with a quick grasp of its possibilities.
 
-That's it, enjoy. 
+Read the [**manual**](docs/GET_PHYLOMARKERS_manual.md) for the implementation details and additional functionality not described in the [tutorial](https://github.com/vinuesa/get_phylomarkers/blob/master/docs/GET_PHYLOMARKERS_manual.md#get_phylomarkers-tutorial).
 
 
 ## Installing the Docker environment on your machine
