@@ -1,3 +1,6 @@
+31Mar18  * updated install instructions
+         * prepared new release
+	 * uploaded new docker image
 30Mar18  * updated linux and macosx binaries for iqtree (v1.6.3) and paup (v4a161)
 29Mar18   # Code:
            * get_phylomarkers_fun_lib 29032018; 

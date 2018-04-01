@@ -27,7 +27,7 @@
 #: MANUAL: a detailed manual and tutorial are available at: https://vinuesa.github.io/get_phylomarkers/
 # 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.2.1_29Mar18'
+VERSION='2.2.2_31Mar18'
 
 # Set GLOBALS
 DEBUG=0
@@ -466,7 +466,6 @@ USAGE
 exit 0
 
 }
-
 
 #-----------------------------------------------------------------------------------------
 
@@ -1173,7 +1172,7 @@ then
 	 let no_tree_counter++
     done
 
-    msg " >>> WARNING: there are $no_tree_counter trees with < 1 internal branches (no real trees) that will be discarded ..." WARNING LRED
+    [ $no_tree_counter -gt 0 ] && msg " >>> WARNING: there are $no_tree_counter trees with < 1 internal branches (no real trees) that will be discarded ..." WARNING LRED
 
     msg "" PROGR NC
     msg " >>>>>>>>>>>>>>> filter gene trees for outliers with kdetrees test <<<<<<<<<<<<<<< " PROGR YELLOW
