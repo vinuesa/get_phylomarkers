@@ -1,5 +1,6 @@
+31Mar18  * run_get_phylomarkers_pipeline.sh v2.2.2; added [ $no_tree_counter ] && WARNING msg about discarding trees with < 1 internal branches
 31Mar18  * updated install instructions
-         * prepared new release
+         * prepared new release tagged 1.2.5
 	 * uploaded new docker image
 30Mar18  * updated linux and macosx binaries for iqtree (v1.6.3) and paup (v4a161)
 29Mar18   # Code:
