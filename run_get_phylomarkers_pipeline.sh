@@ -27,7 +27,7 @@
 #: MANUAL: a detailed manual and tutorial are available at: https://vinuesa.github.io/get_phylomarkers/
 # 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.2.2_31Mar18'
+VERSION='2.2.3_4Apr18'
 
 # Set GLOBALS
 DEBUG=0
@@ -2116,9 +2116,9 @@ cat <<REF
 If you find the code useful for your academic work, please use the following citation:
 
 Pablo Vinuesa, Luz-Edith Ochoa-Sanchez and Bruno Contreras-Moreira 2018.
-GET_PHYLOMARKERS, a pipeline to select optimal orthologs for phylogenomics 
-and estimation of pan-genome phylogenies: identification of cryptic species 
-in the Stenotrophomonas maltophilia complex.
+GET_PHYLOMARKERS, a software package to select optimal orthologous clusters for phylogenomics 
+and inferring pan-genome phylogenies, used for a critical geno-taxonomic revision of the 
+genus Stenotrophomonas. https://www.biorxiv.org/content/early/2018/04/04/294660
 
 Available at https://github.com/vinuesa/get_phylomarkers
 
@@ -2127,8 +2127,8 @@ If accepted, it will be published in the Research Topic on "Microbial Taxonomy, 
 http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity
 
 * NOTES:
-  1. The links to the the corresponding manuscript will be provided here
-      as soon as it is available at bioRxiv, and latter, to the paper.
+  1. A preprint version of the paper is available at bioRxiv 
+     https://www.biorxiv.org/content/early/2018/04/04/294660
 
   2. If you encounter problems or bugs while running the pipeline
      please report them through the issues page at
