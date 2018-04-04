@@ -34,6 +34,8 @@ Please, follow the links for a detailed [**manual**](https://vinuesa.github.io/g
 
 On Jaunary 15th, 2018 we submitted a manuscript to the [Research Topic of Frontiers in Microbiology: Microbial Taxonomy, Phylogeny and Biodiversity](http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity) describing the implementation of the GET_PHYLOMARKERS pipeline along with a thorough benchmark analysis comparing the performance of FastTree *vs*. IQ-TREE, and its use in genomic taxonomy and population genomics of *Stenotrophomonas* bacteria. The revised version was returned to the reviewers on March 22, 2018.
 
+A [**preprint version is available at bioRxiv**(https://www.biorxiv.org/content/early/2018/04/04/294660)
+
 Meanwhile, if you find the code useful for your academic work, please use the following citation:
 Pablo Vinuesa and Bruno Contreras-Moreira 2018. GET_PHYLOMARKERS, a pipeline to select optimal markers for microbial phylogenomics, and genomic taxomy. Available at https://github.com/vinuesa/get_phylomarkers and released under the GNU GPLv3 license.
 
