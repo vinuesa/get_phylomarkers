@@ -32,12 +32,17 @@ Please, follow the links for a detailed [**manual**](https://vinuesa.github.io/g
 
 ## Citation.
 
-On Jaunary 15th, 2018 we submitted a manuscript to the [Research Topic of Frontiers in Microbiology: Microbial Taxonomy, Phylogeny and Biodiversity](http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity) describing the implementation of the GET_PHYLOMARKERS pipeline along with a thorough benchmark analysis comparing the performance of FastTree *vs*. IQ-TREE, and its use in genomic taxonomy and population genomics of *Stenotrophomonas* bacteria. The revised version was returned to the reviewers on March 22, 2018.
+Pablo Vinuesa, Luz-Edith Ochoa-Sanchez and Bruno Contreras-Moreira (2018).
+GET_PHYLOMARKERS, a software package to select optimal orthologous clusters for phylogenomics 
+and inferring pan-genome phylogenies, used for a critical geno-taxonomic revision of the 
+genus Stenotrophomonas. Front. Microbiol. | doi: 10.3389/fmicb.2018.00771 
 
-A [**preprint version is available at bioRxiv**(https://www.biorxiv.org/content/early/2018/04/04/294660)
+Published in the Research Topic on "Microbial Taxonomy, Phylogeny and Biodiversity"
+http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity
 
-Meanwhile, if you find the code useful for your academic work, please use the following citation:
-Pablo Vinuesa and Bruno Contreras-Moreira 2018. GET_PHYLOMARKERS, a pipeline to select optimal markers for microbial phylogenomics, and genomic taxomy. Available at https://github.com/vinuesa/get_phylomarkers and released under the GNU GPLv3 license.
+A [**preprint version is available on bioRxiv**](https://www.biorxiv.org/content/early/2018/04/04/294660)
+
+Code Available at https://github.com/vinuesa/get_phylomarkers and released under the GNU GPLv3 license.
 
 ## Developers
 The code is developed and maintained by [Pablo Vinuesa](http://www.ccg.unam.mx/~vinuesa/) 
