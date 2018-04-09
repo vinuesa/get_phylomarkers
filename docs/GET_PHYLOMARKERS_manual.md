@@ -1,7 +1,5 @@
 # GET_PHYLOMARKERS MANUAL
 
-version 2018-02-18
-
 ## Brief presentation and graphical overview of the pipeline
 
 This manual provides the usage details for [**GET_PHYLOMARKERS**](https://github.com/vinuesa/get_phylomarkers), a software package designed to select "well-behaved" phylogenetic markers to estimate a **maximum likelihoood (ML) species tree** from the supermatrix of concatenated, top-scoring alignments. These are identified through a series of sequential filters that operate on orthologous gene/protein clusters computed by [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues) **to exclude**:
@@ -864,10 +862,18 @@ at [CCG-UNAM, Mexico](http://www.ccg.unam.mx/) and
  at [EEAD-CSIC, Spain](http://www.eead.csic.es/). It is released to the public domain under the GNU GPLv3 [license](./LICENSE).
  
 # Citation
-On Jaunary 15th, 2018 we submitted a manuscript to the [Research Topic of Frontiers in Microbiology: Microbial Taxonomy, Phylogeny and Biodiversity](http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity) describing the implementation of the **GET_PHYLOMARKERS** pipeline and its use in genomic taxonomy and population genomics of *Stenotrophomonas* bacteria.
+Pablo Vinuesa, Luz-Edith Ochoa-Sanchez and Bruno Contreras-Moreira (2018).
+GET_PHYLOMARKERS, a software package to select optimal orthologous clusters for phylogenomics 
+and inferring pan-genome phylogenies, used for a critical geno-taxonomic revision of the 
+genus *Stenotrophomonas*. [Front. Microbiol. | doi: 10.3389/fmicb.2018.00771](https://www.frontiersin.org/articles/10.3389/fmicb.2018.00771/abstract) 
 
-Meanwhile, if you find the code useful for your academic work, please use the following citation:
-Pablo Vinuesa and Bruno Contreras-Moreira 2018. GET_PHYLOMARKERS, a pipeline to select optimal markers for microbial phylogenomics, systematics and genomic taxomy. Available at https://github.com/vinuesa/get_phylomarkers and released under the GNU GPLv3 license.
+Published in the Research Topic on "Microbial Taxonomy, Phylogeny and Biodiversity"
+http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity
+
+A [**preprint version is available on bioRxiv**](https://www.biorxiv.org/content/early/2018/04/04/294660)
+
+Code Available at https://github.com/vinuesa/get_phylomarkers and released under the GNU GPLv3 license.
+
 
 # Acknowledgements
 ## Personal
