@@ -19,6 +19,9 @@ This manual provides the usage details for [**GET_PHYLOMARKERS**](https://github
 <!--<img src="pics/getphylo_flowchart_FINAL.png" alt="GET_PHYLOMARKERS pipeline workflow"
      width="600px" height="1500px"></img>-->
 
+The pipeline was recently published: Pablo Vinuesa, Luz-Edith Ochoa-Sanchez and Bruno Contreras-Moreira (2018). GET_PHYLOMARKERS, a software package to select optimal orthologous clusters for phylogenomics 
+and inferring pan-genome phylogenies, used for a critical geno-taxonomic revision of the 
+genus *Stenotrophomonas*. [Front. Microbiol. | doi: 10.3389/fmicb.2018.00771](https://www.frontiersin.org/articles/10.3389/fmicb.2018.00771/abstract) 
 
 
 ## Installation, dependencies and Docker image
