@@ -557,13 +557,15 @@ function print_help
  REQUIRED
    -f <input_fasta_pangenome_matrix>  [for IQ-TREE]
    -i <input_phylip_pangenome_matrix> [for pars]
+
+   [NOTE: script should be called from with the folder containing the required input matrix]
  
  REQUIRED only if -c PARS
    -R <int> 
         1 launch single pars run  [ not particularly useful ]
-	2 launch n pars runs on n cores [ multiple independen searches, no bootstrapping ] 
-	3 automatic single pars run + bootstrap analysis [ recommended ]
-	4 map bootstrap props on selected -T tree_num found in -R 2 runs
+	      2 launch n pars runs on n cores [ multiple independen searches, no bootstrapping ] 
+	      3 automatic single pars run + bootstrap analysis [ recommended ]
+	      4 map bootstrap props on selected -T tree_num found in -R 2 runs
    -T <string> pars tree to map the boot-props on (req. for -R 4)
 
  OPTIONAL  
@@ -765,7 +767,7 @@ fi
 
 if [ "$criterion" == "ML" ]; then
     msg "input_fasta: $input_fasta" PROGR YELLOW
-    msg "discrte_model: $discrete_model" PROGR YELLOW
+    msg "discrete_model: $discrete_model" PROGR YELLOW
 fi
 
 if [ "$criterion" == "PARS" ]; then
