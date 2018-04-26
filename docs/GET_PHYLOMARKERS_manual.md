@@ -65,12 +65,14 @@ the pipeline should be run using proteins instead of DNA sequences.
 ### Basic usage examples
 
 ```
- # default run: launches the IQT-based filtering pipeline, selecting best models for gene trees and fitting 
- # GTR+F+RATE models for the species tree search based on the supermatrix of concatenated, top-scoreing alignments.
+ # default run: launches the IQT-based filtering pipeline, selecting best models for gene 
+ #  trees and fitting 
+ # GTR+F+RATE models for the species tree search based on the supermatrix of concatenated, 
+ #  top-scoring alignments.
  run_get_phylomarkers_pipeline.sh -R 1 -t DNA
 
- # Same as above, but adding molecular-clock analysis assuming a HKY85+G substitution model 
- # and imposing a stronger filtering of input alignments based on kdetrees -k 1 
+ # Same as above, but adding molecular-clock analysis assuming a HKY85+G substitution 
+ # model and imposing a stronger filtering of input alignments based on kdetrees -k 1 
  # and minimum average SH-like gene-tree support values of 0.8 (see manual for the details)
  run_get_phylomarkers_pipeline.sh -R 1 -t DNA -K -M HKY -m 0.8 -k 1.0
 
@@ -80,11 +82,13 @@ the pipeline should be run using proteins instead of DNA sequences.
  # protein alignments, user-defined kdetrees & mean branch support cut-off values
  run_get_phylomarkers_pipeline.sh -R 1 -t PROT -k 1.2 -m 0.7 
 
- # To run the pipeline on a remote server, we recommend using the nohup command upfront, as shown below:
- # in this case, calling also IQ-TREE, which will select among the (HKY,TN,TVM,TIM,SYM,GTR)+RATE models 
- # and do 5 independent tree searches under the best-fit model, computing ultrafast bootstrapp 
- # and aproximate Bayes branch support values 
- nohup run_get_phylomarkers_pipeline.sh -R 1 -t DNA -S 'HKY,TN,TVM,TIM,SYM,GTR' -k 1.0 -m 0.7 -T high -N 5 &> /dev/null &
+ # To run the pipeline on a remote server, we recommend using the nohup command upfront,
+ #  as shown below:
+ # in this case, calling also IQ-TREE, which will select among the (HKY,TN,TVM,TIM,SYM,
+ # GTR)+RATE models and do 5 independent tree searches under the best-fit model, 
+ # computing ultrafast bootstrapp  and aproximate Bayes branch support values 
+ nohup run_get_phylomarkers_pipeline.sh -R 1 -t DNA -S 'HKY,TN,TVM,TIM,SYM,GTR' \
+ -k 1.0 -m 0.7 -T high -N 5 &> /dev/null &
  
  # use tail -f logfile to follow the output that the script logs to the logfile
  tail -f logfile
@@ -186,19 +190,21 @@ As of version 1.9.9.0_22Dec17, **GET_PHYLOMERKERS** implements the **-A I** opti
 
 # IQT species-tree searches on the supermatrix: 
 
-	      -S <string> quoted 'comma-separated list' of base models to be evaluated by IQ-TREE
-	         when estimating the species tree from the concatenated supermatrix.
+	  -S <string> quoted 'comma-separated list' of base models to be evaluated by IQ-TREE
+	      when estimating the species tree from the concatenated supermatrix.
 	         
 # If no -S is passed, then sinlge default models are used, as shown below:
 
 
  - for DNA alignments [default: GTR]
 
-  <'JC,F81,K2P,HKY,TrN,TNe,K3P,K81u,TPM2,TPM2u,TPM3,TPM3u,TIM,TIMe,TIM2,TIM2e,TIM3,TIM3e,TVM,TVMe,SYM,GTR'>  
+  <'JC,F81,K2P,HKY,TrN,TNe,K3P,K81u,TPM2,TPM2u,TPM3,TPM3u,TIM,TIMe,TIM2,TIM2e,TIM3,TIM3e,
+     TVM,TVMe,SYM,GTR'>  
      
  - for PROT alignments [default: LG]
 
-   <'BLOSUM62,cpREV,Dayhoff,DCMut,FLU,HIVb,HIVw,JTT,JTTDCMut,LG,mtART,mtMAM,mtREV,mtZOA,Poisson,PMB,rtREV,VT,WAG'>          
+   <'BLOSUM62,cpREV,Dayhoff,DCMut,FLU,HIVb,HIVw,JTT,JTTDCMut,LG,mtART,mtMAM,mtREV,mtZOA,
+     Poisson,PMB,rtREV,VT,WAG'>          
 ```
                 
 - In addition, if **-T high**, *run_get_phylomarkers_pipeline.sh* will launch -N <integer> [default: 5] independent IQT searches on the supermatrix of concatenated top-scoring markers.
@@ -209,17 +215,25 @@ As of version 1.9.9.0_22Dec17, **GET_PHYLOMERKERS** implements the **-A I** opti
 Note that as of version 1.9.10 (January 1st, 2018), the script calls IQ-TREE 1.6.1 with the **-fast flag** enabled for maximal speed.
 
 ```    
-# 1. Default IQ-TREEE run (-T medium), evaluating the corresponding set models during gene-tree searches and evaluating the base GTR model  on the concatenated DNA supermatrix, using a single search
+# 1. Default IQ-TREEE run (-T medium), evaluating the corresponding set models during 
+#     gene-tree searches and evaluating the base GTR model on the concatenated DNA 
+#     supermatrix, using a single search
 run_get_phylomarkers_pipeline.sh -R 1 -t DNA
 
-# 2. Run 10 independent IQ-TREEE runs on a concatenated DNA supermatrix, evaluating the TN,TIM,TVM,GTR base models
-run_get_phylomarkers_pipeline.sh -R 1 -t DNA -S 'TN,TIM,TVM,GTR' -k 0.9 -m 0.8 -T high -N 10 &> /dev/null &
+# 2. Run 10 independent IQ-TREEE runs on a concatenated DNA supermatrix, evaluating the 
+#    TN,TIM,TVM,GTR base models
+run_get_phylomarkers_pipeline.sh -R 1 -t DNA -S 'TN,TIM,TVM,GTR' -k 0.9 -m 0.8 -T high \
+ -N 10 &> /dev/null &
 
-# 3. Run 5 independent IQ-TREEE runs on a concatenated PROT supermatrix, evaluating the LG,WAG,JTT matrices 
-run_get_phylomarkers_pipeline.sh -R 1 -t PROT -A I -S 'LG,WAG,JTT,VT' -k 1.0 -m 0.7 -T high -N 5 &> /dev/null &
+# 3. Run 5 independent IQ-TREEE runs on a concatenated PROT supermatrix, 
+#    evaluating the LG,WAG,JTT matrices 
+run_get_phylomarkers_pipeline.sh -R 1 -t PROT -A I -S 'LG,WAG,JTT,VT' -k 1.0 -m 0.7 \
+  -T high -N 5 &> /dev/null &
  
-# 4. To run the pipeline on a remote server, we recommend using the nohup command upfront, as shown below:
-nohup run_get_phylomarkers_pipeline.sh -R 1 -t DNA -S 'HKY,TN,TVM,TIM,SYM,GTR' -k 1.0 -m 0.7 -T high -N 5 &> /dev/null &	  
+# 4. To run the pipeline on a remote server, we recommend using the nohup command upfront, 
+# as shown below:
+nohup run_get_phylomarkers_pipeline.sh -R 1 -t DNA -S 'HKY,TN,TVM,TIM,SYM,GTR' -k 1.0 \
+ -m 0.7 -T high -N 5 &> /dev/null &	  
 
 ```
 
@@ -260,7 +274,8 @@ where '-s spr' and '-l spr_length' can be set by the user. The lines above show 
 run_get_phylomarkers_pipeline.sh -R 1 -A F -t PROT -m 0.6 -k 1.0 -T lowest
 
 
-# FastTree searching on DNA dataset using the most through possible search and extensive spr rounds
+# FastTree searching on DNA dataset using the most through possible search and extensive 
+  SPR rounds
 run_get_phylomarkers_pipeline.sh -R 1 -A F -t DNA -m 0.7 -k 1.0 -T high -s 20 -l 12
 
 ```
@@ -350,7 +365,8 @@ chmod -R a+w get_homPhy
   directory within the container) would be:
 
 ```
-docker run --rm -d -P --name get_homPhy -v $HOME/get_homPhy:/home/you/get_homPhy -it csicunam/get_homologues:latest /bin/bash
+docker run --rm -d -P --name get_homPhy -v $HOME/get_homPhy:/home/you/get_homPhy \
+  -it csicunam/get_homologues:latest /bin/bash
 
 ```
 You should be presented with the container ID (a3ba1460d5e40af32fb8223c8bd17a725ea05b760d145f4001d23f33b47bef01). Make note of the first four characters for the next step.
@@ -418,8 +434,8 @@ you@a3ba1460d5e4:~$ ls /get_homologues/
 you@a3ba1460d5e4:~$ ls /get_phylomarkers/
 
 # 5.1 listing the contents of the /bin directory reveals that we have a powerful 
-#    Linux toolset at hand, including interpreted programming languages like awk, bash, perl, R,
-#    editors like vim, diverse compilers ... 
+#  Linux toolset at hand, including interpreted programming languages like awk, bash, perl, R,
+#  editors like vim, diverse compilers ... 
 you@a3ba1460d5e4:~$ perl -e 'print "Hello world\n";'
 
 # IMPORTANT NOTE: THE CONTAINER DOES NOT PROVIDE A GRAPHICAL ENVIRONMENT (X-windows system)
@@ -449,7 +465,8 @@ grep -c '>' *fna | cut -d: -f2 | sort | uniq -c
 head -2 1962_DNA_topoisomerase_II...fna
 grep '>' head -2 1962_DNA_topoisomerase_II...fna
 
-# 8. Finally let's return to the /home/you/get_homPhy directory to proceed with the GET_HOMOLOGUES and GET_PHYLOMARKERS tutorials
+# 8. Finally let's return to the /home/you/get_homPhy directory to proceed with the 
+#  GET_HOMOLOGUES and GET_PHYLOMARKERS tutorials
 you@a3ba1460d5e4:~$ cd ~/get_homPhy/
 
 # 8.1 It's important to note and remember that you can write output in ~/get_homPhy/ 
@@ -497,9 +514,12 @@ If you launched a Docker container, and assuming that you followed the Docker tu
 cd test_sequences/
 ls # will list the following directories: core_genome/, pan_genome/ and pIncAC/
 
-# 2. run GET_HOMOLOGUES to compute the set of homologous clusters using the BDBH, COGtriangles and OMCL clustering algorithms 
-get_homologues.pl -d pIncAC -t 12 -e -n 1  # BDBH clusters containing sequences for the 12 genomes, 
-                                           # excluding those with inparalogues (-e): 33 clusters found.
+# 2. run GET_HOMOLOGUES to compute the set of homologous clusters using the BDBH, 
+#    COGtriangles and OMCL clustering algorithms 
+get_homologues.pl -d pIncAC -t 12 -e -n 1  # BDBH clusters containing sequences for the 
+                                           #   12 genomes, 
+                                           # excluding those with inparalogues (-e): 
+                                           #   33 clusters found.
                                            # Takes 330 wallclock secs on a comodity desktop with 
                                            # Intel Core2 Quad CPU Q9400 @ 2.66GHz x 1 cores
 # if you want, you can suspend the job and put it to the background
@@ -509,15 +529,16 @@ bg
 # and run the top command to see the processes running
 top
 
-# hit q to quit monitoring the processes running on your system (docker or host) with the top command
+# hit q to quit monitoring the processes running on your system (docker or host) with 
+#  the top command
 ```
 
 ### Clustering sequences with the COGtriangles algorithm
 
 ```
-get_homologues.pl -d pIncAC -G -t 0        # COGtriangles, computing clusters of all sizes (-t 0)
-                                           # finds 408 clusters in 14 wallclock secs, as it recycles
-                                           # the blast results of the previous run.
+get_homologues.pl -d pIncAC -G -t 0  # COGtriangles, computing clusters of all sizes (-t 0)
+                                     # finds 408 clusters in 14 wallclock secs, as it recycles
+                                     # the blast results of the previous run.
 ```  
 
 ### Clustering sequences with the OMCL algorithm
@@ -542,9 +563,13 @@ To learn all details around running GET_HOMOLOGUES, please read the online [**GE
 cd pIncAC_homologues/
 find . -type d
 
-compare_clusters.pl -d ./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_12taxa_algBDBH_e1_,./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algCOG_e0_,./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algOMCL_e0_ -o core_BCM -t 12 -n
+compare_clusters.pl -d ./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_12taxa_algBDBH_e1_,\
+./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algCOG_e0_,\
+./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algOMCL_e0_ -o core_BCM -t 12 -n
 
-compare_clusters.pl -d ./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_12taxa_algBDBH_e1_,./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algCOG_e0_,./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algOMCL_e0_ -o core_BCM -t 12
+compare_clusters.pl -d ./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_12taxa_algBDBH_e1_,\
+./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algCOG_e0_,\
+./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algOMCL_e0_ -o core_BCM -t 12
 
 ```
 
@@ -561,16 +586,20 @@ compare_clusters.pl -d ./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_12taxa_al
 To compute a consensus pan-genome, only the COGtriangles and OMCL algorithms should be used, as they don't require a reference sequence. Run GET_HOMOLOGUES with the -t 0 option, to consider clusters of all occupancy sizes (from singletons to multigene families), as demonstrated below.
 
 ```
-# Compute consensus pan-genome clusters and matrix using compare_clusters.pl of the GET_HOMOLOGUES suite.
+# Compute consensus pan-genome clusters and matrix using compare_clusters.pl of the 
+# GET_HOMOLOGUES suite.
 # Note that we run the script twice, once with the -n and -m flags 
 # (to compute the consesus clusters at the DNA level, *.fna files
-# and the pan-genome matrix) and a second instance without these flags, to get the protein clusters (*.faa files). 
+# and the pan-genome matrix) and a second instance without these flags, 
+# to get the protein clusters (*.faa files). 
 # Note also that we exclude the directory holding the BDBH clusters, 
 # as these are not suitable to compute a proper pan-genome matrix, since the 
 # BDBH clusters always contain the reference sequence, missing those that do not contain it.
 
-compare_clusters.pl -d ./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algCOG_e0_,./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algOMCL_e0_ -o pan_CM -n -m
-compare_clusters.pl -d ./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algCOG_e0_,./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algOMCL_e0_ -o pan_CM
+compare_clusters.pl -d ./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algCOG_e0_,\
+./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algOMCL_e0_ -o pan_CM -n -m
+compare_clusters.pl -d ./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algCOG_e0_,\
+./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_algOMCL_e0_ -o pan_CM
 
 ```
 
@@ -584,7 +613,7 @@ compare_clusters.pl -d ./KlebsiellapneumoniaeplasmidpNDM-KNNC019153_f0_0taxa_alg
 ## Searching for the best core-genome phylogeny of the pIncA/C plasmids with GET_PHYLOMARKERS
 
 ```
-# assumes that you are within test_sequences/pIncAC_homologues/ or in or in test_sequences/core_BCM
+# assumes that you are within test_sequences/pIncAC_homologues/ or in test_sequences/core_BCM
 cd core_BCM
 
 # 1. make sure we have the same nuber of faa and fna cluster files; 
@@ -619,7 +648,8 @@ run_get_phylomarkers_pipeline.sh -R 1 -t DNA # takes 55 seconds on the above-men
 
 # >>> explore the directories:
 ls
-cd get_phylomarkers_run_AIR1tDNA_k1.5_m0.7_Tmedium_30Jan18 # holds the compressed input FASTAS and alignments
+cd get_phylomarkers_run_AIR1tDNA_k1.5_m0.7_Tmedium_30Jan18 # holds the compressed input 
+                                                           # FASTAS and alignments
 
 # >>> cd into PhiPac/ dir, which holds the results of the recombination tests.
 cd PhiPack 
@@ -739,9 +769,11 @@ cat concatenation_coordinates.txt
 ## 2012_TraF_cdnAln.fasta = 9382-10395
 
 # some phylogenetic properties of the markers are summarized in sorted_aggregated_support_values4loci.tab
-# graphical analysis of RF-distances of gene-trees to the species-tree is found in scatterplot_RF-dist_of_gene_trees2concat_phylo.svg
+# graphical analysis of RF-distances of gene-trees to the species-tree is found in 
+#  scatterplot_RF-dist_of_gene_trees2concat_phylo.svg
 
-# The final tree concat_nonRecomb_KdeFilt_iqtree_GTR+F+ASC_ed.sptree can be conveniently visualized and edited with figtree
+# The final tree concat_nonRecomb_KdeFilt_iqtree_GTR+F+ASC_ed.sptree can be conveniently 
+#  visualized and edited with figtree
 figtree concat_nonRecomb_KdeFilt_iqtree_GTR+F+ASC_ed.sptree &
 
 
@@ -829,7 +861,8 @@ cd pan_CM
 ls pangenome_matrix*
 
 
-# 2. run estimate_pangenome_phylogenies.sh launching 10 independent iqtree searches on all available cores (-n 4 in this case), fitting binary (BIN) models
+# 2. run estimate_pangenome_phylogenies.sh launching 10 independent iqtree searches on 
+#     all available cores (-n 4 in this case), fitting binary (BIN) models
 
 estimate_pangenome_phylogenies.sh -c PARS -R 3 -i pangenome_matrix_t0.phylip -n 4 -b 25 -j 10 -t 1
 
@@ -868,7 +901,7 @@ at [CCG-UNAM, Mexico](http://www.ccg.unam.mx/) and
 Pablo Vinuesa, Luz-Edith Ochoa-Sanchez and Bruno Contreras-Moreira (2018).
 GET_PHYLOMARKERS, a software package to select optimal orthologous clusters for phylogenomics 
 and inferring pan-genome phylogenies, used for a critical geno-taxonomic revision of the 
-genus *Stenotrophomonas*. [Front. Microbiol. | doi: 10.3389/fmicb.2018.00771](https://www.frontiersin.org/articles/10.3389/fmicb.2018.00771/abstract) 
+genus *Stenotrophomonas*. [Front. Microbiol. **9:771** | doi: 10.3389/fmicb.2018.00771](https://www.frontiersin.org/articles/10.3389/fmicb.2018.00771/full) 
 
 Published in the Research Topic on "Microbial Taxonomy, Phylogeny and Biodiversity"
 http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity
