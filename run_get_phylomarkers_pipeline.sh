@@ -2130,12 +2130,10 @@ If you find the code useful for your academic work, please use the following cit
 Pablo Vinuesa, Luz-Edith Ochoa-Sanchez and Bruno Contreras-Moreira (2018).
 GET_PHYLOMARKERS, a software package to select optimal orthologous clusters for phylogenomics 
 and inferring pan-genome phylogenies, used for a critical geno-taxonomic revision of the 
-genus Stenotrophomonas. Front. Microbiol. | doi: 10.3389/fmicb.2018.00771 
+genus Stenotrophomonas. Front. Microbiol. 9:771 | doi: 10.3389/fmicb.2018.00771 
 
 Published in the Research Topic on "Microbial Taxonomy, Phylogeny and Biodiversity"
 http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity
-
-A preprint is available on bioRxiv: https://www.biorxiv.org/content/early/2018/04/04/294660
 
 Code available at https://github.com/vinuesa/get_phylomarkers
 
