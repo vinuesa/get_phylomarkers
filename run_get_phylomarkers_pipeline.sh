@@ -27,7 +27,7 @@
 #: MANUAL: a detailed manual and tutorial are available at: https://vinuesa.github.io/get_phylomarkers/
 # 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.2.3_4Apr18'
+VERSION='2.2.4_8May18'
 
 # Set GLOBALS
 DEBUG=0
@@ -490,6 +490,7 @@ function print_help()
      -C flag to print codontables
      -D flag to print debugging messages; please use if you encounter problems executing the code  [default: $DEBUG]
      -e <integer> select gene trees with at least (min. = 4) external branches                     [default: $min_no_ext_branches]
+     -f <string> GET_HOMOLOGUES cluster format <STD|EST>                                           [default: $cluster_format]
      -k <real> kde stringency (0.7-1.6 are reasonable values; less is more stringent)              [default: $kde_stringency]
      -K flag to run molecular clock test on codon alignments                                       [default: $eval_clock]
      -l <integer> max. spr length (7-12 are reasonable values)                                     [default: $spr_length]
@@ -546,6 +547,7 @@ runmode=
 mol_type=
 
 # Optional, with defaults
+cluster_format=STD
 search_thoroughness='medium'
 kde_stringency=1.5
 min_supp_val=0.7
@@ -567,7 +569,7 @@ IQT_PROT_models=LG
 IQT_models=
 nrep_IQT_searches=5
 
-while getopts ':c:e:k:l:m:M:n:N:p:q:r:s:t:A:T:R:S:hCDHKv' OPTIONS
+while getopts ':c:e:f:k:l:m:M:n:N:p:q:r:s:t:A:T:R:S:hCDHKv' OPTIONS
 do
    case $OPTIONS in
    h)   print_help
@@ -583,6 +585,8 @@ do
    D)   DEBUG=1
         ;;
    e)   min_no_ext_branches=$OPTARG
+        ;;
+   f)   cluster_format=$OPTARG
         ;;
    H)   print_usage_notes
         ;;
@@ -789,7 +793,7 @@ lmsg="Run started on $TIMESTAMP_SHORT_HMS under $OSTYPE on $HOSTNAME with $n_cor
  bindir:$bindir
 
  > General run settings:
-      runmode:$runmode|mol_type:$mol_type|search_algorithm:$search_algorithm
+      runmode:$runmode|mol_type:$mol_type|search_algorithm:$search_algorithm|cluster_format:$cluster_format
  > Filtering parameters:
      kde_stringency:$kde_stringency|min_supp_val:$min_supp_val
  > FastTree parameters:
@@ -870,8 +874,16 @@ then
 fi 
 
 # 1.1 fix fastaheaders of the source protein and DNA fasta files
-for file in ./*faa; do awk 'BEGIN {FS = "|"}{print $1, $2, $3}' "$file"|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}"ed; done
-for file in ./*fna; do awk 'BEGIN {FS = "|"}{print $1, $2, $3}' "$file"|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}ed"; done
+if [ "$cluster_format" == 'STD' ]; then
+    # FASTA header format corresponds to GET_HOMOLOGUES
+    for file in ./*faa; do awk 'BEGIN {FS = "|"}{print $1, $2, $3}' "$file"|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}"ed; done
+    for file in ./*fna; do awk 'BEGIN {FS = "|"}{print $1, $2, $3}' "$file"|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}ed"; done
+else
+    # FASTA header format corresponds to GET_HOMOLOGUES_EST; keep first and last fields delimited by "|"
+    for file in ./*faa; do awk 'BEGIN {FS = "|"}{print $1, $NF}' "$file"|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}"ed; done
+    for file in ./*fna; do awk 'BEGIN {FS = "|"}{print $1, $NF}' "$file"|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}ed"; done
+fi
+
 
 print_start_time && msg  "# Performing strain composition check on f?aed files ..." PROGR BLUE
 faaed_strain_intersection_check=$(grep '>' ./*faaed | cut -d: -f2 | sort | uniq -c | awk '{print $1}' | sort | uniq -c | wc -l)
