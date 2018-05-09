@@ -27,7 +27,7 @@
 #: MANUAL: a detailed manual and tutorial are available at: https://vinuesa.github.io/get_phylomarkers/
 # 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.2.4_8May18'
+VERSION='2.2.5_9May18'
 
 # Set GLOBALS
 DEBUG=0
@@ -880,8 +880,8 @@ if [ "$cluster_format" == 'STD' ]; then
     for file in ./*fna; do awk 'BEGIN {FS = "|"}{print $1, $2, $3}' "$file"|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}ed"; done
 else
     # FASTA header format corresponds to GET_HOMOLOGUES_EST; keep first and last fields delimited by "|"
-    for file in ./*faa; do awk 'BEGIN {FS = "|"}{print $1, $NF}' "$file"|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}"ed; done
-    for file in ./*fna; do awk 'BEGIN {FS = "|"}{print $1, $NF}' "$file"|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}ed"; done
+    for file in ./*faa; do awk 'BEGIN {FS = " "}{print $1, $2}' "$file"|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}"ed; done
+    for file in ./*fna; do awk 'BEGIN {FS = " "}{print $1, $2}' "$file"|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}ed"; done
 fi
 
 
