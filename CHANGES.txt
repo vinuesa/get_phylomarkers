@@ -1,3 +1,4 @@
+27May18  * updated iqtree for linux and macosx-intel from v1.6.3 to v1.6.5
 9May18   * adapted regex for -f EST in run_get_phylomarkers.sh to properly parse the new FASTA header format of clusters computed by GET_PHYLOMARKERS_EST
 8May18   * added option -f <STD|EST> to parse GET_HOMOLOGUES_EST FASTA header; updated GET_PHYLOMARKERS reference
 31Mar18  * run_get_phylomarkers_pipeline.sh v2.2.2; added [ $no_tree_counter ] && WARNING msg about discarding trees with < 1 internal branches
