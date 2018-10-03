@@ -861,12 +861,12 @@ ln -s ../*.faa .
 ln -s ../*.fna .
 
 # fix fasta file names with two and three dots
-"$distrodir"/rename.pl 's/\.\.\./\./g' ./*.faa
-"$distrodir"/rename.pl 's/\.\.\./\./g' ./*.fna
+"$distrodir"/rename.pl 's/\.\.\./\./g' *.faa
+"$distrodir"/rename.pl 's/\.\.\./\./g' *.fna
 
 # make sure the fasta files do not contain characters that may interfere with the shell
-"$distrodir"/rename.pl "s/\\'//g; s/\)//g; s/\,//g; s/\(//g; s/\[//g; s/\]//g; s#/##g; s/://g; s/;//g" ./*.faa
-"$distrodir"/rename.pl "s/\\'//g; s/\)//g; s/\,//g; s/\(//g; s/\[//g; s/\]//g; s#/##g; s/://g; s/;//g" ./*.fna
+"$distrodir"/rename.pl "s/\\'//g; s/\)//g; s/\,//g; s/\(//g; s/\[//g; s/\]//g; s#/##g; s/://g; s/\;//g" *.faa
+"$distrodir"/rename.pl "s/\\'//g; s/\)//g; s/\,//g; s/\(//g; s/\[//g; s/\]//g; s#/##g; s/://g; s/\;//g" *.fna
 
 # 1.0 check that all fasta files contain the same number of sequences
 NSEQSFASTA=$(grep -c '^>' ./*.f[na]a | cut -d: -f 2 | sort | uniq | wc -l)
