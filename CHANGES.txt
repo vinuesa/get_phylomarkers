@@ -1,3 +1,4 @@
+14Nov18  * updated PAUP* build 164 binaries for ubuntu Linux (64-bit) and MacOSX
 14Nov18  * updated IQ-TREE v1.6.8 binaries for ubuntu Linux (64-bit) and MacOSX 
 24Oct18  * updated paup (build 163) and IQ-TREE v1.6.7.1, both for ubuntu Linux (64-bit) and MacOSX
 3Oct18   * more input file name cleanup code to remove characters like ',/;()[]: from input files that may interfere with the shell; 2.2.6_3Oct2018
