@@ -6,7 +6,7 @@
 #           Bruno Contreras Moreira, EEAD-CSIC, Zaragoza, Spain
 #           https://digital.csic.es/cris/rp/rp02661/
 #
-#: DISCLAIMER: programs of the GET_PHYLOMARKERS package are distributed in the hope that it will be useful, 
+#: DISCLAIMER: programs of the GET_PHYLOMARKERS package are distributed in the hope that they will be useful, 
 #              but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
 #              See the GNU General Public License for more details. 
 #
@@ -26,8 +26,15 @@
 # 
 #: MANUAL: a detailed manual and tutorial are available at: https://vinuesa.github.io/get_phylomarkers/
 # 
+#: CITATION / PUBLICATION: If you use this software in your own publications, please cite the following paper:
+#    Vinuesa P, Ochoa-Sanchez LE, Contreras-Moreira B. GET_PHYLOMARKERS, a Software Package to Select Optimal Orthologous Clusters for Phylogenomics 
+#    and Inferring Pan-Genome Phylogenies, Used for a Critical Geno-Taxonomic Revision of the Genus Stenotrophomonas. 
+#    Front Microbiol. 2018 May 1;9:771. doi:10.3389/fmicb.2018.00771. 
+#    eCollection 2018. PubMed PMID: 29765358; PubMed Central PMCID: PMC5938378.
+#
+
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.2.6_3Oct2018'
+VERSION='2.2.7_14Nov2018'
 
 # Set GLOBALS
 DEBUG=0
@@ -75,6 +82,7 @@ function print_start_time()
    echo -n "[$(date +%T)] "
 }
 #-----------------------------------------------------------------------------------------
+
 
 function set_pipeline_environment()
 {
@@ -128,7 +136,7 @@ function check_scripts_in_path()
     homebinflag=0
     homebinpathflag=0
 
-    [ "$DEBUG" -eq 1 ] && msg "check_scripts_in_path() distrodir: $distrodir" DEBUG NC
+   [ "$DEBUG" -eq 1 ] && msg "check_scripts_in_path() distrodir: $distrodir" DEBUG NC
     
     bash_scripts=(run_parallel_molecClock_test_with_paup.sh )
     perl_scripts=( run_parallel_cmmds.pl add_nos2fasta_header.pl pal2nal.pl rename.pl concat_alignments.pl add_labels2tree.pl convert_aln_format_batch_bp.pl popGen_summStats.pl convert_aln_format_batch_bp.pl )
@@ -253,6 +261,38 @@ function set_bindirs()
    [ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
+
+function print_software_versions()
+{
+   echo 
+   msg ">>> Software versions run by $progname version $VERSION" PROGR LBLUE
+    
+   ${bindir}/paup --version
+   echo '-------------------------'
+   ${bindir}/FastTree &> FT.tmp && FT_vers=$(head -1 FT.tmp | sed 's/Usage for FastTree //; s/://') && rm FT.tmp
+   echo "FastTree v.${FT_vers}"
+   echo '-------------------------'
+   ${bindir}/iqtree --version
+   echo '-------------------------'
+   echo "consense, pars and seqboot v.3.69"
+   echo '-------------------------'
+   clustalo_version=$(${bindir}/clustalo --version)
+   echo "clustalo v.${clustalo_version}"
+   echo '-------------------------'
+   bash --version | grep bash
+   echo '-------------------------'
+   perl -v | grep version
+   echo '-------------------------'
+   R --version | grep version | grep R
+   echo '-------------------------'
+   parallel --version | grep 'GNU parallel' | grep -v warranty
+   echo '-------------------------'
+   bc --version | grep bc
+   echo '-------------------------'
+   echo
+}
+#-----------------------------------------------------------------------------------------
+
 function print_codontables()
 {
   cat <<CODONTBL
@@ -510,6 +550,7 @@ function print_help()
                 mtART,mtMAM,mtREV,mtZOA,Poisson,PMB,rtREV,VT,WAG'>           for PROT alignments   [default: $IQT_PROT_models]
      -T <string> tree search Thoroughness: high|medium|low|lowest (see -H for details)             [default: $search_thoroughness]
      -v flag, print version and exit
+     -V flag, print software versions
 
    INVOCATION EXAMPLES:
      1. default on DNA sequences (uses IQ-TREE evaluating a subset of models specified in the detailed help)
@@ -569,7 +610,9 @@ IQT_PROT_models=LG
 IQT_models=
 nrep_IQT_searches=5
 
-while getopts ':c:e:f:k:l:m:M:n:N:p:q:r:s:t:A:T:R:S:hCDHKv' OPTIONS
+software_versions=0
+
+while getopts ':c:e:f:k:l:m:M:n:N:p:q:r:s:t:A:T:R:S:hCDHKvV' OPTIONS
 do
    case $OPTIONS in
    h)   print_help
@@ -620,10 +663,12 @@ do
         ;;
    v)   echo "$progname v$VERSION" && check_dependencies 1 && exit 0
         ;;
-    :)   sprintf "argument missing from -%s option\n" "-$OPTARG" 
-   	 print_help
-     	 exit 2
-     	 ;;
+   V)   software_versions=1
+        ;;
+   :)   sprintf "argument missing from -%s option\n" "-$OPTARG" 
+   	print_help
+     	exit 2
+     	;;
    \?)   echo "invalid option: -$OPTARG"
    	 print_help
          exit 3
@@ -675,6 +720,9 @@ export PERL5LIB="${PERL5LIB}:${distrodir}/lib/perl:${distrodir}/lib/perl/bioperl
 
 # 0.5 check all dependencies are in place
 check_dependencies 0
+
+
+[ $software_versions -eq 1 ] && print_software_versions && exit 0
 
 #--------------------------------------#
 # >>> BLOCK 0.2 CHECK USER OPTIONS <<< #
