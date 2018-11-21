@@ -34,7 +34,7 @@
 #
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.2.7_14Nov2018'
+VERSION='2.2.8_18Nov2018'
 
 # Set GLOBALS
 DEBUG=0
