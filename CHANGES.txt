@@ -1,3 +1,4 @@
+27Feb19  * updated iqtree binary to v.1.6.10 for ubuntu Linux (64-bit) and MacOSX
 02Jan19  * updated IQ-TREE v1.6.9 binaries for ubuntu Linux (64-bit) and MacOSX
 18Nov18  * added function print_software_versions()
 14Nov18  * updated PAUP* build 164 binaries for ubuntu Linux (64-bit) and MacOSX
