@@ -14,6 +14,8 @@ bundled with [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homol
 ## Aim
 **GET_PHYLOMARKERS** implements a series of sequential filters (detailed below) to selects markers from the homologous gene clusters produced by [GET_HOMOLOGUES](https://github.com/eead-csic-compbio/get_homologues) with optimal attributes for phylogenomic inference. It estimates **gene-trees** and **species-trees** under the **maximum likelihood (ML) optimality criterion** using state-of-the-art fast ML tree searching algorithms. The species tree is estimated from the supermatrix of concatenated, top-scoring alignments that passed the quality filters. 
 
+![**Legend.** GET_PHYLOMARKERS](./pics/summary.jpg)
+
 **GET_HOMOLOGUES** is a genome-analysis software package for microbial pan-genomics and comparative genomics originally described in the following publications: 
 
 - [Contreras-Moreira and Vinuesa, AEM 2013](https://www.ncbi.nlm.nih.gov/pubmed/24096415)
