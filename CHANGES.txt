@@ -1,3 +1,4 @@
+15Jul19  * updated manual: minor fixes and more info on running docker
 17Jun19  * updated iqtree binary to v.1.6.11 for ubuntu Linux (64-bit) and MacOSX
 09Apr19  * updated PAUP* build 165 binaries for ubuntu Linux (64-bit) and MacOSX
 27Feb19  * updated iqtree binary to v.1.6.10 for ubuntu Linux (64-bit) and MacOSX
