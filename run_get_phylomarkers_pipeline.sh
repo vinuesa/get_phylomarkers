@@ -34,7 +34,7 @@
 #
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.2.8_18Nov2018'
+VERSION='2.2.8.1_16Jul2019'
 
 # Set GLOBALS
 DEBUG=0
@@ -139,7 +139,7 @@ function check_scripts_in_path()
    [ "$DEBUG" -eq 1 ] && msg "check_scripts_in_path() distrodir: $distrodir" DEBUG NC
     
     bash_scripts=(run_parallel_molecClock_test_with_paup.sh )
-    perl_scripts=( run_parallel_cmmds.pl add_nos2fasta_header.pl pal2nal.pl rename.pl concat_alignments.pl add_labels2tree.pl convert_aln_format_batch_bp.pl popGen_summStats.pl convert_aln_format_batch_bp.pl )
+    perl_scripts=( run_parallel_cmmds.pl add_nos2fasta_header.pl pal2nal.pl rename.pl concat_alignments.pl add_labels2tree.pl convert_aln_format_batch_bp.pl popGen_summStats.pl )
     R_scripts=( run_kdetrees.R compute_suppValStas_and_RF-dist.R )
 
     # check if scripts are in path; if not, set flag
@@ -290,6 +290,8 @@ function print_software_versions()
    bc --version | grep bc
    echo '-------------------------'
    echo
+   
+   exit 0
 }
 #-----------------------------------------------------------------------------------------
 
@@ -317,7 +319,7 @@ function print_codontables()
 
 CODONTBL
 
-exit 0
+   exit 0
 
 }
 #-----------------------------------------------------------------------------------------
@@ -529,7 +531,7 @@ function print_help()
      -c <integer> NCBI codontable number (1-23) for pal2nal.pl to generate codon alignment         [default:$codontable]
      -C flag to print codontables
      -D flag to print debugging messages; please use if you encounter problems executing the code  [default: $DEBUG]
-     -e <integer> select gene trees with at least (min. = 4) external branches                     [default: $min_no_ext_branches]
+     -e <integer> select gene trees with at least (min. = $min_no_ext_branches) external branches  [default: $min_no_ext_branches]
      -f <string> GET_HOMOLOGUES cluster format <STD|EST>                                           [default: $cluster_format]
      -k <real> kde stringency (0.7-1.6 are reasonable values; less is more stringent)              [default: $kde_stringency]
      -K flag to run molecular clock test on codon alignments                                       [default: $eval_clock]
@@ -721,8 +723,7 @@ export PERL5LIB="${PERL5LIB}:${distrodir}/lib/perl:${distrodir}/lib/perl/bioperl
 # 0.5 check all dependencies are in place
 check_dependencies 0
 
-
-[ $software_versions -eq 1 ] && print_software_versions && exit 0
+[ $software_versions -eq 1 ] && print_software_versions
 
 #--------------------------------------#
 # >>> BLOCK 0.2 CHECK USER OPTIONS <<< #
