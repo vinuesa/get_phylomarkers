@@ -1,3 +1,5 @@
+20Aug19  * updated FastTree v2.1.11 Double precision (No SSE3) for Linux
+20Aug19  * updated IQ-TREE v1.6.12 binaries (64-bit) for ubuntu Linux and MacOSX
 16Jul19  * tidied the ${perl_scripts[@]} in check_scripts_in_path() and changed hard-coded -e min. = 4 for $min_no_ext_branches
 15Jul19  * updated manual: minor fixes and more info on running docker
 17Jun19  * updated iqtree binary to v.1.6.11 for ubuntu Linux (64-bit) and MacOSX
