@@ -1,3 +1,4 @@
+3Sep19   * updated PAUP* versions: paup4a166_ubuntu64 and paup4a166_osx
 20Aug19  * updated FastTree v2.1.11 Double precision (No SSE3) for Linux
 20Aug19  * updated IQ-TREE v1.6.12 binaries (64-bit) for ubuntu Linux and MacOSX
 16Jul19  * tidied the ${perl_scripts[@]} in check_scripts_in_path() and changed hard-coded -e min. = 4 for $min_no_ext_branches
