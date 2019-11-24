@@ -1,3 +1,4 @@
+24Nov19  * updated IQ-TREE v2.0-rc1 binaries (64-bit) for ubuntu Linux and MacOSX
 3Sep19   * updated PAUP* versions: paup4a166_ubuntu64 and paup4a166_osx
 20Aug19  * updated FastTree v2.1.11 Double precision (No SSE3) for Linux
 20Aug19  * updated IQ-TREE v1.6.12 binaries (64-bit) for ubuntu Linux and MacOSX
