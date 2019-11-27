@@ -22,7 +22,10 @@ bundled with [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homol
 - [Vinuesa and Contreras-Moreira, Meth. Mol. Biol. 2015](https://www.ncbi.nlm.nih.gov/pubmed/25343868) 
 
 More recently we have developed [GET_HOMOLOGUES-EST](https://github.com/eead-csic-compbio/get_homologues), 
-which can be used to cluster eukaryotic genes and transcripts, as described in [Contreras-Moreira et al., 2017](http://journal.frontiersin.org/article/10.3389/fpls.2017.00184/full).
+which can be used to cluster eukaryotic genes and transcripts, as described in [Contreras-Moreira et al, Front. Plant Sci. 2017](http://journal.frontiersin.org/article/10.3389/fpls.2017.00184/full). 
+
+If GET_HOMOLOGUES_EST is fed both .fna and .faa files of CDS sequences it will produce **identical output to that of GET_HOMOLOGUES and thus can be analyzed with GET_PHYLOMARKERS all the same**.
+
 
 **GET_PHYLOMARKERS** is primarily tailored towards selecting CDSs (gene markers) to infer DNA-level phylogenies of different species of the same genus or family. It can also select optimal markers for population genetics, when the source genomes belong to the same species.
 For more divergent genome sequences, classified in different genera, families, orders or higher taxa,
