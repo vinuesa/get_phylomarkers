@@ -9,7 +9,7 @@
 For detailed instructions and dependencies please check [**INSTALL.md**](INSTALL.md).
 
 A [**Docker image**](https://hub.docker.com/r/csicunam/get_homologues) is available with **GET_PHYLOMARKERS**
-bundled with [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues), ready to use. Detailed instructions on setting up the Docker environment [**INSTALL.md**](INSTALL.md) and running container instances with the test sequences distributed with **GET_PHYLOMARKERS** are provided in the [**tutorial**](https://github.com/vinuesa/get_phylomarkers/blob/master/docs/GET_PHYLOMARKERS_manual.html#get_phylomarkers-tutorial).
+bundled with [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues), ready to use. Detailed instructions on setting up the Docker environment [**INSTALL.md**](INSTALL.md) and running container instances with the test sequences distributed with **GET_PHYLOMARKERS** are provided in the [**tutorial**](https://vinuesa.github.io/get_phylomarkers/#get_phylomarkers-tutorial).
 
 ## Aim
 **GET_PHYLOMARKERS** implements a series of sequential filters (detailed below) to selects markers from the homologous gene clusters produced by [GET_HOMOLOGUES](https://github.com/eead-csic-compbio/get_homologues) with optimal attributes for phylogenomic inference. It estimates **gene-trees** and **species-trees** under the **maximum likelihood (ML) optimality criterion** using state-of-the-art fast ML tree searching algorithms. The species tree is estimated from the supermatrix of concatenated, top-scoring alignments that passed the quality filters. 
