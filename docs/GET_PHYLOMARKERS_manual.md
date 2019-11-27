@@ -1,8 +1,8 @@
-# GET_PHYLOMARKERS MANUAL
+# <a id="get_phylomarkers-manual"></a>GET_PHYLOMARKERS MANUAL
 
 ## Brief presentation and graphical overview of the pipeline
 
-This manual provides the usage details for [**GET_PHYLOMARKERS**](https://github.com/vinuesa/get_phylomarkers), a software package designed to select "well-behaved" phylogenetic markers to estimate a **maximum likelihoood (ML) species tree** from the supermatrix of concatenated, top-scoring alignments. These are identified through a series of sequential filters that operate on orthologous gene/protein clusters computed by [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues) **to exclude**:
+This manual provides the usage details for [**GET_PHYLOMARKERS**](https://github.com/vinuesa/get_phylomarkers), a software package designed to select "well-behaved" phylogenetic markers to estimate a **maximum likelihoood (ML) species tree** from the supermatrix of concatenated, top-scoring alignments. These are identified through a series of sequential filters that operate on orthologous gene/transcript/protein clusters computed by [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues) **to exclude**:
 
 1. alignments with evidence for **recombinant sequences**
 2. sequences that yield "**outlier gene trees**" in the context of the distributions of topologies and tree-lengths expected under the multispecies coalescent
@@ -26,7 +26,7 @@ genus *Stenotrophomonas*. [Front. Microbiol. | doi: 10.3389/fmicb.2018.00771](ht
 
 ## Installation, dependencies and Docker image
 
-The [**GET_PHYLOMARKERS**](https://github.com/vinuesa/get_phylomarkers) pagacke is distributed in three formats:
+The [**GET_PHYLOMARKERS**](https://github.com/vinuesa/get_phylomarkers) package is distributed in three formats:
 
 1. as a [**GitHub release**](https://github.com/vinuesa/get_phylomarkers/releases).
 2. as source code that can be cloned from the project's repository [**GitHub repository**](https://github.com/vinuesa/get_phylomarkers/).
@@ -34,7 +34,7 @@ The [**GET_PHYLOMARKERS**](https://github.com/vinuesa/get_phylomarkers) pagacke 
 
 For detailed instructions on installing the external dependencies please check [**INSTALL.md**](https://github.com/vinuesa/get_phylomarkers/blob/master/INSTALL.md).
 
-We highly recommend installing the [**Docker image**](https://hub.docker.com/r/csicunam/get_homologues) to avoid potential problems with the installation of the many dependencies. If you have not set a Docker environment on your machine, please see the instructions provied in the [**INSTALL.md**](https://github.com/vinuesa/get_phylomarkers/blob/master/INSTALL.md) document. It explains how to install Docker on different platforms and how to download/upgrade the [**GET_HOMOLOGUES+GET_PHYLOMARKERS Docker image**](https://hub.docker.com/r/csicunam/get_homologues/) from Docker hub.
+We highly recommend installing the [**Docker image**](https://hub.docker.com/r/csicunam/get_homologues) to avoid potential problems with the installation of the many dependencies. If you have not set a Docker environment on your machine, please see the instructions provided in the [**INSTALL.md**](https://github.com/vinuesa/get_phylomarkers/blob/master/INSTALL.md) document. It explains how to install Docker on different platforms and how to download/upgrade the [**GET_HOMOLOGUES+GET_PHYLOMARKERS Docker image**](https://hub.docker.com/r/csicunam/get_homologues/) from Docker hub.
 
 ## Aim
 **GET_PHYLOMARKERS** implements a series of sequential filters (**Fig. 1** and explained below) to selects markers from the homologous gene clusters produced by [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues) with optimal attributes for phylogenomic inference. It estimates **gene-trees** and **species-trees** under the **maximum likelihood (ML) optimality criterion** using *state-of-the-art* fast ML tree searching algorithms. The species tree is estimated from the supermatrix of concatenated, top-scoring alignments that passed the **quality filters** (**Fig. 1**). The stringency of these filters and the thoroughness of the ML tree searches can be controlled by the user, although sensible defaults are provided, making it an easy-to-use, **user-friendly software**.
@@ -45,7 +45,10 @@ We highly recommend installing the [**Docker image**](https://hub.docker.com/r/c
 - [Vinuesa and Contreras-Moreira, Meth. Mol. Biol. 2015](https://www.ncbi.nlm.nih.gov/pubmed/25343868) 
 
 More recently we have developed [**GET_HOMOLOGUES-EST**](https://github.com/eead-csic-compbio/get_homologues), 
-which can be used to cluster eukaryotic genes and transcripts, as described in [Contreras-Moreira et al., 2017](http://journal.frontiersin.org/article/10.3389/fpls.2017.00184/full).
+which can be used to cluster eukaryotic genes and transcripts, as described in [Contreras-Moreira et al, Front. Plant Sci. 2017](http://journal.frontiersin.org/article/10.3389/fpls.2017.00184/full). 
+
+If GET_HOMOLOGUES_EST is fed both .fna and .faa files of CDS sequences it will produce **identical output to that of GET_HOMOLOGUES and thus can be analyzed with GET_PHYLOMARKERS all the same**.
+
 
 **GET_PHYLOMARKERS** is primarily tailored towards selecting CDSs (gene markers) from multiple genome sequences to infer phylogenies of different species of the same genus or family. It can also select optimal markers for population genetics, when the source genomes belong to the same species.
 For more divergent genome sequences, classified in different genera, families, orders or higher taxa,
@@ -56,11 +59,11 @@ the pipeline should be run using proteins instead of DNA sequences.
 1. The pipeline (**Fig. 1**) is run by executing the **main script** *run_get_phylomarkers_pipeline.sh* inside a folder containing twin \*.fna and \*.faa FASTA files for orthologous **single-copy** CDSs and translation products (Fig. 1). <!-- computed by the *get_homologues.pl -e* or *compare_clusters.pl* -t number_of_genomes scripts of the **GET_HOMOLOGUES** suite.-->
 2. There are two **runmodes**: **-R 1** (for *phylogenetics*) and **-R 2** (for *population genetics*).
 3. The pipeline can be run on two **molecular types**: **DNA** or **protein** sequences (**-t DNA|PROT**). The latter is intended for the analysis of more divergent genome sequences, typically above the genus level.
-4. From version 2.0 onwards, **GET_PHYLOMARKERS** uses either the **FastTree (FT)** or **IQ-TREE (IQT)** fast ML tree search algorithms, controlled with the **-A [F|I]** option [**default: I**], respectively. Note that previous versions of the pipeline used FT as the default search algorithm. This change is based on our benchmark analyses [(Vinuesa et. al, 2018. Submitted)](GET_PHYLOMARKERS_manual.md#citation), which showed that IQ-TREE systematically finds better-scoring trees which allows for a finer-grained filtering of markers based on their phylogentic attributes. This is in line with a recent publication that concluded that IQT is the best ML tree-searching algorithm available to date for datasets in the range of 100-200 sequences, accorting to a large benchmark analysis with empirical phylogenomic datasets (Zhou et al. 2017. Mol Biol Evol. Nov 21. doi: 10.1093/molbev/msx302.) [PMID:29177474](https://www.ncbi.nlm.nih.gov/pubmed/29177474).
+4. From version 2.0 onwards, **GET_PHYLOMARKERS** uses either the **FastTree (FT)** or **IQ-TREE (IQT)** fast ML tree search algorithms, controlled with the **-A [F|I]** option [**default: I**], respectively. Note that previous versions of the pipeline used FT as the default search algorithm. This change is based on our benchmark analyses [(Vinuesa et. al, 2018. Submitted)](GET_PHYLOMARKERS_manual.html#citation), which showed that IQ-TREE systematically finds better-scoring trees which allows for a finer-grained filtering of markers based on their phylogentic attributes. This is in line with a recent publication that concluded that IQT is the best ML tree-searching algorithm available to date for datasets in the range of 100-200 sequences, accorting to a large benchmark analysis with empirical phylogenomic datasets (Zhou et al. 2017. Mol Biol Evol. Nov 21. doi: 10.1093/molbev/msx302.) [PMID:29177474](https://www.ncbi.nlm.nih.gov/pubmed/29177474).
 5. As of version 2.0 (January, 22cnd, 2018), GET_PHYLOMARKERS uses IQ-TREE version 1.6.1 (released Dec. 28th, 2017) which implements a fast search option, which almost matches the speed of FastTree, but retaining the accuracy of IQ-TREE 1.5.* Model-selection is performed with the **-fast flag** to for maximal speed both for gene- and species tree searches.
 6. The **global molecular-clock hypothesis** can be evaluated for DNA (codon) alignments (-R 1 -t DNA -K). It is not yet implemented for protein sequences.
 7. **GET_PHYLOMARKERS** can compute **basic descriptive statistics of population DNA polymorphisms and neutrality tests** when run in *population genetics* mode (**-R 2**). 
-8. A **small pIncA/C dataset is provided** with the distribution in the test_sequences/ directory for easy and fast testing of the pipeline (~16-60 seconds on a commodity GNU/Linux desktop machine with 4 cores; see [**GET_PHYLOMARKERS tutorial**](GET_PHYLOMARKERS_manual.md#get_phylomarkers-tutorial), depending on the search thoroughness and/or nuber of models to be evaluated). 
+8. A **small pIncA/C dataset is provided** with the distribution in the test_sequences/ directory for easy and fast testing of the pipeline (~16-60 seconds on a commodity GNU/Linux desktop machine with 4 cores; see [**GET_PHYLOMARKERS tutorial**](GET_PHYLOMARKERS_manual.html#get_phylomarkers-tutorial), depending on the search thoroughness and/or nuber of models to be evaluated). 
 
 ### Basic usage examples
 
@@ -98,11 +101,11 @@ the pipeline should be run using proteins instead of DNA sequences.
 
 1. Start the run from within the directory holding core-genome gene clusters generated by either *get_homologues.pl -e* or 
 subsequent consensus (intersection OMCL,COGS,BDBH) clusters produced with *compare_clusters.pl -t number_of_genomes* from the 
-[**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues) package, as shown in the [**GET_PHYLOMARKERS tutorial**](GET_PHYLOMARKERS_manual.md#get_phylomarkers-tutorial).
+[**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues) package, as shown in the [**GET_PHYLOMARKERS tutorial**](GET_PHYLOMARKERS_manual.html#get_phylomarkers-tutorial).
    
   NOTE: **both .faa and .fna files are required** to generate codon alignments from DNA fasta files. This
             means that two runs of *compare_clusters.pl* (from the **GET_HOMOLOGUES** package) are required,
-	          one of them using the -n flag [**GET_PHYLOMARKERS tutorial**](https://github.com/vinuesa/get_phylomarkers/blob/master/docs/GET_PHYLOMARKERS_manual.md#get_phylomarkers-tutorial) 
+	          one of them using the -n flag [**GET_PHYLOMARKERS tutorial**](https://github.com/vinuesa/get_phylomarkers/blob/master/docs/GET_PHYLOMARKERS_manual.html#get_phylomarkers-tutorial) 
 	    
 2. *run_get_phylomarkers_pipeline.sh* is intended to run on a collection of **single-copy** sequence clusters from 
 different species or strains.
@@ -323,7 +326,7 @@ From the [BioPerl](http://bioperl.org/) suite:
 
 ***
 
-# GET_HOMOLOGUES + GET_PHYLOMARKERS TUTORIALS
+# <a id="get_phylomarkers-tutorial"></a>GET_HOMOLOGUES + GET_PHYLOMARKERS TUTORIALS
 
 ## Test datasets
 The **GET_PHYLOMARKERS** distribution provides a **test_sequences/** directory which holds the subdirectories **core_genome/**, **pan_genome/** and **pIncAC/**. The first one contains **\*.fna** and **\*.faa** FASTA files with the **consensus (BDBH, COGtriangles and OMCL) core-genome clusters** computed with **GET_HOMOLOGUES** from a set of 12 GenBank-formatted pIncA/C plasmids,provided in the pIncAC/ directory. The second one holds the **pan-genome matrix** computed by *compare_clusters.pl* from the **GET_HOMOLOGUES** suite in tabular (\*.tab), FASTA (\*.fasta) and phylip (\*.phy) formats. The **pIncAC/** directory holds the source \*.gbk GenBank files. This directory has a README.txt file that briefly describes the GenBank files.
@@ -715,7 +718,7 @@ cat IQT_best_model_counts_for_gene_trees.tsv
 ## K2P+G4	1
 ## TIMe	1
 
-# 2.2 and locus-specific stats are provied in IQT_DNA_gene_tree_Tmedium_stats.tsv
+# 2.2 and locus-specific stats are provided in IQT_DNA_gene_tree_Tmedium_stats.tsv
 head  IQT_DNA_gene_tree_Tmedium_stats.tsv
 ## alignment	wc_secs	CPU_secs	lnL	model	s_type
 ## ./1961_hypothetical_protein_cdnAln.fasta.log	0.164	0.112	-1107.994	 K2P	IQTdnaTmedium
