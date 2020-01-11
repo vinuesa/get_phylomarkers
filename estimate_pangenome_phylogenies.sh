@@ -42,7 +42,8 @@
 #-------------------------------------------------------------------------------------------------------
 
 progname=${0##*/}
-VERSION='1.0.5_28Mar18' # check_scripts_in_path() checks wether USER is regular or root
+VERSION='1.1_10Jan20' # added option -S <abayes|UFBoot|both> default: $IQT_support
+       #'1.0.5_28Mar18' # check_scripts_in_path() checks wether USER is regular or root
        #'1.0.4_17Feb18' # prepended $bindir/ to a nw_reroot call that was missing it
        # 1.0.3_8Feb18 added -v; check_scripts_in_path(); check_dependencies with verbosity; activated set_pipeline_environment; Thanks Felipe Lira!
         # fix in set_pipeline_environment: changed to readlink -n when "$OSTYPE" == "darwin" 
@@ -70,6 +71,7 @@ criterion=ML
 discrete_model=BIN
 input_fasta=
 num_IQT_runs=1
+IQT_support=both #<abayes|UFBoot|both>
 
 input_phylip=
 n_cores=50
@@ -359,6 +361,7 @@ function run_IQT_discrete
     local input_fasta=$1
     local discrete_model=$2
     local nrep_IQT_searches=$3
+    local IQT_support=$4
     
     local wkdir=
     local lmsg=
@@ -366,20 +369,55 @@ function run_IQT_discrete
     if [ "$nrep_IQT_searches" -eq 1 ]; then
         wkdir=$(pwd)
 	[ "$DEBUG" -eq 1 ] && msg "working in $wkdir" DEBUG NC	
-	lmsg=" # running iqtree -s $input_fasta -st $discrete_model -m MFP -nt AUTO -abayes -bb 1000 &> /dev/null"
-	print_start_time && msg "$lmsg" PROGR BLUE
-        "${bindir}"/iqtree -s "$input_fasta" -st "$discrete_model" -m MFP -nt AUTO -abayes -bb 1000 &> /dev/null 
 	
-	best_model=$(grep '^Best-fit model' "${input_fasta}".log | cut -d' ' -f 3)
-	msg " >>> Best-fit model: ${best_model} ..." PROGR GREEN
-        treefile=PGM_IQT_${best_model}.treefile
-	mv pangenome_matrix_t0.fastaed.treefile "$treefile"
-	check_output "$treefile"
-	msg " ... found in $wkdir" PROGR GREEN
-	msg " ... done!" PROGR GREEN
+	if [ "$IQT_support" == "both" ]
+	then
+	    lmsg=" # running iqtree -s $input_fasta -st $discrete_model -m MFP -nt AUTO -abayes -bb 1000 &> /dev/null"
+	    print_start_time && msg "$lmsg" PROGR BLUE
+            "${bindir}"/iqtree -s "$input_fasta" -st "$discrete_model" -m MFP -nt AUTO -abayes -bb 1000 &> /dev/null 
 	
-        # cleanup
-	rm ./*.ckp.gz
+	    best_model=$(grep '^Best-fit model' "${input_fasta}".log | cut -d' ' -f 3)
+	    msg " >>> Best-fit model: ${best_model} ..." PROGR GREEN
+            treefile=PGM_IQT_${best_model}_${IQT_support}.treefile
+	    mv pangenome_matrix_t0.fastaed.treefile "$treefile"
+	    check_output "$treefile"
+	    msg " ... found in $wkdir" PROGR GREEN
+	    msg " ... done!" PROGR GREEN
+	
+            # cleanup
+	    rm ./*.ckp.gz
+       elif [ "$IQT_support" == "abayes" ]
+       then
+	    lmsg=" # running iqtree -s $input_fasta -st $discrete_model -m MFP -nt AUTO -abayes &> /dev/null"
+	    print_start_time && msg "$lmsg" PROGR BLUE
+            "${bindir}"/iqtree -s "$input_fasta" -st "$discrete_model" -m MFP -nt AUTO -abayes &> /dev/null 
+	
+	    best_model=$(grep '^Best-fit model' "${input_fasta}".log | cut -d' ' -f 3)
+	    msg " >>> Best-fit model: ${best_model} ..." PROGR GREEN
+            treefile=PGM_IQT_${best_model}_${IQT_support}.treefile
+	    mv pangenome_matrix_t0.fastaed.treefile "$treefile"
+	    check_output "$treefile"
+	    msg " ... found in $wkdir" PROGR GREEN
+	    msg " ... done!" PROGR GREEN
+	
+            # cleanup
+	    rm ./*.ckp.gz       
+       else
+	    lmsg=" # running iqtree -s $input_fasta -st $discrete_model -m MFP -nt AUTO -bb 1000 &> /dev/null"
+	    print_start_time && msg "$lmsg" PROGR BLUE
+            "${bindir}"/iqtree -s "$input_fasta" -st "$discrete_model" -m MFP -nt AUTO -bb 1000 &> /dev/null 
+	
+	    best_model=$(grep '^Best-fit model' "${input_fasta}".log | cut -d' ' -f 3)
+	    msg " >>> Best-fit model: ${best_model} ..." PROGR GREEN
+            treefile=PGM_IQT_${best_model}_${IQT_support}.treefile
+	    mv pangenome_matrix_t0.fastaed.treefile "$treefile"
+	    check_output "$treefile"
+	    msg " ... found in $wkdir" PROGR GREEN
+	    msg " ... done!" PROGR GREEN
+	
+            # cleanup
+	    rm ./*.ckp.gz
+       fi	    
     else
         wkdir=$(pwd)
 	[ "$DEBUG" -eq 1 ] && msg "working in $wkdir" DEBUG NC
@@ -397,35 +435,101 @@ function run_IQT_discrete
 	
 	wkdir=$(pwd)
 	
-    	lmsg="# Will sequentially launch $num_IQT_runs IQ-TREE searches on the supermatrix with best model ${best_model} -abayes -bb 1000!.
+	if [ "$IQT_support" == "both" ]
+	then
+   	    lmsg="# Will sequentially launch $num_IQT_runs IQ-TREE searches on the supermatrix with best model ${best_model} -abayes -bb 1000!.
 		   This will take a while ..."
-	print_start_time && msg "$lmsg" PROGR BLUE
+	    print_start_time && msg "$lmsg" PROGR BLUE
 
-	# run nrep_IQT_searches IQ-TREE searches under the best-fit model found
-	for ((rep=1;rep<=nrep_IQT_searches;rep++))
-	do
-	    lmsg="> iqtree -s $input_fasta -st $discrete_model -m $best_model -abayes -bb 1000 -nt AUTO -pre abayes_UFBboot_run${rep} &> /dev/null"
-	    print_start_time && msg "$lmsg" PROGR LBLUE
+	    # run nrep_IQT_searches IQ-TREE searches under the best-fit model found
+	    for ((rep=1;rep<=nrep_IQT_searches;rep++))
+	    do
+	        lmsg="> iqtree -s $input_fasta -st $discrete_model -m $best_model -abayes -bb 1000 -nt AUTO -pre abayes_UFBboot_run${rep} &> /dev/null"
+	        print_start_time && msg "$lmsg" PROGR LBLUE
 
-	    iqtree -s "$input_fasta" -st "$discrete_model" -m "$best_model" -abayes -bb 1000 -nt AUTO -pre "abayes_UFBboot_run${rep}" &> /dev/null
-	done
+	        iqtree -s "$input_fasta" -st "$discrete_model" -m "$best_model" -abayes -bb 1000 -nt AUTO -pre "abayes_UFBboot_run${rep}" &> /dev/null
+	    done
 
-	grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_lnL_scores_IQ-TREE_searches.out
-	check_output sorted_lnL_scores_IQ-TREE_searches.out 
+	    grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_lnL_scores_IQ-TREE_searches.out
+	    check_output sorted_lnL_scores_IQ-TREE_searches.out 
 
-	best_search=$(head -1 sorted_lnL_scores_IQ-TREE_searches.out)
-	best_search_base_name=$(head -1 sorted_lnL_scores_IQ-TREE_searches.out | cut -d\. -f 1)
+	    best_search=$(head -1 sorted_lnL_scores_IQ-TREE_searches.out)
+	    best_search_base_name=$(head -1 sorted_lnL_scores_IQ-TREE_searches.out | cut -d\. -f 1)
 
-	msg " >>> Best IQ-TREE run was: $best_search ..." PROGR GREEN
-	best_tree_file=best_PGM_IQT_${best_search_base_name}_${best_model}.treefile
-	mv "${best_search_base_name}".treefile "$best_tree_file"
+	    msg " >>> Best IQ-TREE run was: $best_search ..." PROGR GREEN
+	    best_tree_file=best_PGM_IQT_${best_search_base_name}_${best_model}.treefile
+	    mv "${best_search_base_name}".treefile "$best_tree_file"
 	
-	check_output "$best_tree_file"
-	msg " ... found in $wkdir" PROGR GREEN
-	msg " ... done!" PROGR GREEN
+	    check_output "$best_tree_file"
+	    msg " ... found in $wkdir" PROGR GREEN
+	    msg " ... done!" PROGR GREEN
 	
-	# cleanup
-	rm ./*.ckp.gz
+	    # cleanup
+	    rm ./*.ckp.gz
+	elif [ "$IQT_support" == "abayes" ]
+	then
+   	    lmsg="# Will sequentially launch $num_IQT_runs IQ-TREE searches on the supermatrix with best model ${best_model} -abayes!.
+		   This will take a while ..."
+	    print_start_time && msg "$lmsg" PROGR BLUE
+
+	    # run nrep_IQT_searches IQ-TREE searches under the best-fit model found
+	    for ((rep=1;rep<=nrep_IQT_searches;rep++))
+	    do
+	        lmsg="> iqtree -s $input_fasta -st $discrete_model -m $best_model -abayes -nt AUTO -pre abayes_run${rep} &> /dev/null"
+	        print_start_time && msg "$lmsg" PROGR LBLUE
+
+	        iqtree -s "$input_fasta" -st "$discrete_model" -m "$best_model" -abayes -nt AUTO -pre "abayes_run${rep}" &> /dev/null
+	    done
+
+	    grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_lnL_scores_IQ-TREE_searches.out
+	    check_output sorted_lnL_scores_IQ-TREE_searches.out 
+
+	    best_search=$(head -1 sorted_lnL_scores_IQ-TREE_searches.out)
+	    best_search_base_name=$(head -1 sorted_lnL_scores_IQ-TREE_searches.out | cut -d\. -f 1)
+
+	    msg " >>> Best IQ-TREE run was: $best_search ..." PROGR GREEN
+	    best_tree_file=best_PGM_IQT_${best_search_base_name}_${best_model}.treefile
+	    mv "${best_search_base_name}".treefile "$best_tree_file"
+	
+	    check_output "$best_tree_file"
+	    msg " ... found in $wkdir" PROGR GREEN
+	    msg " ... done!" PROGR GREEN
+	
+	    # cleanup
+	    rm ./*.ckp.gz
+	else
+   	    lmsg="# Will sequentially launch $num_IQT_runs IQ-TREE searches on the supermatrix with best model ${best_model} -UFBoot!.
+		   This will take a while ..."
+	    print_start_time && msg "$lmsg" PROGR BLUE
+
+	    # run nrep_IQT_searches IQ-TREE searches under the best-fit model found
+	    for ((rep=1;rep<=nrep_IQT_searches;rep++))
+	    do
+	        lmsg="> iqtree -s $input_fasta -st $discrete_model -m $best_model -bb 1000 -nt AUTO -pre UFBoot_run${rep} &> /dev/null"
+	        print_start_time && msg "$lmsg" PROGR LBLUE
+
+	        iqtree -s "$input_fasta" -st "$discrete_model" -m "$best_model" -bb 1000 -nt AUTO -pre "UFBoot_run${rep}" &> /dev/null
+	    done
+
+	    grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_lnL_scores_IQ-TREE_searches.out
+	    check_output sorted_lnL_scores_IQ-TREE_searches.out 
+
+	    best_search=$(head -1 sorted_lnL_scores_IQ-TREE_searches.out)
+	    best_search_base_name=$(head -1 sorted_lnL_scores_IQ-TREE_searches.out | cut -d\. -f 1)
+
+	    msg " >>> Best IQ-TREE run was: $best_search ..." PROGR GREEN
+	    best_tree_file=best_PGM_IQT_${best_search_base_name}_${best_model}.treefile
+	    mv "${best_search_base_name}".treefile "$best_tree_file"
+	
+	    check_output "$best_tree_file"
+	    msg " ... found in $wkdir" PROGR GREEN
+	    msg " ... done!" PROGR GREEN
+	
+	    # cleanup
+	    rm ./*.ckp.gz
+	
+	fi
+	    
     fi	
    [ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
@@ -575,7 +679,7 @@ function print_help
    -m <BIN|MORPH> discrete model category 
    -r <integer> number of independent iqtree runs    [default: $num_IQT_runs]           
                 in the range 1:100
-
+   -S <string> [<abayes|UFBoot|both>]                [default: $IQT_support]
  OPTIONAL to control parsimony searches when -c PARS:
    -n <number of compute cores to use to launch independent 
        pars runs, each with a different seed         [default: $n_cores]
@@ -594,7 +698,7 @@ function print_help
         
  EXAMPLES:
  1) Search for the best maximum likelihood tree using 10 independent IQ-TREE runs
-    $progname -f pangenome_matrix_t0.fasta -r 10
+    $progname -f pangenome_matrix_t0.fasta -r 10 -S UFBoot
 
  2) PARSIMONY searches with pars; NOTE: VERY SLOW!
     nohup $progname -c PARS -R 1 -i pangenome_matrix_t0.phylip -j 50 &> /dev/null &
@@ -639,7 +743,7 @@ exit 1
 #-------------------------------------------------------------------------------------------------#
 
 # GETOPTS
-while getopts ':b:c:j:m:n:f:i:r:R:t:T:hsDv' OPTIONS; do
+while getopts ':b:c:j:m:n:f:i:r:R:S:t:T:hsDv' OPTIONS; do
    case $OPTIONS in
    f)   input_fasta=$OPTARG
         ;;
@@ -660,6 +764,8 @@ while getopts ':b:c:j:m:n:f:i:r:R:t:T:hsDv' OPTIONS; do
    r)	num_IQT_runs=$OPTARG
         ;;
    s)   sequential=1
+        ;;
+   S)   IQT_support=$OPTARG
         ;;
    t)   t_jumbles=$OPTARG
         ;;
@@ -727,6 +833,10 @@ if [ "$criterion" == "ML" ]; then
     [ -z "$input_fasta" ] && msg "# ERROR: no input fasta file defined!" ERROR RED && print_help && exit 1
     [ "$discrete_model" != "BIN" -a "$discrete_model" != "MORPH" ] && msg "# ERROR: discrete model has to be 'BIN|MORPH'" ERROR RED && print_help && exit 1
     [ "$num_IQT_runs" -lt 1 -o "$num_IQT_runs" -gt 100 ] && msg "# ERROR: the number of IQT runs should be in the 1:100 range" ERROR RED && print_help && exit 1
+    if [ "$IQT_support" != 'abayes' -a "$IQT_support" != 'UFBoot' -a "$IQT_support" != 'both' ] 
+    then
+         msg "# ERROR: provide one of the following branch support value types for IQ-tree searches: abayes|UFBoot|both" ERROR RED && print_help && exit 1
+    fi
 fi
 
 
@@ -768,6 +878,7 @@ fi
 if [ "$criterion" == "ML" ]; then
     msg "input_fasta: $input_fasta" PROGR YELLOW
     msg "discrete_model: $discrete_model" PROGR YELLOW
+    msg "branch support type: $IQT_support" PROGR YELLOW
 fi
 
 if [ "$criterion" == "PARS" ]; then
@@ -798,8 +909,8 @@ if [ "$criterion" == "ML" ]; then
     [ -d "$iqt_dir" ] && msg "...created and moved into subdir $iqt_dir" PROGR LBLUE
     sed 's#\.gb[fk]##g' "$input_fasta" > "${input_fasta}ed"
     [ "$DEBUG" -eq 1 ] && check_output "${input_fasta}ed"
-    [ "$DEBUG" -eq 1 ] && msg "calling: run_IQT_discrete ${input_fasta}ed $discrete_model $num_IQT_runs in dir: $wkdir" DEBUG NC
-    run_IQT_discrete "${input_fasta}ed" "$discrete_model" "$num_IQT_runs"
+    [ "$DEBUG" -eq 1 ] && msg "calling: run_IQT_discrete ${input_fasta}ed $discrete_model $num_IQT_runs $IQT_support in dir: $wkdir" DEBUG NC
+    run_IQT_discrete "${input_fasta}ed" "$discrete_model" "$num_IQT_runs" "$IQT_support"
 fi
 
 
