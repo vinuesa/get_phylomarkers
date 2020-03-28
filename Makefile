@@ -3,4 +3,4 @@
 
 test:
 	perl test_get_phylomarkers.t
-	#rm -rf sample_plasmids_gbk_homologues/tmp/ 
+	rm -rf test_sequences/core_genome/get_phylomarkers_run* 
