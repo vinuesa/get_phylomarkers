@@ -1,0 +1,11 @@
+Bio::AlignIO
+Bio::PopGen::IO
+Bio::PopGen::Statistics
+Bio::PopGen::Utilities
+Bio::SeqIO
+Data::Dumper
+File::Basename
+File::Rename
+Getopt::Long
+Getopt::Std
+Pod::Usage
