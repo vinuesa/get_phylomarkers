@@ -23,4 +23,4 @@ ok( eval{ `perl ./rename.pl 2>&1` } =~ /Usage/ , 'rename.pl' );
 
 ok( eval{ `perl ./run_parallel_cmmds.pl` } =~ /usage/ , 'run_parallel_cmmds.pl' );
 
-ok( eval{ `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh -R 1 -t DNA` } =~ /wrote file gene trees2/ , 'run_get_phylomarkers_pipeline.sh' );
+ok( eval{ `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh -R 1 -t DNA | grep "wrote file gene_trees"` }, 'run_get_phylomarkers_pipeline.sh' ); 
