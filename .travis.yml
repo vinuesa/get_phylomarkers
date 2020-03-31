@@ -1,12 +1,12 @@
 os: linux
 dist: bionic
-language: bash
-bash:
-  - "4.4"
+language: perl
+perl:
+  - "5.26"
 
 before_install:
-  - "sudo apt update"
-  - "sudo apt install -y r-base libgd-dev"
+  - "sudo apt-get update"
+  - "sudo apt-get install -y r-base libgd-dev"
   - "cpanm --sudo -v --installdeps --notest --cpanfile cpanfile ."
 
 before_script:
