@@ -4,3 +4,6 @@
 test:
 	perl test_get_phylomarkers.t
 	rm -rf test_sequences/core_genome/get_phylomarkers_run* 
+
+install:
+	./install_R_deps.R
