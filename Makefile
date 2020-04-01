@@ -6,4 +6,4 @@ test:
 	rm -rf test_sequences/core_genome/get_phylomarkers_run* 
 
 install:
-	./install_R_deps.R
+	Rscript install_R_deps.R
