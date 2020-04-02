@@ -1,14 +1,14 @@
 #!/usr/bin/env Rscript
 
 # check R packages and install the missing ones 
-# Bruno Contreras Moreira, Pablo Vinuesa, Nov2017
+# Bruno Contreras Moreira, Pablo Vinuesa, Nov2017, 2Apr2020
 
 # WARNING: some packages require C (gcc) and C++ (g++) compilers to be installed
 # These can be installed with these commands:
 # sudo apt-get install g++      # Ubuntu
 # sudo yum install gcc-c++      # CentOS   
 
-# Instructions to update R on Ubuntu systems, Xenial in the example:
+# Instructions to update R on Ubuntu systems, bionic-cran35 in the example:
 
 # $ sudo echo "deb deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran35/" | sudo tee -a /etc/apt/sources.list
 # gpg --keyserver keyserver.ubuntu.com --recv-key E298A3A825C0D65DFD57CBB651716619E084DAB9
