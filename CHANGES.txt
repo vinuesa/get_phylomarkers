@@ -1,3 +1,4 @@
+02Apr20  * updated install_R_deps.R to use ubuntu bionic-cran35/ repo
 02Apr20  * activated the GitHub integration to start testing and deploying on Travis CI
 31Mar20  * added .travis.yml + test_get_phylomarkers.t + Makefile + cpanfile
 10Jan20  * estimate_pangenome_phylogenies.sh v1.1_10Jan20; added option -S <abayes|UFBoot|both> 
