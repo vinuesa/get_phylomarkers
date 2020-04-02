@@ -10,9 +10,9 @@
 
 # Instructions to update R on Ubuntu systems, Xenial in the example:
 
-# $ sudo echo "deb http://cran.rstudio.com/bin/linux/ubuntu xenial/" | sudo tee -a /etc/apt/sources.list
-# gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys E084DAB9
-# gpg -a --export E084DAB9 | sudo apt-key add -
+# $ sudo echo "deb deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran35/" | sudo tee -a /etc/apt/sources.list
+# gpg --keyserver keyserver.ubuntu.com --recv-key E298A3A825C0D65DFD57CBB651716619E084DAB9
+# gpg -a --export E298A3A825C0D65DFD57CBB651716619E084DAB9 | sudo apt-key add -
 # $ sudo apt-get update
 # $ sudo apt-get install r-base r-base-dev
 
