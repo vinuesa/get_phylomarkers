@@ -1,11 +1,11 @@
-Bio::AlignIO
-Bio::PopGen::IO
-Bio::PopGen::Statistics
-Bio::PopGen::Utilities
-Bio::SeqIO
-Data::Dumper
-File::Basename
-File::Rename
-Getopt::Long
-Getopt::Std
-Pod::Usage
+requires 'Bio::AlignIO';
+requires 'Bio::PopGen::IO';
+requires 'Bio::PopGen::Statistics';
+requires 'Bio::PopGen::Utilities';
+requires 'Bio::SeqIO';
+requires 'Data::Dumper';
+requires 'File::Basename';
+requires 'File::Rename';
+requires 'Getopt::Long';
+requires 'Getopt::Std';
+requires 'Pod::Usage';
