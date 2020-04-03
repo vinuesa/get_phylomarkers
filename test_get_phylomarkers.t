@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 10;
+use Test::More tests => 11;
 use lib "lib";
 use lib "lib/perl/bioperl-1.5.2_102/";
 use lib "lib/perl/File::Rename";
@@ -23,4 +23,6 @@ ok( eval{ `perl ./rename.pl 2>&1` } =~ /Usage/ , 'rename.pl' );
 
 ok( eval{ `perl ./run_parallel_cmmds.pl` } =~ /usage/ , 'run_parallel_cmmds.pl' );
 
-ok( eval{ `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh -R 1 -t DNA | grep "wrote file gene_trees"` }, 'run_get_phylomarkers_pipeline.sh' ); 
+ok( eval{ `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh -R 1 -t DNA | grep "wrote file gene_trees" && rm -rf get_phylomarkers_run_*` }, 'run_get_phylomarkers_pipeline.sh' ); 
+
+ok( eval{ `cd test_sequences/pan_genome && ../../estimate_pangenome_phylogenies.sh -f pangenome_matrix_t0.fasta -r 1 -S UFBoot | grep "done!" && rm -rf iqtree_PGM_*` }, 'estimate_pangenome_phylogenies.sh' );
