@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
-# check R packages required by get_phylomarkers and get_homologues and install missing ones 
-# Bruno Contreras Moreira, Pablo Vinuesa, Nov2017, 29Apr2020
+# check R packages required by get_phylomarkers and install missing ones 
+# Bruno Contreras Moreira, Pablo Vinuesa, Nov2017, Apr2020
 
 # WARNING: some packages require C (gcc) and C++ (g++) compilers to be installed
 # These can be installed with these commands:
@@ -30,8 +30,7 @@
 
 repository = 'https://cloud.r-project.org'; #'http://cran.rstudio.com';
 
-required_packages = c("ape", "kdetrees", "stringr", "vioplot", "ggplot2", "gplots", "dplyr", "seqinr", 
-"dendextend", "factoextra", "cluster", "RColorBrewer", "grDevices", "viridis") # get_homologues .sh scripts
+required_packages = c("ape", "kdetrees", "stringr", "vioplot", "ggplot2", "gplots", "dplyr", "seqinr")
 
 local_lib = "./lib/R"
 
