@@ -37,7 +37,7 @@ progname=${0##*/} # run_get_phylomarkers_pipeline.sh
 VERSION='2.2.8.1_16Jul2019'
 
 # Set GLOBALS
-DEBUG=0
+DEBUG=1
 wkdir=$(pwd) #echo "# working in $wkdir"
 
 dir_suffix=
@@ -95,12 +95,14 @@ function set_pipeline_environment()
     no_cores=$(awk '/^processor/{n+=1}END{print n}' /proc/cpuinfo)
   elif [[ "$OSTYPE" == "darwin"* ]]
   then
-    scriptdir=$(readlink -n "${BASH_SOURCE[0]}")
-    distrodir=$(dirname "$scriptdir")
-    #distrodir=$(cd "$(dirname "$0")" && pwd)
+    scriptdir=${BASH_SOURCE[0]}
+    distrodir=$(cd "$(dirname "$scriptdir")"; pwd -P)
     bindir="$distrodir/bin/macosx-intel"
     OS='darwin'
     no_cores=$(sysctl -n hw.ncpu)
+  else
+    echo "ERROR: untested OS $OSTYPE, exit"
+    exit -1
   fi
   echo "$distrodir $bindir $OS $no_cores"
 }
@@ -139,7 +141,8 @@ function check_scripts_in_path()
    [ "$DEBUG" -eq 1 ] && msg "check_scripts_in_path() distrodir: $distrodir" DEBUG NC
     
     bash_scripts=(run_parallel_molecClock_test_with_paup.sh )
-    perl_scripts=( run_parallel_cmmds.pl add_nos2fasta_header.pl pal2nal.pl rename.pl concat_alignments.pl add_labels2tree.pl convert_aln_format_batch_bp.pl popGen_summStats.pl )
+    perl_scripts=( run_parallel_cmmds.pl add_nos2fasta_header.pl pal2nal.pl rename.pl concat_alignments.pl \
+	add_labels2tree.pl convert_aln_format_batch_bp.pl popGen_summStats.pl )
     R_scripts=( run_kdetrees.R compute_suppValStas_and_RF-dist.R )
 
     # check if scripts are in path; if not, set flag
