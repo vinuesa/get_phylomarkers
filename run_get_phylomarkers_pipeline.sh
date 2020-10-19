@@ -95,6 +95,8 @@ function set_pipeline_environment()
     no_cores=$(awk '/^processor/{n+=1}END{print n}' /proc/cpuinfo)
   elif [[ "$OSTYPE" == "darwin"* ]]
   then
+    # get abs path of script as in 
+    # https://stackoverflow.com/questions/5756524/how-to-get-absolute-path-name-of-shell-script-on-macos
     scriptdir=${BASH_SOURCE[0]}
     distrodir=$(cd "$(dirname "$scriptdir")"; pwd -P)
     bindir="$distrodir/bin/macosx-intel"
