@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
 # check R packages required by get_phylomarkers and install missing ones 
-# Bruno Contreras Moreira, Pablo Vinuesa, Nov2017, Apr2020
+# Bruno Contreras Moreira, Pablo Vinuesa, Oct2020
 
 # WARNING: some packages require C (gcc) and C++ (g++) compilers to be installed
 # These can be installed with these commands:
@@ -28,7 +28,7 @@
 # > install.packages("ape",dependencies=TRUE, lib="lib/R", type="source")
 # > install.packages("kdetrees",dependencies=TRUE, lib="lib/R", type="source")
 
-repository = 'http://cran.rstudio.com'; #'https://cloud.r-project.org';
+repository = 'https://cloud.r-project.org'; #'http://cran.rstudio.com'
 
 required_packages = c("ape", "kdetrees", "stringr", "vioplot", "ggplot2", "gplots", "dplyr", "seqinr")
 
