@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
 # check R packages required by get_phylomarkers and install missing ones 
-# Bruno Contreras Moreira, Pablo Vinuesa, Nov2017, Apr2020
+# Bruno Contreras Moreira, Pablo Vinuesa, Nov2017-Oct2020
 
 # WARNING: some packages require C (gcc) and C++ (g++) compilers to be installed
 # These can be installed with these commands:
