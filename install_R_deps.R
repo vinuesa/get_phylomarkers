@@ -28,7 +28,7 @@
 # > install.packages("ape",dependencies=TRUE, lib="lib/R", type="source")
 # > install.packages("kdetrees",dependencies=TRUE, lib="lib/R", type="source")
 
-repository = 'https://cloud.r-project.org'; #'http://cran.rstudio.com';
+repository = 'https://cloud.r-project.org'; #'http://cran.rstudio.com'
 
 required_packages = c("ape", "kdetrees", "stringr", "vioplot", "ggplot2", "gplots", "dplyr", "seqinr")
 
