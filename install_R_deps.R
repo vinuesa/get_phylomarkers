@@ -30,7 +30,8 @@
 
 repository = 'https://cloud.r-project.org'; #'http://cran.rstudio.com'
 
-required_packages = c("ape", "kdetrees", "stringr", "vioplot", "ggplot2", "gplots", "dplyr", "seqinr")
+required_packages = c("ape", "kdetrees", "stringr", "vioplot", "ggplot2", "gplots", "dplyr", "seqinr", 
+		"clipr", "data.table","dtplyr","gdata", "lubridate","plyr","readr","reshape2")
 
 local_lib = "./lib/R"
 
