@@ -1,6 +1,7 @@
 use strict;
 use warnings;
-use Test::More tests => 11;
+use Test::More tests => 12;
+
 use lib "lib";
 use lib "lib/perl/bioperl-1.5.2_102/";
 use lib "lib/perl/File::Rename";
@@ -22,6 +23,8 @@ ok( eval{ `perl ./remove_uninformative_sites_from_aln.pl -h 2>&1` } =~ /Removes/
 ok( eval{ `perl ./rename.pl 2>&1` } =~ /Usage/ , 'rename.pl' );
 
 ok( eval{ `perl ./run_parallel_cmmds.pl` } =~ /usage/ , 'run_parallel_cmmds.pl' );
+
+ok( eval{ `Rscript ./compute_suppValStas_and_RF-dist.R 2>&1` } =~ /Usage/ , 'compute_suppValStas_and_RF-dist.R' ); 
 
 ok( eval{ `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh -R 1 -t DNA | grep "wrote file gene_trees" && rm -rf get_phylomarkers_run_*` }, 'run_get_phylomarkers_pipeline.sh' ); 
 
