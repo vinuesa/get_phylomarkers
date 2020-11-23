@@ -1,4 +1,4 @@
-#: VERSION: 29032018
+#: VERSION: 2020-11-23
 #: LIBRARY: get_phylomarkers_fun_lib
 #     * functions called by run_get_phylomarkers_pipeline.sh
 #     * part of the GET_PHYLOMARKERS software package
@@ -17,17 +17,12 @@
 #
 #: AVAILABILITY: freely available from GitHub @ https://github.com/vinuesa/get_phylomarkers
 #
-#: PROVISIONAL CITATION:
-#     If you find the code useful for your academic work, please use the following citation:
-#     Pablo Vinuesa, Luz-Edith Ochoa-Sanchez and Bruno Contreras-Moreira 2018.
-#     GET_PHYLOMARKERS, a pipeline to select optimal phylogenetic markers for phylogenomics
-#     and inference of pan-genome phylogenies: identification of cryptic species in
-#     the Stenotrophomonas maltophilia complex.
-#
-#     The manuscript was submitted to Frontiers in Microbiology on January 15th 2018,
-#     to be considered for its publication in the Research Topic on "Microbial Taxonomy, Phylogeny and Biodiversity"
-#     http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity
-
+#: CITATION:
+#  Pablo Vinuesa*, Luz Edith Ochoa-Sánchez and Bruno Contreras-Moreira (2018). 
+#  GET_PHYLOMARKERS, a software package to select optimal orthologous clusters for phylogenomics 
+#  and inferring pan-genome phylogenies, used for a critical geno-taxonomic revision of the genus Stenotrophomonas. 
+#  Front. Microbiol. 9:771 | doi: 10.3389/fmicb.2018.00771. | PubMed PMID: 29765358 
+#  Software code freely available on GitHub: https://github.com/vinuesa/get_phylomarkers
 
 #---------------------------------------------------------------------------------#
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>> FUNCTION DEFINITIONS <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<#
@@ -531,7 +526,8 @@ function fix_fastaheader()
    # to construct a shorte one, suitable for display as tree labels
 
    file=$1
-   awk 'BEGIN {FS = "|"}{print $1, $2, $3}' "$file" | perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}ed";
+   awk 'BEGIN {FS = "|"}{print $1, $2, $3}' "$file" | 
+     perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}ed";
 
    check_output "${file}ed" "$parent_PID"
 
