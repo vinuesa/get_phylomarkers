@@ -34,10 +34,10 @@
 #
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.2.8.1_16Jul2019'
+VERSION='2.2.8.2_30Jan2021'
 
 # Set GLOBALS
-DEBUG=1
+DEBUG=0
 wkdir=$(pwd) #echo "# working in $wkdir"
 
 dir_suffix=
