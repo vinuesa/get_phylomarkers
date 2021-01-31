@@ -1,5 +1,7 @@
 #!/usr/bin/env perl
 #
+#    Citation: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1538804
+#
 #    pal2nal.pl  (v14)                                      Mikita Suyama
 #
 #    Usage:  pal2nal.pl  pep.aln  nuc.fasta  [nuc.fasta...]  [options]  >  output
