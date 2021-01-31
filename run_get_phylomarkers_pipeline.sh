@@ -34,7 +34,7 @@
 #
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.2.8.2_30Jan2021'
+VERSION='2.2.9.1_30Jan2021' # this version issues a warning message if the kdetrees test could not be run, instead of dying
 
 # Set GLOBALS
 DEBUG=0
@@ -77,12 +77,12 @@ NC='\033[0m' # No Color => end color
 #---------------------------------------------------------------------------------#
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>> FUNCTION DEFINITIONS <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<#
 #---------------------------------------------------------------------------------#
+
 function print_start_time()
 {
    echo -n "[$(date +%T)] "
 }
 #-----------------------------------------------------------------------------------------
-
 
 function set_pipeline_environment()
 {
@@ -1272,12 +1272,25 @@ then
     print_start_time && msg "# running kde test ..." PROGR BLUE
     [ "$DEBUG" -eq 1 ] && msg " > ${distrodir}/run_kdetrees.R ${gene_tree_ext} all_gene_trees.tre $kde_stringency &> /dev/null" DEBUG NC
     "${distrodir}"/run_kdetrees.R "${gene_tree_ext}" all_gene_trees.tre "$kde_stringency" &> /dev/null
-    [ ! -s kde_dfr_file_all_gene_trees.tre.tab ] && install_Rlibs_msg kde_dfr_file_all_gene_trees.tre.tab kdetrees,ape
-    check_output kde_dfr_file_all_gene_trees.tre.tab "$parent_PID"
+    
+    # Print a warning if kdetrees could not be run, but do now exit
+    #[ ! -s kde_dfr_file_all_gene_trees.tre.tab ] && install_Rlibs_msg kde_dfr_file_all_gene_trees.tre.tab kdetrees,ape
+    #check_output kde_dfr_file_all_gene_trees.tre.tab "$parent_PID"
+    
+    PRINT_KDE_ERR_MESSAGE=0
+    if [ ! -s kde_dfr_file_all_gene_trees.tre.tab ]
+    then
+        PRINT_KDE_ERR_MESSAGE=1
+	msg "# WARNING: could not write kde_dfr_file_all_gene_trees.tre.tab; check that kdetrees and ape are propperly installed ..." WARNING LRED
+	msg "# WARNING:      will arbitrarily set no_kde_outliers to 0, i.e. NO kde filtering applied to this run!" WARNING LRED
+        no_kde_outliers=0 
+	no_kde_ok=$(wc -l all_gene_trees.tre | awk '{print $1}')
+    else
+        # 4.3 mv outliers to kde_outliers
+        no_kde_outliers=$(grep -c outlier kde_dfr_file_all_gene_trees.tre.tab)
+        no_kde_ok=$(grep -v outlier kde_dfr_file_all_gene_trees.tre.tab|grep -vc '^file')
+    fi 
 
-    # 4.3 mv outliers to kde_outliers
-    no_kde_outliers=$(grep -c outlier kde_dfr_file_all_gene_trees.tre.tab)
-    no_kde_ok=$(grep -v outlier kde_dfr_file_all_gene_trees.tre.tab|grep -vc '^file')
 
     # 4.4 Check how many cdnAlns passed the test and separate into two subirectories those passing and failing the test
     if [ "$no_kde_outliers" -gt 0 ]
@@ -2168,6 +2181,14 @@ then
         [ -s protein_alignments.tgz ] && rm ./*.faaln
     fi
 fi # [ "$mol_type" == "PROT" ]
+
+
+if [ "$PRINT_KDE_ERR_MESSAGE" -eq 1 ]
+then 
+    msg "# WARNING REMAINDER: run_kdetrees.R could not write kde_dfr_file_all_gene_trees.tre.tab; check that kdetrees and ape packages are propperly installed ..." WARNING LRED
+    msg "#                    This run could therefore not apply kde filtering!" WARNING LRED
+fi
+
 
 # compute the elapsed time since the script was fired
 end_time=$(date +%s)
