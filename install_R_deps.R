@@ -30,8 +30,8 @@
 
 repository = 'https://cloud.r-project.org'; #'http://cran.rstudio.com'
 
-#required_packages = c("ape", "kdetrees", "stringr", "vioplot", "ggplot2", "gplots", "dplyr", "seqinr", "plyr")
-required_packages = c("ape", "kdetrees", "stringr", "vioplot")
+# do not change (reduce), as it includes dependencies for the GET_HOM+GET_PHYLO image
+required_packages = c("ape", "kdetrees", "stringr", "vioplot", "ggplot2", "gplots", "dplyr", "seqinr", "plyr")
 
 local_lib = "./lib/R"
 
