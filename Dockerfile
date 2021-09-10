@@ -21,8 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   git \
   htop \
   wget \
-  && rm -rf /var/lib/apt/lists/* \
-  && apt-get -y autoremove
+  && rm -rf /var/lib/apt/lists/*
 
 # clone get_phylomarkers and install required R packages (slow)
 #RUN cachebuster=b953b30 git clone https://github.com/vinuesa/get_phylomarkers.git
