@@ -1,4 +1,5 @@
 # version 2021-09-09
+# use ubuntu:18.04 instead of ubuntu:20.04 to avoid problems with R's kdetree package
 FROM ubuntu:18.04
 FROM r-base:3.6.3
 
@@ -20,12 +21,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   curl \
   git \
   htop \
+  procps \
   wget \
   && rm -rf /var/lib/apt/lists/*
 
 # clone get_phylomarkers and install required R packages (slow)
-#RUN cachebuster=b953b30 git clone https://github.com/vinuesa/get_phylomarkers.git
-RUN cachebuster=ea8896d git clone https://github.com/vinuesa/get_phylomarkers.git
+# Don't forget to update to latest github cachebuster=b953b30
+RUN cachebuster=3853f87 git clone https://github.com/vinuesa/get_phylomarkers.git
 RUN cd get_phylomarkers && Rscript install_R_deps.R
 RUN cd get_phylomarkers && git pull
 
@@ -35,8 +37,12 @@ LABEL version=$version
 RUN echo $version
 
 # prepare user env
-RUN useradd -ms /bin/bash you
+RUN useradd --create-home --shell /bin/bash you && usermod -aG docker you
+# set USER=you for pgrep calls, as the only ENV-VARS documented to be set are HOME HOSTNAME PATH and TERM
+#  https://docs.docker.com/engine/reference/run/#env-environment-variables
+ENV USER=you
 USER you
+
 WORKDIR /home/you
 ENV PATH="/get_phylomarkers:${PATH}"
 
