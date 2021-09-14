@@ -1,4 +1,8 @@
+13Sep21  * Dockerfile v.2021-09-13 and corresponding images vinuesa/get_phylomarkers 2021-09-13-190724 and vinuesa/get_phylomarkers:latest pushed to Docker hub
+13Sep21  * run_get_phylomarkers_pipeline.sh v2.2.9.3_13sep2021: removed erroneously pasted line
+13Sep21  * run_get_phylomarkers_pipeline.sh v2.2.9.2_13sep2021: sets PRINT_KDE_ERR_MESSAGE=0; use find . -type l delete to find & remove symlinks; added Docker hub links;
 09Sep21  * added .dockerignore and Dockerfile; updated README.md and INSTALL.md; reduced list of R packages to install; build new Docker image
+30Jan21  * run_get_phylomarkers_pipeline.sh v.2.2.9.1_30Jan2021: issues a warning message if the kdetrees test could not be run, instead of dying
 30Oct20  * uses perl 5.30 and focal-cran40 repo
 02Apr20  * updated install_R_deps.R to use ubuntu bionic-cran35/ repo
 02Apr20  * activated the GitHub integration to start testing and deploying on Travis CI
