@@ -34,12 +34,14 @@
 #
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.2.9.1_30Jan2021' # this version issues a warning message if the kdetrees test could not be run, instead of dying
+VERSION='2.2.9.2_13sep2021' # sets PRINT_KDE_ERR_MESSAGE=0; use find . -type l delete to find & remove symlinks; added Docker hub links; 
+         # v.2.2.9.1_30Jan2021 this version issues a warning message if the kdetrees test could not be run, instead of dying
 
 # Set GLOBALS
 DEBUG=0
 wkdir=$(pwd) #echo "# working in $wkdir"
-
+PRINT_KDE_ERR_MESSAGE=0
+-v $HOME/data/genomes/test_sequences:/home/you/data
 dir_suffix=
 gene_tree_ext=
 #sp_tree_ext=
@@ -104,7 +106,7 @@ function set_pipeline_environment()
     no_cores=$(sysctl -n hw.ncpu)
   else
     echo "ERROR: untested OS $OSTYPE, exit"
-    exit -1
+    exit 1
   fi
   echo "$distrodir $bindir $OS $no_cores"
 }
@@ -833,7 +835,7 @@ then
 elif [ "$eval_clock" -eq 1 -a "$search_algorithm" == "I" ]
 then
     dir_suffix="A${search_algorithm}R${runmode}t${mol_type}_k${kde_stringency}_m${min_supp_val}_T${search_thoroughness}_K"
-elif [ "$eval_clock" -ne 1 -a "$search_algorithm" == "I" ]
+elif [ "$eval_clock" -ne 1 ] && [ "$search_algorithm" == "I" ]
 then
     dir_suffix="A${search_algorithm}R${runmode}t${mol_type}_k${kde_stringency}_m${min_supp_val}_T${search_thoroughness}"
 fi
@@ -949,7 +951,7 @@ fnaed_strain_intersection_check=$(grep '>' ./*fnaed | cut -d: -f2 | sort | uniq 
 
 
 # 1.2 check that each file has the same number of strains and a single instance for each strain
-if [ "$faaed_strain_intersection_check" -eq 1 -a "$fnaed_strain_intersection_check" -eq 1 ]
+if [ "$faaed_strain_intersection_check" -eq 1 ] && [ "$fnaed_strain_intersection_check" -eq 1 ]
 then
    msg " >>> Strain check OK: each f?aed file has the same number of strains and a single instance for each strain" PROGR GREEN
 else
@@ -1075,8 +1077,7 @@ COUNTERNOINFO=0
 
 for f in ./*_Phi.log
 do
-   grep '^Too few' "$f" &> /dev/null # if exit status is not 0
-   if [ "$?" -eq 0 ]
+   if grep '^Too few' "$f" &> /dev/null # if exit status is not 0
    then
        # if there are "Too few informative sites"; assign dummy, non significative values
        # and report this in the logfile!
@@ -1277,7 +1278,6 @@ then
     #[ ! -s kde_dfr_file_all_gene_trees.tre.tab ] && install_Rlibs_msg kde_dfr_file_all_gene_trees.tre.tab kdetrees,ape
     #check_output kde_dfr_file_all_gene_trees.tre.tab "$parent_PID"
     
-    PRINT_KDE_ERR_MESSAGE=0
     if [ ! -s kde_dfr_file_all_gene_trees.tre.tab ]
     then
         PRINT_KDE_ERR_MESSAGE=1
@@ -1323,7 +1323,8 @@ then
         "${distrodir}"/run_parallel_cmmds.pl "${gene_tree_ext}" 'add_labels2tree.pl ../../../tree_labels.list $file' "$n_cores" &> /dev/null
 
 	# remove symbolic links to cleanup kde_ok/
-        for f in $(ls ./*."${gene_tree_ext}" | grep -v "_ed\.${gene_tree_ext}"); do rm "$f"; done
+        #for f in $(ls ./*."${gene_tree_ext}" | grep -v "_ed\.${gene_tree_ext}"); do rm "$f"; done
+	find . -type l -delete
 
         cd ..
     else
@@ -2215,7 +2216,9 @@ Published in the Research Topic on "Microbial Taxonomy, Phylogeny and Biodiversi
 http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity
 
 Code available at https://github.com/vinuesa/get_phylomarkers
-
+Docker containers at:
+  https://hub.docker.com/r/vinuesa/get_phylomarkers
+  https://hub.docker.com/r/csicunam/get_homologues (get_homologues + get_phylomarkers)
 
 * NOTES:
    If you encounter problems or bugs while running the pipeline
