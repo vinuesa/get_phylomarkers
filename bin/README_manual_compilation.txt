@@ -1,13 +1,15 @@
-
+# last update: 2021-09-14
 # FastTree [ http://microbesonline.org/fasttree/#Install ]
 
-cd FastTree_v2.1.10
+cd FastTree_v2.1.11
+
+wget -c wget -c http://www.microbesonline.org/fasttree/FastTree-2.1.11.c
 
 # compile with double precision to resolve short branches!
-gcc -DUSE_DOUBLE -O3 -finline-functions -funroll-loops -Wall -o FastTree FastTree.c -lm
+gcc -DUSE_DOUBLE -O3 -finline-functions -funroll-loops -Wall -o FastTree FastTree-2.1.11.c -lm
 #gcc -O3 -finline-functions -funroll-loops -Wall -o FastTree FastTree.c -lm
 # or if that fails
-gcc -DNO_SSE -O3 -finline-functions -funroll-loops -Wall -o FastTree FastTree.c -lm
+gcc -DNO_SSE -O3 -finline-functions -funroll-loops -Wall -o FastTree FastTree-2.1.11.c -lm
 cd ..
 
 # clustal-omega
