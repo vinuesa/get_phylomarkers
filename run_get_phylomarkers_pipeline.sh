@@ -34,14 +34,12 @@
 #
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.2.9.2_13sep2021' # sets PRINT_KDE_ERR_MESSAGE=0; use find . -type l delete to find & remove symlinks; added Docker hub links; 
-         # v.2.2.9.1_30Jan2021 this version issues a warning message if the kdetrees test could not be run, instead of dying
+VERSION='2.2.9.3_13sep2021'
 
 # Set GLOBALS
 DEBUG=0
 wkdir=$(pwd) #echo "# working in $wkdir"
 PRINT_KDE_ERR_MESSAGE=0
--v $HOME/data/genomes/test_sequences:/home/you/data
 dir_suffix=
 gene_tree_ext=
 #sp_tree_ext=
@@ -1905,8 +1903,9 @@ then
         "${distrodir}"/run_parallel_cmmds.pl "${gene_tree_ext}" 'add_labels2tree.pl ../../../tree_labels.list $file' "$n_cores" &> /dev/null
 
 	# remove symbolic links to cleanup kde_ok/
-        for f in $(./*."${gene_tree_ext}" | grep -v "_ed\.${gene_tree_ext}"); do rm "$f"; done
-
+        #for f in $(./*."${gene_tree_ext}" | grep -v "_ed\.${gene_tree_ext}"); do rm "$f"; done
+        find . -type l -delete
+	
         cd ..
     else
         print_start_time && msg "# ERROR There are $no_kde_ok gene trees producing non-significant kde-test results! Increase the actual -k $kde_stringency value. Will stop here!" ERROR RED
