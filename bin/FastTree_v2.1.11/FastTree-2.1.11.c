@@ -343,7 +343,7 @@ typedef float numeric_t;
 
 #endif /* USE_SSE3 */
 
-#define FT_VERSION "2.1.10"
+#define FT_VERSION "2.1.11"
 
 char *usage =
   "  FastTree protein_alignment > tree\n"
@@ -395,8 +395,9 @@ char *expertUsage =
   "           [-mlacc 2] [-cat 20 | -nocat] [-gamma]\n"
   "           [-slow | -fastest] [-2nd | -no2nd] [-slownni] [-seed 1253] \n"
   "           [-top | -notop] [-topm 1.0 [-close 0.75] [-refresh 0.8]]\n"
+  "           [-gtr] [-gtrrates ac ag at cg ct gt] [-gtrfreq A C G T]\n"
+  "           [ -lg | -wag | -trans transitionmatrixfile ]\n"
   "           [-matrix Matrix | -nomatrix] [-nj | -bionj]\n"
-  "           [-lg] [-wag] [-nt] [-gtr] [-gtrrates ac ag at cg ct gt] [-gtrfreq A C G T]\n"
   "           [ -constraints constraintAlignment [ -constraintWeight 100.0 ] ]\n"
   "           [-log logfile]\n"
   "         [ alignment_file ]\n"
@@ -436,6 +437,8 @@ char *expertUsage =
   "  To specify a different matrix, use -matrix FilePrefix or -nomatrix\n"
   "  Use -rawdist to turn the log-correction off\n"
   "  or to use %different instead of Jukes-Cantor\n"
+  "  (These options affect minimum-evolution computations only;\n"
+  "   use -trans to affect maximum-likelihoood computations)\n"
   "\n"
   "  -pseudo [weight] -- Use pseudocounts to estimate distances between\n"
   "      sequences with little or no overlap. (Off by default.) Recommended\n"
@@ -467,6 +470,11 @@ char *expertUsage =
   "  -gtr -- generalized time-reversible instead of (default) Jukes-Cantor (nt only)\n"
   "  -cat # -- specify the number of rate categories of sites (default 20)\n"
   "  -nocat -- no CAT model (just 1 category)\n"
+  " - trans filename -- use the transition matrix from filename\n"
+  "      This is supported for amino acid alignments only\n"
+  "      The file must be tab-delimited with columns in the order ARNDCQEGHILKMFPSTWYV*\n"
+  "      The additional column named * is for the stationary distribution\n"
+  "      Each row must have a row name in the same order ARNDCQEGHILKMFPSTWYV\n"
   "  -gamma -- after the final round of optimizing branch lengths with the CAT model,\n"
   "            report the likelihood under the discrete gamma model with the same\n"
   "            number of categories. FastTree uses the same branch lengths but\n"
@@ -930,6 +938,7 @@ void FreeAlignmentSeqs(/*IN/OUT*/alignment_t *);
 transition_matrix_t *CreateTransitionMatrix(/*IN*/double matrix[MAXCODES][MAXCODES],
 					    /*IN*/double stat[MAXCODES]);
 transition_matrix_t *CreateGTR(double *gtrrates/*ac,ag,at,cg,ct,gt*/, double *gtrfreq/*ACGT*/);
+transition_matrix_t *ReadAATransitionMatrix(/*IN*/char *filename);
 
 /* For converting profiles from 1 rotation to another, or converts NULL to NULL */
 distance_matrix_t *TransMatToDistanceMat(transition_matrix_t *transmat);
@@ -1648,6 +1657,7 @@ int main(int argc, char **argv) {
   int nAlign = 1; /* number of alignments to read */
   int iArg;
   char *matrixPrefix = NULL;
+  char *transitionFile = NULL;
   distance_matrix_t *distance_matrix = NULL;
   bool make_matrix = false;
   char *constraintsFile = NULL;
@@ -1849,6 +1859,9 @@ int main(int argc, char **argv) {
         bUseWag = true;
     } else if (strcmp(argv[iArg], "-gtr") == 0) {
       bUseGtr = true;
+    } else if (strcmp(argv[iArg], "-trans") == 0 && iArg < argc-1) {
+      iArg++;
+      transitionFile = argv[iArg];
     } else if (strcmp(argv[iArg], "-gtrrates") == 0 && iArg < argc-6) {
       bUseGtr = true;
       bUseGtrRates = true;
@@ -1905,6 +1918,16 @@ int main(int argc, char **argv) {
   codesString = nCodes == 20 ? codesStringAA : codesStringNT;
   if (nCodes == 4 && matrixPrefix == NULL)
     useMatrix = false; 		/* no default nucleotide matrix */
+  if (transitionFile && nCodes != 20) {
+    fprintf(stderr, "The -trans option is only supported for amino acid alignments\n");
+    exit(1);
+  }
+#ifndef USE_DOUBLE
+  if (transitionFile)
+    fprintf(stderr,
+            "Warning: custom matrices may create numerical problems for single-precision FastTree.\n"
+            "You may want to recompile with -DUSE_DOUBLE\n");
+#endif
 
   char *fileName = iArg == (argc-1) ?  argv[argc-1] : NULL;
 
@@ -1996,10 +2019,9 @@ int main(int argc, char **argv) {
       if (MLnni != 0 || MLlen) {
 	fprintf(fp, "ML Model: %s,",
 		(nCodes == 4) ? 
-			(bUseGtr ? "Generalized Time-Reversible" : "Jukes-Cantor") : 
-			(bUseLg ? "Le-Gascuel 2008" : (bUseWag ? "Whelan-And-Goldman" : "Jones-Taylor-Thorton"))
-			
-	);
+                (bUseGtr ? "Generalized Time-Reversible" : "Jukes-Cantor") : 
+                (transitionFile ? transitionFile :
+                 (bUseLg ? "Le-Gascuel 2008" : (bUseWag ? "Whelan-And-Goldman" : "Jones-Taylor-Thorton"))));
 	if (nRateCats == 1)
 	  fprintf(fp, " No rate variation across sites");
 	else
@@ -2147,9 +2169,10 @@ int main(int argc, char **argv) {
 
       transition_matrix_t *transmat = NULL;
       if (nCodes == 20) {
-			transmat = bUseLg? CreateTransitionMatrix(matrixLG08,statLG08) : 
-                          (bUseWag? CreateTransitionMatrix(matrixWAG01,statWAG01) :
-                           CreateTransitionMatrix(matrixJTT92,statJTT92));
+        transmat = transitionFile? ReadAATransitionMatrix(transitionFile) :
+          (bUseLg? CreateTransitionMatrix(matrixLG08,statLG08) : 
+           (bUseWag? CreateTransitionMatrix(matrixWAG01,statWAG01) :
+            CreateTransitionMatrix(matrixJTT92,statJTT92)));
       } else if (nCodes == 4 && bUseGtr && (bUseGtrRates || bUseGtrFreq)) {
 	transmat = CreateGTR(gtrrates,gtrfreq);
       }
@@ -10015,6 +10038,114 @@ void matrixt_by_vector4(/*IN*/numeric_t mat[4][MAXCODES], /*IN*/numeric_t vec[4]
     out[j] = sum;
   }
 #endif
+}
+
+transition_matrix_t *ReadAATransitionMatrix(/*IN*/char *filename) {
+  assert(nCodes==20);
+  double stat[20];
+  static double matrix[MAXCODES][MAXCODES];
+  static char buf[BUFFER_SIZE];
+  FILE *fp = fopen(filename, "r");
+  if (fp == NULL) {
+    fprintf(stderr, "Cannot read transition matrix file %s\n", filename);
+    exit(1);
+  }
+  char expected[2*MAXCODES+20];
+  int posE = 0;
+  int i, j;
+  for (i = 0; i < 20; i++) {
+    expected[posE++] = codesStringAA[i];
+    expected[posE++] = '\t';
+  }
+  expected[posE++] = '*';
+  expected[posE++] = '\n';
+  expected[posE++] = '\0';
+  
+  if (fgets(buf, sizeof(buf), fp) == NULL) {
+    fprintf(stderr, "Error reading header line from transition matrix file\n");
+    exit(1);
+  }
+  if (strcmp(buf, expected) != 0) {
+    fprintf(stderr, "Invalid header line in transition matrix file, it must match:\n%s\n", expected);
+    exit(1);
+  }
+  for (i = 0; i < 20; i++) {
+    if (fgets(buf, sizeof(buf), fp) == NULL) {
+      fprintf(stderr, "Error reading matrix line\n");
+      exit(1);
+    }
+    char *field = strtok(buf,"\t\r\n");
+    if (field == NULL || strlen(field) != 1 || field[0] != codesStringAA[i]) {
+      fprintf(stderr, "Line for amino acid %c does not have the expected beginning\n", codesStringAA[i]);
+      exit(1);
+    }
+    for (j = 0; j < 20; j++) {
+      field = strtok(NULL, "\t\r\n");
+      if (field == NULL) {
+        fprintf(stderr, "Not enough fields for amino acid %c\n", codesStringAA[i]);
+        exit(1);
+      }
+      matrix[i][j] = atof(field);
+    }
+    field = strtok(NULL, "\t\r\n");
+    if (field == NULL) {
+      fprintf(stderr, "Not enough fields for amino acid %c\n", codesStringAA[i]);
+      exit(1);
+    }
+    stat[i] = atof(field);
+  }
+
+  double tol = 1e-5;
+  /* Verify that stat is positive and sums to 1 */
+  double statTot = 0;
+  for (i = 0; i < 20; i++) {
+    if (stat[i] < tol) {
+      fprintf(stderr, "stationary frequency for amino acid %c must be positive\n", codesStringAA[i]);
+      exit(1);
+    }
+    statTot += stat[i];
+  }
+  if (fabs(statTot - 1) > tol) {
+    fprintf(stderr, "stationary frequencies must sum to 1 -- actual sum is %g\n", statTot);
+    exit(1);
+  }
+
+  /* Verify that diagonals are negative and dot product of stat and diagonals is -1 */
+  double totRate = 0;
+  for (i = 0; i < 20; i++) {
+    double diag = matrix[i][i];
+    if (diag > -tol) {
+      fprintf(stderr, "transition rate(%c,%c) must be negative\n",
+              codesStringAA[i], codesStringAA[i]);
+      exit(1);
+    }
+    totRate += stat[i] * diag;
+  }
+  if (fabs(totRate + 1) > tol) {
+    fprintf(stderr, "Dot product of matrix diagonal and stationary frequencies must be -1 -- actual dot product is %g\n",
+            totRate);
+    exit(1);
+  }
+
+  /* Verify that each off-diagonal entry is nonnegative and that each column sums to 0 */
+  for (j = 0; j < 20; j++) {
+    double colSum = 0;
+    for (i = 0; i < 20; i++) {
+      double value = matrix[i][j];
+      colSum += value;
+      if (i != j && value < 0) {
+        fprintf(stderr, "Off-diagonal matrix entry for (%c,%c) is negative\n",
+                codesStringAA[i], codesStringAA[j]);
+        exit(1);
+      }
+    }
+    if (fabs(colSum) > tol) {
+      fprintf(stderr, "Sum of column %c must be zero -- actual sum is %g\n",
+              codesStringAA[j], colSum);
+      exit(1);
+    }
+  }
+  return CreateTransitionMatrix(matrix, stat);
 }
 
 distance_matrix_t matrixBLOSUM45 =
