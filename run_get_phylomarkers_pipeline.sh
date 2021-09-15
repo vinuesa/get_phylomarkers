@@ -34,7 +34,7 @@
 #
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.2.9.3_13sep2021'
+VERSION='2.2.9.4_15sep2021'
 
 # Set GLOBALS
 DEBUG=0
@@ -2215,7 +2215,7 @@ Published in the Research Topic on "Microbial Taxonomy, Phylogeny and Biodiversi
 http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity
 
 Code available at https://github.com/vinuesa/get_phylomarkers
-Docker containers at:
+Docker images at:
   https://hub.docker.com/r/vinuesa/get_phylomarkers
   https://hub.docker.com/r/csicunam/get_homologues (get_homologues + get_phylomarkers)
 
