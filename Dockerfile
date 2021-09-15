@@ -1,44 +1,52 @@
-# Dockerfile version 2021-09-13
+## Dockerfile version 2021-09-15 <fiesta mexicana>
 # - build images using as context the freshly pulled git repo directory get_phylomarkers
 
 ## Base images
 # Use ubuntu:18.04 as base layer and r-base:3.6.3-bionic to avoid problems with R's kdetree package
+#  Note however, that r-base:3.6.3-bionic overwrites python2.7, which needs to be installed after the former
 FROM ubuntu:18.04
 
 ## Add metadata 
-LABEL   maintainer="Pablo Vinuesa @pvinmex <https://www.ccg.unam.mx/~vinuesa/>" \
-    software="GET_PHYLOMARKERS" \
-    version="v2.2.9.3_13sep21" \
-    note="This version used .dockerignore to exclude several src dirs, including the test_sequences. \
-    Build environment is freshly cloned GitHub repo <https://github.com/vinuesa/get_phylomarkers>." \
-    about.summary="an open source tool to estimate maximum-likelihood core-genome phylogenies and pan-genome trees" \
-    about.home="https://github.com/vinuesa/get_phylomarkers" \
-    about.documentation="https://vinuesa.github.io/get_phylomarkers/#get_phylomarkers-manual" \
-    about.license="GPL-3.0" \
-    about.license_file="https://github.com/vinuesa/get_phylomarkers/blob/master/LICENSE" \
-    about.tags="Phylogenetics"
+LABEL maintainer="Pablo Vinuesa <vinuesa@ccg.unam.mx>" \
+ software="GET_PHYLOMARKERS" \
+ version="20210915" \
+ note="This version used .dockerignore to exclude several src dirs, including the test_sequences. \
+ Build environment is freshly cloned GitHub repo <https://github.com/vinuesa/get_phylomarkers>." \
+ summary="an open source tool to estimate maximum-likelihood core-genome phylogenies and pan-genome trees" \
+ home="https://github.com/vinuesa/get_phylomarkers" \
+ documentation="https://vinuesa.github.io/get_phylomarkers/#get_phylomarkers-manual" \
+ license="GPL-3.0" \
+ license_file="https://github.com/vinuesa/get_phylomarkers/blob/master/LICENSE" \
+ tag="phylogenetics"
 
 ## Install required linux tools
+# python2.7 required by paup; python2.7-dev to get libpython2.7.so.1.0
+# RUN apt-get update && apt-get install --no-install-recommends -y \
 RUN apt-get update && apt-get install --no-install-recommends -y \
-apt-utils \
 bash-completion \
 bc \
+build-essential \
 cpanminus \
-curl \
-htop \
-libprocps6 \
-procps \
+gcc \
+make \
 wget \
 && apt-get clean && apt-get purge && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && cpanm Term::ReadLine
 
 ## use r-base:3.6.3-bionic to avoid problems with R's kdetree package
+# NOTE: seems that rstudio/r-base:3.6.3-bionic overwrites Âpython2.7
 FROM rstudio/r-base:3.6.3-bionic
 
-## mkdir get_phylomarkes in /, copy all contents into it; make it the working directory and install required R packages
+## mkdir get_phylomarkes in /, copy all contents into it; make it the working directory & install required R packages
 RUN mkdir get_phylomarkers 
 COPY . /get_phylomarkers 
 WORKDIR /get_phylomarkers 
 RUN Rscript /get_phylomarkers/install_R_deps.R
+
+# add python2.7 at this stage, as rstudio/r-base:3.6.3-bionic seems to overwriteÂpython2.7 in the first RUN apt-get above
+# this seems the only way to get python2.7 and python2.7-dev in newer ubuntu:18.04 images
+#  as otherwise only python 3.6 gets installed
+RUN apt-get update && apt-get install --no-install-recommends -y python2.7 python2.7-dev \
+&& apt-get clean && apt-get purge && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ## add version tag to image
 ARG version
@@ -46,7 +54,7 @@ LABEL version=$version
 RUN echo $version
 
 ## Prepare USER env
-RUN useradd --create-home --shell /bin/bash you && usermod -aG root you
+RUN useradd --create-home --shell /bin/bash you # && usermod -aG root you
 # set USER=you for pgrep calls, as the only ENV-VARS documented to be set are HOME HOSTNAME PATH and TERM
 #  https://docs.docker.com/engine/reference/run/#env-environment-variables
 ENV USER=you
@@ -81,8 +89,8 @@ CMD ["/bin/bash"]
 # $ cd ~/data/pan_genome
 # $ estimate_pangenome_phylogenies.sh -f pangenome_matrix_t0.fasta -r 1 -S UFBoot
 
-## Functional testing can also be run as follows; 
+## Functional testing can also be run automatically as follows; 
 # Note: if you ran the previous block, you will need to remove the get_phylomarkers* dir in core_genome 
 #       and iqtree* dir in pan_genome
-# $ run_test_suite.sh /home/you/data
+# $ cd && run_test_suite.sh /home/you/data
 
