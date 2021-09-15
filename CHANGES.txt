@@ -1,3 +1,5 @@
+15Sep21  * updated/fixed Dockerfile to include python2.7 & libpython2.7.so.1.0 required by PAUP* for popGen;added run_test_suite.sh vinuesa/get_phylomarkers:latest pushed to Docker hub
+14Sep21  * updated FastTree source and linux binary to version 2.1.11; updated iqtree binary for linux to v2.1.3; added 
 13Sep21  * Dockerfile v.2021-09-13 and corresponding images vinuesa/get_phylomarkers 2021-09-13-190724 and vinuesa/get_phylomarkers:latest pushed to Docker hub
 13Sep21  * run_get_phylomarkers_pipeline.sh v2.2.9.3_13sep2021: removed erroneously pasted line
 13Sep21  * run_get_phylomarkers_pipeline.sh v2.2.9.2_13sep2021: sets PRINT_KDE_ERR_MESSAGE=0; use find . -type l delete to find & remove symlinks; added Docker hub links;
