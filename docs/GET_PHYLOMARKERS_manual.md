@@ -8,7 +8,7 @@ This manual provides the usage details for [**GET_PHYLOMARKERS**](https://github
 2. sequences that yield "**outlier gene trees**" in the context of the distributions of topologies and tree-lengths expected under the **multispecies coalescent**
 3. **poorly resolved gene trees** 
 
-However, **GET_PHYLOMARKERS** can also estimate **maximum likelihood and parsimony trees from pan-genome matrices**, as well as computing **basic population genetic statistics and neutrality tests**. 
+However, **GET_PHYLOMARKERS** can also estimate **maximum likelihood and parsimony trees from pan-genome matrices**, as well as computing **basic population genetic statistics and neutrality tests**, as shown in the associated publication ([Vinuesa et. al, 2018](https://pubmed.ncbi.nlm.nih.gov/29765358/)) and explained below.
 
 **Figure 1** provides a graphical overview of the **GET_PHYLOMARKERS** pipeline. The Manual will describe in detail each of these steps along with the options available to the user to control the pipeline's behaviour, the stringency of the filters, as well as the number of substitution models evaluated and tree-search thoroughness. In addition, the script *estimate_pangenome_phylogenies.sh* can search for ML and parsimony **pan-genome phylogenies** using the pan-genome matrix computed by *compare_clusters.pl* from the **GET_HOMOLOGUES** suite, as shown in the **pipeline's flowchart** below.
 
@@ -29,16 +29,16 @@ The pipeline has an associated publication: Pablo Vinuesa, Luz-Edith Ochoa-Sanch
 
 The [**GET_PHYLOMARKERS**](https://github.com/vinuesa/get_phylomarkers) package is distributed in three formats:
 
-1. as a [**GitHub release**](https://github.com/vinuesa/get_phylomarkers/releases).
-2. as source code that can be cloned from the project's repository [**GitHub repository**](https://github.com/vinuesa/get_phylomarkers/).
-3. as a [**Docker image**](https://hub.docker.com/r/csicunam/get_homologues) is available that bundles [**GET_PHYLOMARKERS**](https://github.com/vinuesa/get_phylomarkers) with [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues), ready to use.
+1. As a [**GitHub release**](https://github.com/vinuesa/get_phylomarkers/releases).
+2. The latest version of the source code can be cloned from the project's repository [**GitHub repository**](https://github.com/vinuesa/get_phylomarkers/).
+3. As a [**GET_PHYLOMARKERS Docker image**](https://hub.docker.com/repository/docker/vinuesa/get_phylomarkers) or a [**GET_HOMOLOGUES+GET_PHYLOMARKERS Docker image**](https://hub.docker.com/r/csicunam/get_homologues) that bundles [**GET_PHYLOMARKERS**](https://github.com/vinuesa/get_phylomarkers) with [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues), ready to use.
 
 For detailed instructions on installing the external dependencies please check [**INSTALL.md**](https://github.com/vinuesa/get_phylomarkers/blob/master/INSTALL.md).
 
-We highly recommend installing the [**GET_HOMOLOGUES+GET_PHYLOMARKERS Docker image**](https://hub.docker.com/r/csicunam/get_homologues) or [**GET_PHYLOMARKERS Docker image**](https://hub.docker.com/repository/docker/vinuesa/get_phylomarkers) to avoid potential problems with the installation of dependencies and guarantee access to the full functionality of both packages with minimal effort. If you have not set a *Docker engine+client* on your machine, please see the instructions provided in the [**INSTALL.md**](https://github.com/vinuesa/get_phylomarkers/blob/master/INSTALL.md) document. It explains how to install Docker on different platforms and how to download/upgrade the [**GET_HOMOLOGUES+GET_PHYLOMARKERS Docker image**](https://hub.docker.com/r/csicunam/get_homologues/) and [**GET_PHYLOMARKERS**](https://github.com/vinuesa/get_phylomarkers) with [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues) from Docker Hub image registry.
+We highly recommend installing the [**GET_HOMOLOGUES+GET_PHYLOMARKERS Docker image**](https://hub.docker.com/r/csicunam/get_homologues) or [**GET_PHYLOMARKERS Docker image**](https://hub.docker.com/repository/docker/vinuesa/get_phylomarkers) to avoid potential problems with the installation of dependencies and guarantee access to the full functionality of both packages with minimal effort. Running containerized bioinformatics applications and pipelines provides many advantages, including reproducibility [Gruening et. al 2021](https://doi.org/10.12688/F1000RESEARCH.15140.2). If you have not set a *Docker engine+client* on your machine, please see the instructions provided in the [**INSTALL.md**](https://github.com/vinuesa/get_phylomarkers/blob/master/INSTALL.md) document. It explains how to install Docker on different platforms and how to download/upgrade the [**GET_HOMOLOGUES+GET_PHYLOMARKERS**](https://hub.docker.com/r/csicunam/get_homologues/) and [**GET_PHYLOMARKERS**](https://github.com/vinuesa/get_phylomarkers) from the [**Docker Hub image registry**](https://hub.docker.com/).
 
 ## Aim
-**GET_PHYLOMARKERS** implements a series of sequential filters (**Fig. 1** and explained below) to selects markers from the homologous gene clusters produced by [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues) with optimal attributes for phylogenomic or population genetic inference. It estimates **gene-trees** and **species-trees** under the **maximum likelihood (ML) optimality criterion** using *state-of-the-art* fast ML tree searching algorithms. The species tree is estimated from the supermatrix of concatenated, top-scoring alignments that passed the **quality filters** (**Fig. 1**). The stringency of these filters and the thoroughness of the ML tree searches can be controlled by the user, although sensible defaults are provided, making it an easy-to-use, **user-friendly software**.
+**GET_PHYLOMARKERS** ([Vinuesa et. al, 2018](https://pubmed.ncbi.nlm.nih.gov/29765358/)) implements a series of sequential filters (**Fig. 1** and explained below) to selects markers from the homologous gene clusters produced by [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues) with optimal attributes for phylogenomic or population genetic inference. It estimates **gene-trees** and **species-trees** under the **maximum likelihood (ML) optimality criterion** using *state-of-the-art* fast ML tree searching algorithms. The species tree is estimated from the supermatrix of concatenated, top-scoring alignments that passed the **quality filters** (**Fig. 1**). The stringency of these filters and the thoroughness of the ML tree searches can be controlled by the user, although sensible defaults are provided, making it an easy-to-use, **user-friendly software**.
 
 **GET_HOMOLOGUES** is a genome-analysis software package for microbial pan-genomics and comparative genomics originally described in the following publications: 
 
@@ -351,7 +351,7 @@ The first section below will first show how to share data between the host (your
 The following ones provide code examples on how to run the full **GET_HOMOLOGUES** + **GET_PHYLOMARKERS** pipelines using the test sequences.
 
 ## How to share data between the host (your) machine and the **GET_HOMOLOGUES + GET_PHYLOMARKERS Docker container**
-1. Decide a suitable place on your file system to put the projects and associated sequence data that you will analyze with the **GET_HOMOLOGUES + GET_PHYLOMARKERS** software suites, and create a top directory to hold your projects in subdirectories
+1. Decide a suitable location on your file system to put the projects and associated sequence data that you will analyze with the **GET_HOMOLOGUES + GET_PHYLOMARKERS** software suites, and create a top directory to hold your projects in subdirectories
 
 ```
 # for example at your home directory
