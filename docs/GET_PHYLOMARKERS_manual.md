@@ -2,11 +2,13 @@
 
 ## Brief presentation and graphical overview of the pipeline
 
-This manual provides the usage details for [**GET_PHYLOMARKERS**](https://github.com/vinuesa/get_phylomarkers), a software package designed to select "well-behaved" phylogenetic markers to estimate a **maximum likelihoood (ML) species tree** from the supermatrix of concatenated, top-scoring alignments. These are identified through a series of sequential filters that operate on orthologous gene/transcript/protein clusters computed by [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues) **to exclude**:
+This manual provides the usage details for [**GET_PHYLOMARKERS**](https://github.com/vinuesa/get_phylomarkers), a software package primarily designed to select "well-behaved" phylogenetic markers to estimate a **maximum likelihoood (ML) species tree** from the supermatrix of concatenated, top-scoring alignments. These are identified through a series of sequential filters that operate on orthologous gene/transcript/protein clusters computed by [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues) **to exclude**:
 
 1. alignments with evidence for **recombinant sequences**
-2. sequences that yield "**outlier gene trees**" in the context of the distributions of topologies and tree-lengths expected under the multispecies coalescent
+2. sequences that yield "**outlier gene trees**" in the context of the distributions of topologies and tree-lengths expected under the **multispecies coalescent**
 3. **poorly resolved gene trees** 
+
+However, **GET_PHYLOMARKERS** can also estimate **maximum likelihood and parsimony trees from pan-genome matrices**, as well as computing **basic population genetic statistics and neutrality tests**. 
 
 **Figure 1** provides a graphical overview of the **GET_PHYLOMARKERS** pipeline. The Manual will describe in detail each of these steps along with the options available to the user to control the pipeline's behaviour, the stringency of the filters, as well as the number of substitution models evaluated and tree-search thoroughness. In addition, the script *estimate_pangenome_phylogenies.sh* can search for ML and parsimony **pan-genome phylogenies** using the pan-genome matrix computed by *compare_clusters.pl* from the **GET_HOMOLOGUES** suite, as shown in the **pipeline's flowchart** below.
 
@@ -19,9 +21,8 @@ This manual provides the usage details for [**GET_PHYLOMARKERS**](https://github
 <!--<img src="pics/getphylo_flowchart_FINAL.png" alt="GET_PHYLOMARKERS pipeline workflow"
      width="600px" height="1500px"></img>-->
 
-The pipeline was recently published: Pablo Vinuesa, Luz-Edith Ochoa-Sanchez and Bruno Contreras-Moreira (2018). GET_PHYLOMARKERS, a software package to select optimal orthologous clusters for phylogenomics 
-and inferring pan-genome phylogenies, used for a critical geno-taxonomic revision of the 
-genus *Stenotrophomonas*. [Front. Microbiol. | doi: 10.3389/fmicb.2018.00771](https://www.frontiersin.org/articles/10.3389/fmicb.2018.00771/abstract) 
+
+The pipeline has an associated publication: Pablo Vinuesa, Luz-Edith Ochoa-Sanchez and Bruno Contreras-Moreira (2018). GET_PHYLOMARKERS, a software package to select optimal orthologous clusters for phylogenomics and inferring pan-genome phylogenies, used for a critical geno-taxonomic revision of the genus *Stenotrophomonas*. [Front. Microbiol. | doi: 10.3389/fmicb.2018.00771](https://www.frontiersin.org/articles/10.3389/fmicb.2018.00771/abstract) 
 
 
 ## Installation, dependencies and Docker image
@@ -34,10 +35,10 @@ The [**GET_PHYLOMARKERS**](https://github.com/vinuesa/get_phylomarkers) package 
 
 For detailed instructions on installing the external dependencies please check [**INSTALL.md**](https://github.com/vinuesa/get_phylomarkers/blob/master/INSTALL.md).
 
-We highly recommend installing the [**Docker image**](https://hub.docker.com/r/csicunam/get_homologues) to avoid potential problems with the installation of the many dependencies. If you have not set a Docker environment on your machine, please see the instructions provided in the [**INSTALL.md**](https://github.com/vinuesa/get_phylomarkers/blob/master/INSTALL.md) document. It explains how to install Docker on different platforms and how to download/upgrade the [**GET_HOMOLOGUES+GET_PHYLOMARKERS Docker image**](https://hub.docker.com/r/csicunam/get_homologues/) from Docker hub.
+We highly recommend installing the [**GET_HOMOLOGUES+GET_PHYLOMARKERS Docker image**](https://hub.docker.com/r/csicunam/get_homologues) or [**GET_PHYLOMARKERS Docker image**](https://hub.docker.com/repository/docker/vinuesa/get_phylomarkers) to avoid potential problems with the installation of dependencies and guarantee access to the full functionality of both packages with minimal effort. If you have not set a *Docker engine+client* on your machine, please see the instructions provided in the [**INSTALL.md**](https://github.com/vinuesa/get_phylomarkers/blob/master/INSTALL.md) document. It explains how to install Docker on different platforms and how to download/upgrade the [**GET_HOMOLOGUES+GET_PHYLOMARKERS Docker image**](https://hub.docker.com/r/csicunam/get_homologues/) and [**GET_PHYLOMARKERS**](https://github.com/vinuesa/get_phylomarkers) with [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues) from Docker Hub image registry.
 
 ## Aim
-**GET_PHYLOMARKERS** implements a series of sequential filters (**Fig. 1** and explained below) to selects markers from the homologous gene clusters produced by [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues) with optimal attributes for phylogenomic inference. It estimates **gene-trees** and **species-trees** under the **maximum likelihood (ML) optimality criterion** using *state-of-the-art* fast ML tree searching algorithms. The species tree is estimated from the supermatrix of concatenated, top-scoring alignments that passed the **quality filters** (**Fig. 1**). The stringency of these filters and the thoroughness of the ML tree searches can be controlled by the user, although sensible defaults are provided, making it an easy-to-use, **user-friendly software**.
+**GET_PHYLOMARKERS** implements a series of sequential filters (**Fig. 1** and explained below) to selects markers from the homologous gene clusters produced by [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues) with optimal attributes for phylogenomic or population genetic inference. It estimates **gene-trees** and **species-trees** under the **maximum likelihood (ML) optimality criterion** using *state-of-the-art* fast ML tree searching algorithms. The species tree is estimated from the supermatrix of concatenated, top-scoring alignments that passed the **quality filters** (**Fig. 1**). The stringency of these filters and the thoroughness of the ML tree searches can be controlled by the user, although sensible defaults are provided, making it an easy-to-use, **user-friendly software**.
 
 **GET_HOMOLOGUES** is a genome-analysis software package for microbial pan-genomics and comparative genomics originally described in the following publications: 
 
@@ -56,10 +57,10 @@ the pipeline should be run using proteins instead of DNA sequences.
 
 ## Usage synopsis
 
-1. The pipeline (**Fig. 1**) is run by executing the **main script** *run_get_phylomarkers_pipeline.sh* inside a folder containing twin \*.fna and \*.faa FASTA files for orthologous **single-copy** CDSs and translation products (Fig. 1). <!-- computed by the *get_homologues.pl -e* or *compare_clusters.pl* -t number_of_genomes scripts of the **GET_HOMOLOGUES** suite.-->
+1. The pipeline (**Fig. 1**) is run by executing the **main script** *run_get_phylomarkers_pipeline.sh* inside a folder containing twin \*.fna and \*.faa FASTA files for orthologous **single-copy** CDSs and their translation products (Fig. 1). <!-- computed by the *get_homologues.pl -e* or *compare_clusters.pl* -t number_of_genomes scripts of the **GET_HOMOLOGUES** suite.-->
 2. There are two **runmodes**: **-R 1** (for *phylogenetics*) and **-R 2** (for *population genetics*).
 3. The pipeline can be run on two **molecular types**: **DNA** or **protein** sequences (**-t DNA|PROT**). The latter is intended for the analysis of more divergent genome sequences, typically above the genus level.
-4. From version 2.0 onwards, **GET_PHYLOMARKERS** uses either the **FastTree (FT)** or **IQ-TREE (IQT)** fast ML tree search algorithms, controlled with the **-A [F|I]** option [**default: I**], respectively. Note that previous versions of the pipeline used FT as the default search algorithm. This change is based on our benchmark analyses [(Vinuesa et. al, 2018. Submitted)](GET_PHYLOMARKERS_manual.html#citation), which showed that IQ-TREE systematically finds better-scoring trees which allows for a finer-grained filtering of markers based on their phylogentic attributes. This is in line with a recent publication that concluded that IQT is the best ML tree-searching algorithm available to date for datasets in the range of 100-200 sequences, accorting to a large benchmark analysis with empirical phylogenomic datasets (Zhou et al. 2017. Mol Biol Evol. Nov 21. doi: 10.1093/molbev/msx302.) [PMID:29177474](https://www.ncbi.nlm.nih.gov/pubmed/29177474).
+4. From version 2.0 onwards, **GET_PHYLOMARKERS** uses either the [**FastTree (FT)**](http://www.microbesonline.org/fasttree/) or [**IQ-TREE (IQT)**](http://www.iqtree.org/) fast ML tree search algorithms, controlled with the **-A [F|I]** option [**default: I**], respectively. The default is based on our benchmark analyses [(Vinuesa et. al, 2018)](GET_PHYLOMARKERS_manual.html#citation), which showed that IQ-TREE systematically finds better-scoring trees, which allows for a finer-grained filtering of markers based on their phylogentic attributes. This is in line with the results of a large benchmark analysis with empirical phylogenomic datasets (Zhou et al. 2017. Mol Biol Evol. Nov 21. doi: 10.1093/molbev/msx302.) [PMID:29177474](https://www.ncbi.nlm.nih.gov/pubmed/29177474).
 5. As of version 2.0 (January, 22cnd, 2018), GET_PHYLOMARKERS uses IQ-TREE version 1.6.1 (released Dec. 28th, 2017) which implements a fast search option, which almost matches the speed of FastTree, but retaining the accuracy of IQ-TREE 1.5.* Model-selection is performed with the **-fast flag** to for maximal speed both for gene- and species tree searches.
 6. The **global molecular-clock hypothesis** can be evaluated for DNA (codon) alignments (-R 1 -t DNA -K). It is not yet implemented for protein sequences.
 7. **GET_PHYLOMARKERS** can compute **basic descriptive statistics of population DNA polymorphisms and neutrality tests** when run in *population genetics* mode (**-R 2**). 
@@ -68,33 +69,39 @@ the pipeline should be run using proteins instead of DNA sequences.
 ### Basic usage examples
 
 ```
- # default run: launches the IQT-based filtering pipeline, selecting best models for gene 
+ # 1. Default run: launches the IQT-based filtering pipeline, selecting best models for gene 
  #  trees and fitting 
  # GTR+F+RATE models for the species tree search based on the supermatrix of concatenated, 
  #  top-scoring alignments.
  run_get_phylomarkers_pipeline.sh -R 1 -t DNA
 
- # Same as above, but adding molecular-clock analysis assuming a HKY85+G substitution 
- # model and imposing a stronger filtering of input alignments based on kdetrees -k 1 
+ # 2. Same as above, but adding molecular-clock analysis, assuming a HKY85+G substitution 
+ # model and imposing a stronger filtering of input alignments based on kdetree -k 1 
  # and minimum average SH-like gene-tree support values of 0.8 (see manual for the details)
  run_get_phylomarkers_pipeline.sh -R 1 -t DNA -K -M HKY -m 0.8 -k 1.0
 
  # population-genetics mode   
  run_get_phylomarkers_pipeline.sh -R 2 -t DNA                
  
- # protein alignments, user-defined kdetrees & mean branch support cut-off values
- run_get_phylomarkers_pipeline.sh -R 1 -t PROT -k 1.2 -m 0.7 
+ # 3. Protein alignments, user-defined kdetrees & mean branch support cut-off values
+ run_get_phylomarkers_pipeline.sh -R 1 -t PROT -k 1.2 -m 0.7
 
- # To run the pipeline on a remote server, we recommend using the nohup command upfront,
+ # 4. Estimate a ML pan-genome tree from the pan-genome matrix, using 5 independent IQT runs and UFBoot
+ estimate_pangenome_phylogenies.sh -f pangenome_matrix_t0.fasta -r 5 -S UFBoot
+
+ # 5. Estimate a PARS  pan-genome tree with bootstrapping; 100 bootstrap replicates divided on 10 core (10 reps / core)
+estimate_pangenome_phylogenies.sh -c PARS -R 3 -i pangenome_matrix_t0.phylip -n 10 -b 10 -j 1 -t 1
+
+ ## To run the pipeline on a remote server, we recommend using the nohup command upfront,
  #  as shown below:
  # in this case, calling also IQ-TREE, which will select among the (HKY,TN,TVM,TIM,SYM,
  # GTR)+RATE models and do 5 independent tree searches under the best-fit model, 
  # computing ultrafast bootstrapp  and aproximate Bayes branch support values 
  nohup run_get_phylomarkers_pipeline.sh -R 1 -t DNA -S 'HKY,TN,TVM,TIM,SYM,GTR' \
- -k 1.0 -m 0.7 -T high -N 5 &> /dev/null &
+ -k 1.0 -m 0.7 -T high -N 5 &> log.get_phylomarkers_pipeline &
  
- # use tail -f logfile to follow the output that the script logs to the logfile
- tail -f logfile
+ # use tail -f log.get_phylomarkers_pipeline to follow the output that the script logs to the logfile
+ tail -f log.get_phylomarkers_pipeline
 ```
 
 ### Basic usage notes
@@ -111,7 +118,7 @@ subsequent consensus (intersection OMCL,COGS,BDBH) clusters produced with *compa
 different species or strains.
 
    NOTES: an absolute minimum of 4 distinct haplotypes per cluster are required
-        for the cluster to be evaluated. Clusters with < 4 haplotypes are automatically
+        for the cluster to be evaluated. Clusters with < 4 distinct sequences are automatically
 	      discarded, printing a warning message to screen. This means that at least 
 	      4 distinct genomes should be used as input.
 	      
@@ -140,7 +147,7 @@ work. In that case, the main script assumes that the locus does not contain reco
 
 The next filtering step (Fig. 1) is provided by the **kdetrees-test**, which checks the distribution of topologies, tree lengths and branch lengths. *kdetrees* is a non-parametric method for estimating distributions of phylogenetic trees 
 ([Weyenberg et al. 2014](https://academic.oup.com/bioinformatics/article-lookup/doi/10.1093/bioinformatics/btu258)), 
-with the goal of identifying trees that are significantly different from the rest of the trees in the sample, based on the analysis of topology and branch length distributions. Such **"outlier trees"** may arise for example from horizontal gene transfers or gene duplication (and subsequent neofunctionalization) followed by differential loss of paralogues among lineages. Such processes will cause the affected genes to exhibit a significantly deviating phylogeny from that displayed by the bulk of genes, which are expected to be generated by the (multispecies) coalescent as species or populations diverge. Alignments producing significantly deviating trees in the kdetrees test are identified and saved in the kde_outliers/ directory. The corresponding alignments are not used in downstream analyses.
+with the goal of identifying trees that are significantly different from the rest of the trees in the sample, based on the analysis of topology and branch length distributions. Such **"outlier trees"** may arise for example from horizontal gene transfers or gene duplication (and subsequent neofunctionalization), followed by differential loss of paralogues among lineages. Such processes will cause the affected genes to exhibit a significantly deviating phylogeny from that displayed by the bulk of genes, which are expected to be generated by the (multispecies) coalescent as species or populations diverge. Alignments producing significantly deviating trees in the *kdetree test* are identified and saved in the kde_outliers/ directory. The corresponding alignments are not used in downstream analyses.
 
 ```      
       * Parameter for controlling kdetrees stingency:
@@ -168,7 +175,7 @@ to evaluate the free-rates and clock hypothesis using likelihood ratio tests com
 
 ### On tree searching 
 #### ModelFinder + IQ-TREE searches
-As of version 1.9.9.0_22Dec17, **GET_PHYLOMERKERS** implements the **-A I** option, which calls [**IQ-TREE**](http://www.iqtree.org/) for ML tree searching [**Nguyen et. al (2015)**](https://academic.oup.com/mbe/article/32/1/268/2925592). This is the most recent fast ML software on the scene, which was developed with the aim of escaping from early local maxima encountered during "hill-climbing" by generating multiple seed trees to initiate tree searches. This is achieved by maintaining a pool of candidate seed trees during the entire run. Overall, it was the best-performing ML tree search algorithm among those evaluated by [Zhou et al. (2017)](https://www.ncbi.nlm.nih.gov/pubmed/29177474) in their above-mentioned benchmarking paper, at least for datasets < 200 taxa. For larger datasets (several hudreds to thousands of sequences), current implementations of RAxML and ExaML, which make heavy use of SPR-moves, may outperform IQ-TREE, which makes more intensive use of local NNI-moves. 
+As of version 1.9.9.0_22Dec17, **GET_PHYLOMERKERS** implements the **-A I** option, which calls [**IQ-TREE**](http://www.iqtree.org/) for ML tree searching [**Nguyen et. al (2015)**](https://academic.oup.com/mbe/article/32/1/268/2925592). This is the most recent fast ML software on the scene, which was developed with the aim of escaping from early local maxima encountered during "hill-climbing" by generating multiple seed trees to initiate tree searches and maintaining a pool of candidate seed trees during the entire run. Overall, it was the best-performing ML tree search algorithm among those evaluated by [Zhou et al. (2017)](https://www.ncbi.nlm.nih.gov/pubmed/29177474) in their above-mentioned benchmarking paper, at least for datasets < 200 taxa. For larger datasets (several hudreds to thousands of sequences), current implementations of RAxML and ExaML, which make heavy use of SPR-moves, may outperform IQ-TREE, which makes more intensive use of local NNI-moves. 
 
 - Our benchmark analyses have shown that [IQ-TREE](http://www.iqtree.org/) (v1.6.1) [Nguyen et. al (2015)](https://academic.oup.com/mbe/article/32/1/268/2925592) runs quickly enough when the **-fast** flag is passed to make it feasible to include a model selection step using  [ModelFinder](http://www.iqtree.org/ModelFinder/) [(Kalyaanamoorthy et al. 2017)](https://www.nature.com/articles/nmeth.4285) when estimating gene trees withouth incurring in excessively long computation times. 
 
@@ -329,13 +336,13 @@ From the [BioPerl](http://bioperl.org/) suite:
 # <a id="get_phylomarkers-tutorial"></a>GET_HOMOLOGUES + GET_PHYLOMARKERS TUTORIALS
 
 ## Test datasets
-The **GET_PHYLOMARKERS** distribution provides a **test_sequences/** directory which holds the subdirectories **core_genome/**, **pan_genome/** and **pIncAC/**. The first one contains **\*.fna** and **\*.faa** FASTA files with the **consensus (BDBH, COGtriangles and OMCL) core-genome clusters** computed with **GET_HOMOLOGUES** from a set of 12 GenBank-formatted pIncA/C plasmids,provided in the pIncAC/ directory. The second one holds the **pan-genome matrix** computed by *compare_clusters.pl* from the **GET_HOMOLOGUES** suite in tabular (\*.tab), FASTA (\*.fasta) and phylip (\*.phy) formats. The **pIncAC/** directory holds the source \*.gbk GenBank files. This directory has a README.txt file that briefly describes the GenBank files.
+The **GET_PHYLOMARKERS** distribution provides a **test_sequences/** directory which holds the subdirectories **core_genome/**, **pan_genome/** and **pIncAC/**. The first one contains **\*.fna** and **\*.faa** FASTA files corresponding to **consensus (BDBH, COGtriangles and OMCL) core-genome clusters** computed with **GET_HOMOLOGUES** from a set of 12 GenBank-formatted pIncA/C plasmids, provided in the pIncAC/ directory. The second one holds the **pan-genome matrix** computed by *compare_clusters.pl* from the **GET_HOMOLOGUES** suite in tabular (\*.tab), FASTA (\*.fasta) and phylip (\*.phy) formats. The **pIncAC/** directory holds the source \*.gbk GenBank files. This directory has a README.txt file that briefly describes the GenBank files.
 
 These directories allow you to:
 
-- Rapidly test the GET_PHYLOMARKERS suite working on core-genome orthologous clusters (core_genome/)
+- Easily and rapidly test the GET_PHYLOMARKERS suite working on core-genome orthologous clusters (core_genome/)
 
-- Rapidly test the GET_PHYLOMARKERS suite working on the pan-genome matrix (pan_genome/)
+- Test the GET_PHYLOMARKERS suite working on the pan-genome matrix (pan_genome/)
 
 - Run the comlete GET_HOMOLOGUES + GET_PHYLOMARKERS pipelines from scratch (pIncAC/)
 
@@ -358,33 +365,10 @@ mkdir get_homPhy
 
 ```
 cp -r ~/path2your/github/get_phylomarkers/test_sequences/ get_homPhy/
-
-# grant write permissions to all users
-# this is required for the container to get access to the directory and write results to it
-chmod -R a+w get_homPhy
-
-```
-3. With that directory in place, the command to deploy the container 
-  (attaching the host directory to the container volume located at the $HOME/get_homPhy 
-  directory within the container) would be:
-
-```
-sudo docker run --rm -d -P --name get_homPhy -v $HOME/get_homPhy:/home/you/get_homPhy \
-  -it csicunam/get_homologues:latest /bin/bash
-
-```
-You should be presented with the container ID (a3ba1460d5e40af32fb8223c8bd17a725ea05b760d145f4001d23f33b47bef01). Make note of the first four characters for the next step.
-
-
-4. Finally, we need to attach the Docker's ID to gain shell access to the running container. Just copy the first 4 characters
-
-```
-# Attach local standard input, output, and error streams to a running container
-docker attach  a3ba
-
 ```
 
-5. In order to avoid permission errors (and the use of sudo), add your user to the docker group. [More details here](https://docs.docker.com/install/linux/linux-postinstall/)
+
+3. In order to avoid permission errors (and the use of sudo), add your user to the docker group. [More details here](https://docs.docker.com/install/linux/linux-postinstall/)
 
 ```
 # https://docs.docker.com/install/linux/linux-postinstall/
@@ -392,8 +376,18 @@ sudo groupadd docker
 sudo usermod -aG docker $USER
 
 ```
+
 Log out and log back in so that your group membership is re-evaluated.
 
+
+3. With that directory in place, the command to launch the container, mounting the host directory to the container volume located at the $HOME/get_homPhy directory within the container, would look as follwos:
+
+```
+docker run --rm -it -v $HOME/get_homPhy:/home/you/get_homPhy \
+   csicunam/get_homologues:latest /bin/bash
+```
+
+You should be presented with a bash prompt within the running container instance, as shown below. Note that you will be running as user *you* and have full access to the contentes of the host's <code>$HOME/get_homPhy</code> directory mounted on the container. Importantly, after exiting the containerized session, the results will persist on your host's directory and you will have access to them.
 
 That's it, now we can work within our get_homPhy directory usint the Ubuntu-Linux environment provided by the container, which also contains all the code required to run **GET_HOMOLOGUES** and **GET_PHYLOMARKERS**. Before getting our hands dirty, lets have a look at the container's environment.
 
@@ -932,4 +926,4 @@ Code Available at https://github.com/vinuesa/get_phylomarkers and released under
 We thank Alfredo J. Hernández and Víctor del Moral at CCG-UNAM for technical support.
 
 ## Funding
-We gratefully acknowledge the funding provided by [DGAPA-PAPIIT/UNAM](http://dgapa.unam.mx/index.php/impulso-a-la-investigacion/papiit) (grants IN201806-2, IN211814 and IN206318) and [CONACyT-Mexico](http://www.conacyt.mx/) (grants P1-60071, 179133 and FC-2015-2-879) to [Pablo Vinuesa](http://www.ccg.unam.mx/~vinuesa/), as well as the Fundación ARAID,Consejo  Superior  de Investigaciones Científicas (grant 200720I038 and Spanish MINECO (AGL2013-48756-R) to [Bruno Contreras-Moreira](https://digital.csic.es/cris/rp/rp02661).
+We gratefully acknowledge the funding provided by [DGAPA-PAPIIT/UNAM](http://dgapa.unam.mx/index.php/impulso-a-la-investigacion/papiit) (grants IN201806-2, IN211814 and IN206318) and [CONACyT-Mexico](http://www.conacyt.mx/) (grants P1-60071, 179133 and A1-S-11242) to [Pablo Vinuesa](http://www.ccg.unam.mx/~vinuesa/), as well as the Fundación ARAID,Consejo  Superior  de Investigaciones Científicas (grant 200720I038 and Spanish MINECO (AGL2013-48756-R) to [Bruno Contreras-Moreira](https://digital.csic.es/cris/rp/rp02661).
