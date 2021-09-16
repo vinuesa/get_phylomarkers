@@ -11,7 +11,7 @@ function usage()
 {
    cat <<USAGE
    
-   ${progname} <full path to BASE_DIRECTORY holding core_genome and pan_genome data computed by GET_HOMOLOGUES or similar software>
+   ${progname} v.${version} <full path to BASE_DIRECTORY holding core_genome and pan_genome test data>
    
    EXAMPLES:
    
@@ -31,7 +31,7 @@ function usage()
    
    LAUNCHING THE CONTAINER AND BIND MOUNTING THE ~/data/genomes/test_sequences dir on /home/you/data
   
-     $ docker run -it --rm -v ~/data/genomes/test_sequences:/home/you/data get_phylomarkers:latest /bin/bash
+     $ docker run -it --rm -v ~/data/genomes/test_sequences:/home/you/data vinuesa/get_phylomarkers:latest /bin/bash
 
 USAGE
 
@@ -46,7 +46,7 @@ base_dir=$1 || { echo "ERROR could not cd into $base_dir"; exit 1 ; }
 # run basic test suite for GET_PHYLOMARKERS
 cd "${base_dir}"/core_genome || { echo "ERROR could not cd into $base_dir/core_genome"; exit 1 ; } 
 
-if ls -d get_phylomarkers_run*; then rm -rf get_phylomarkers_run*; fi
+if ls -d get_phylomarkers_run* &> /dev/null; then rm -rf get_phylomarkers_run*; fi
 
 # 1. default on DNA sequences (uses IQ-TREE evaluating a subset of models specified in the detailed help)
 run_get_phylomarkers_pipeline.sh -R 1 -t DNA
@@ -55,7 +55,7 @@ run_get_phylomarkers_pipeline.sh -R 1 -t DNA
 run_get_phylomarkers_pipeline.sh -R 1 -t DNA -A F -k 1.2 -m 0.7 -s 20 -l 12 -T high -K -M HKY -q 0.95 -n 10
 
 # 3. test multiple models with high kdetree stringency (k=1.0) and thorogh IQT searches, using 2 seed trees
-run_get_phylomarkers_pipeline.sh -R 1 -t DNA -S 'TN,TVMe,GTR' -k 1.0 -m 0.75 -T high -N 2
+run_get_phylomarkers_pipeline.sh -R 1 -t DNA -S 'TrN,TVMe,GTR' -k 1.0 -m 0.75 -T high -N 2
 
 # 4. IQT with proteins
 run_get_phylomarkers_pipeline.sh -R 1 -t PROT
@@ -72,4 +72,5 @@ cd "${base_dir}"/pan_genome  || { echo "ERROR could not cd into $base_dir/pan_ge
 estimate_pangenome_phylogenies.sh -f pangenome_matrix_t0.fasta -r 2 -S UFBoot
 
 # 8. estimate a PARS  pan-genome tree with bootstrapping; 100 bootstrap replicates divided on 10 core (10 reps / core)
+[ -d boot_pars ] && rm -rf boot_pars
 estimate_pangenome_phylogenies.sh -c PARS -R 3 -i pangenome_matrix_t0.phylip -n 10 -b 10 -j 1 -t 1
