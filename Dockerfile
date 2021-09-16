@@ -73,7 +73,7 @@ CMD ["/bin/bash"]
 
 # 2. Assuming that you have your core_genome and/or pan_genome data availabe in ~/data/genomes/test_sequences 
 # bind mount that host directory on the container instance under /home/you/data with the following command:
-# $ docker run -it --rm -v ~/data/genomes/test_sequences:/home/you/data get_phylomarkers:latest /bin/bash
+# $ docker run -it --rm -v ~/data/genomes/test_sequences:/home/you/data vinuesa/get_phylomarkers:latest /bin/bash
 
 # Copy the test sequences to your data directory and extract them from the gzipped tar files
 # $ cp /get_phylomarkers/test_sequences/*tgz ~/data/
