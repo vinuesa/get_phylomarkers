@@ -3,7 +3,11 @@
 
 test:
 	perl test_get_phylomarkers.t
-	rm -rf test_sequences/core_genome/get_phylomarkers_run* 
 
 install:
 	Rscript install_R_deps.R
+
+clean:
+	rm -rf test_sequences/core_genome/get_phylomarkers_run* 
+	rm -rf test_sequences/pan_genome/iqtree_PGM_*
+	rm -rf test_sequences/pan_genome/boot_pars
