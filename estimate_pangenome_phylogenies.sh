@@ -42,7 +42,8 @@
 #-------------------------------------------------------------------------------------------------------
 
 progname=${0##*/}
-VERSION='1.1_10Jan20' # added option -S <abayes|UFBoot|both> default: $IQT_support
+VERSION='1.2_16Sep21' # v1.2_16Sep21 added function check_libnw() for lib /usr/local/lib/libnw.so.0.0.0; -R 3 only warns if could not write full_pars_tree_rooted_withBoot.ph
+       # v.1.2_10Jan20; added option -S <abayes|UFBoot|both> default: $IQT_support
        #'1.0.5_28Mar18' # check_scripts_in_path() checks wether USER is regular or root
        #'1.0.4_17Feb18' # prepended $bindir/ to a nw_reroot call that was missing it
        # 1.0.3_8Feb18 added -v; check_scripts_in_path(); check_dependencies with verbosity; activated set_pipeline_environment; Thanks Felipe Lira!
@@ -299,6 +300,30 @@ function check_scripts_in_path()
     fi
     [ "$DEBUG" -eq 1 ] && echo "$homebinflag $homebinpathflag"
     [ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
+}
+#-----------------------------------------------------------------------------------------
+
+function check_libnw()
+{
+    if [ ! -s /usr/local/lib/libnw.so.0.0.0 ]
+    then
+         cat <<NWUTIL
+         WARNING: lib libnw.so.0.0.0 was not found in /usr/local/lib!
+     
+         If you you want to use the parsimony module, then you will need to do the following
+         1. cp /path/to/get_phylomarkers/lib/libnw.so /usr/local/lib 
+         2. add the following line to your .bashrc or .bash_profile file in your home
+            export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/local/lib
+         3. open a new terminal or source the edited .bashrc or .bash_profile
+            source ~/.bashrc or source ~/.bash_profile
+        
+         4. Reconfigure libs:
+             sudo ldconfig
+NWUTIL
+
+     exit 1
+
+     fi
 }
 #-----------------------------------------------------------------------------------------
 
@@ -1035,6 +1060,7 @@ fi
 #>>> Runmode -eq 3: now run the bootstrap replicates from individual directories
 if [ "$runmode" -eq 3 ]
 then
+  check_libnw
   cd "$wkdir"
   start=1
   end="$n_cores"
@@ -1193,7 +1219,12 @@ then
 
   "${distrodir}"/add_labels2tree.pl pang_ID-Strain_corresp.tsv full_pars_tree_rooted_withBoot.ph
   
-  check_output full_pars_tree_rooted_withBoot.ph 
+  if [ -s full_pars_tree_rooted_withBoot.ph ];
+  then
+      msg " >>> wrote file full_pars_tree_rooted_withBoot.ph" PROGR GREEN
+  else
+      msg "WARNING: could not write full_pars_tree_rooted_withBoot.ph" WARNING LRED
+  fi
 
 fi
 
