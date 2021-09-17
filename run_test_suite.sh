@@ -2,15 +2,18 @@
 
 #: PROGRAM: run_test_suite.sh
 #: AUTHORS: Pablo Vinuesa, Center for Genomic Sciences, UNAM, Mexico; @pvinmex
-#: AIM: used for functional testing of run_get_phylomarkers_pipeline.sh
+#: AIM: used for functional testing of the following scripts of the GET_PHYLOMARKERS package:
+#: - run_get_phylomarkers_pipeline.sh
+#: - estimate_pangenome_phylogenies.sh
+#: - hcluster_pangenome_matrix.sh
 
 progname="${0##*/}"
-version="2021-09-15_vivaMX"
+version="2021-09-16"
 
 function usage()
 {
    cat <<USAGE
-   
+
    ${progname} v.${version} <full path to BASE_DIRECTORY holding core_genome and pan_genome test data>
    
    EXAMPLES:
@@ -20,10 +23,15 @@ function usage()
    
      # if running from your host
      ${progname} $HOME/data/genomes/test_sequences
+
+   AIM: used for functional testing of the following scripts of the GET_PHYLOMARKERS package:
+        - run_get_phylomarkers_pipeline.sh
+        - estimate_pangenome_phylogenies.sh
+        - hcluster_pangenome_matrix.sh
    
    NOTES:
    
-     Assumes that you have your test core_genome and pan_genome sequences availabe on your host machine under
+     Assumes that you have your test core_genome/ and pan_genome/ sequences availabe on your host machine under
       ~/data/genomes/test_sequences, or another base_dir provided as single argument to the script
   
      To let the container having acces to these data, bind mount that host directory on the container instance
@@ -49,28 +57,49 @@ cd "${base_dir}"/core_genome || { echo "ERROR could not cd into $base_dir/core_g
 if ls -d get_phylomarkers_run* &> /dev/null; then rm -rf get_phylomarkers_run*; fi
 
 # 1. default on DNA sequences (uses IQ-TREE evaluating a subset of models specified in the detailed help)
+echo ">>> Test #1: default run on DNA sequence ..."
 run_get_phylomarkers_pipeline.sh -R 1 -t DNA
+echo
 
 # 2. thorough FastTree searching and molecular clock analysis on DNA sequences using 10 cores and increasing k stringency 
+echo ">>> Test #2 thorough FastTree searching and molecular clock analysis on DNA sequences using 10 cores and increasing k stringency ..."
 run_get_phylomarkers_pipeline.sh -R 1 -t DNA -A F -k 1.2 -m 0.7 -s 20 -l 12 -T high -K -M HKY -q 0.95 -n 10
+echo
 
 # 3. test multiple models with high kdetree stringency (k=1.0) and thorogh IQT searches, using 2 seed trees
+echo ">>> Test #3: multiple models with high kdetree stringency (k=1.0) and thorogh IQT searches, using 2 seed trees"
 run_get_phylomarkers_pipeline.sh -R 1 -t DNA -S 'TrN,TVMe,GTR' -k 1.0 -m 0.75 -T high -N 2
+echo
 
-# 4. IQT with proteins
-run_get_phylomarkers_pipeline.sh -R 1 -t PROT
+# 4. IQT with proteins and moderate average bipartition support
+echo ">>> Test #4: IQT with proteins and moderate average bipartition support"
+run_get_phylomarkers_pipeline.sh -R 1 -t PROT -m 0.6
+echo
 
-# 5. FastTree thorough searching on a protein dataset
-run_get_phylomarkers_pipeline.sh -R 1 -t PROT -A F -T high
+# 5. FastTree thorough searching on a protein dataset with thorough search
+echo ">>> Test # 5. FastTree thorough searching on a protein dataset with thorough search"
+run_get_phylomarkers_pipeline.sh -R 1 -t PROT -A F -T high -m 0.6
+echo
 
-# 6. Run in population-genetics mode (generates a table with descritive statistics for DNA-polymorphisms
+# 6. Run in population-genetics mode (generates a table with descritive statistics for DNA-polymorphisms) with K2P model
+echo ">>> Test # 6. Run in population-genetics mode (generates a table with descritive statistics for DNA-polymorphisms) with K2P model"
 run_get_phylomarkers_pipeline.sh -R 2 -t DNA -S 'K2P'
+echo
 
 # 7. estimate a ML pan-genome tree from the pan-genome matrix, using 2 independent IQT runs and UFBoot
+echo ">>> Test # 7. estimate a ML pan-genome tree from the pan-genome matrix, using 2 independent IQT runs and UFBoot"
 cd "${base_dir}"/pan_genome  || { echo "ERROR could not cd into $base_dir/pan_genome"; exit 1 ; }
 [ -d iqtree_PGM_2_runs ] && rm -rf iqtree_PGM_2_runs
 estimate_pangenome_phylogenies.sh -f pangenome_matrix_t0.fasta -r 2 -S UFBoot
+echo
 
 # 8. estimate a PARS  pan-genome tree with bootstrapping; 100 bootstrap replicates divided on 10 core (10 reps / core)
+echo ">>> Test # 8. estimate a PARS  pan-genome tree with bootstrapping; 100 bootstrap replicates divided on 10 core (10 reps / core)"
 [ -d boot_pars ] && rm -rf boot_pars
 estimate_pangenome_phylogenies.sh -c PARS -R 3 -i pangenome_matrix_t0.phylip -n 10 -b 10 -j 1 -t 1
+echo
+
+# 9. cluster the pan-genome matrix and run silhoute statistic to define the optimal number of clusters
+echo ">>> Test # 9. cluster the pan-genome matrix and run silhoute statistic to define the optimal number of clusters"
+hcluster_pangenome_matrix.sh -i pangenome_matrix_t0.tab -a ward.D2 -d gower -O pdf -A 'NULL,45' -X 0.8 -T "Pangenome tree"
+echo
