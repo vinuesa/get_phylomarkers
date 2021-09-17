@@ -2,6 +2,7 @@
 
 # check R packages required by get_phylomarkers and install missing ones 
 # Bruno Contreras Moreira, Pablo Vinuesa, Nov2017-Oct2020
+# version: 2021-09-16
 
 # WARNING: some packages require C (gcc) and C++ (g++) compilers to be installed
 # These can be installed with these commands:
@@ -30,8 +31,9 @@
 
 repository = 'https://cloud.r-project.org'; #'http://cran.rstudio.com'
 
-# do not change (reduce), as it includes dependencies for the GET_HOM+GET_PHYLO image
-required_packages = c("ape", "kdetrees", "stringr", "vioplot", "ggplot2", "gplots", "dplyr", "seqinr", "plyr")
+# do not change (reduce), as it includes dependencies for the GET_HOM+GET_PHYLO image,
+# and from v2.3.0 (2021-09-16) the GET_PHYLO package also includes hcluster_pangenome_matrix.sh, which require "dendextend", "factoextra"
+required_packages = c("ape", "kdetrees", "stringr", "vioplot", "ggplot2", "gplots", "dplyr", "seqinr", "plyr", "dendextend", "factoextra" )
 
 local_lib = "./lib/R"
 
