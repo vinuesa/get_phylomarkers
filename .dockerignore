@@ -10,16 +10,13 @@
 HEAD
 TODO.txt
 config
-cpanfile
 description
-Makefile
 hooks
 info
 development_history_and_notes.txt
 docs
 pics
-run_test_suite.sh
-test_*
+test_model_args.sh
 .DS_Store
 .DS_Store?
 ._*
