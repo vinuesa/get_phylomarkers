@@ -34,7 +34,7 @@
 #
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.2.9.4_15sep2021'
+VERSION='2.3.0_17sep2021'
 
 # Set GLOBALS
 DEBUG=0
@@ -1281,6 +1281,7 @@ then
         PRINT_KDE_ERR_MESSAGE=1
 	msg "# WARNING: could not write kde_dfr_file_all_gene_trees.tre.tab; check that kdetrees and ape are propperly installed ..." WARNING LRED
 	msg "# WARNING:      will arbitrarily set no_kde_outliers to 0, i.e. NO kde filtering applied to this run!" WARNING LRED
+	msg "# This issue can be easily avoided by running the containerized version available from https://hub.docker.com/r/vinuesa/get_phylomarkers!" PROGR GREEN
         no_kde_outliers=0 
 	no_kde_ok=$(wc -l all_gene_trees.tre | awk '{print $1}')
     else
@@ -1618,7 +1619,7 @@ then
 	    if [ "$eval_clock" -eq 1 ]
 	    then
 	        tar -czf molClock_PAUP_files.tgz ./*_paup.block ./*.nex  ./*_clockTest.log ./*tre ./*clock.scores ./*critical_X2_val.R \
-	        "$mol_clock_tab" "${mol_clock_tab}"sorted mol_clock_MGTRG_r_o_q099_ClockTest.ta*
+	        "$mol_clock_tab" "${mol_clock_tab}"sorted mol_clock_*_r_o_q*_ClockTest.ta*
                 [ "$DEBUG" -eq 0 ] && [ -s molClock_PAUP_files.tgz ] && rm ./*_paup.block ./*.nex  ./*_clockTest.log ./*tre ./*clock.scores ./*critical_X2_val.R
                 [ "$DEBUG" -eq 0 ] && rm list2concat Rplots.pdf header.tmp list2grep.tmp concat_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
 	    fi
@@ -1632,7 +1633,7 @@ then
             cd "$non_recomb_cdn_alns_dir" || msg "ERROR: cannot cd into $non_recomb_cdn_alns_dir ..." ERROR RED
 	    [ "$DEBUG" -eq 1 ] && echo "... working in: $non_recomb_cdn_alns_dir"	
 	    rm Rplots.pdf ./sorted*perc.tab ./all_*trees.tre top100_median_support_values4loci.tab 
-	    rm kde_outlier_files_all_gene_trees.tre.out kde_stats_all_gene_trees.tre.out
+	    [ "$PRINT_KDE_ERR_MESSAGE" -eq 0 ] && rm kde_outlier_files_all_gene_trees.tre.out kde_stats_all_gene_trees.tre.out
 	    [ "$DEBUG" -eq 0 ] && tar -czf non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln.fasta
 	    [ -s non_recombinant_kdeOK_codon_alignments.tgz ] && rm ./*_cdnAln.fasta
 	    tar -czf gene_trees_from_non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln*.ph
@@ -1663,7 +1664,9 @@ then
 
             cd "$non_recomb_cdn_alns_dir" || msg "ERROR: cannot cd into $non_recomb_cdn_alns_dir ..." ERROR RED
 	    [ "$DEBUG" -eq 1 ] && echo "... working in: $non_recomb_cdn_alns_dir"	
-	    [ "$DEBUG" -eq 0 ] && rm ./Rplots.pdf sorted_aggregated_*tab ./all_*trees.tre kde_*out ./top100_median_support_values4loci.tab
+	    [ "$DEBUG" -eq 0 ] && rm sorted_aggregated_*tab ./all_*trees.tre ./top100_median_support_values4loci.tab
+	    [ "$DEBUG" -eq 0 ] && [ -s ./Rplots.pdf ] && rm ./Rplots.pdf 
+	    [ "$DEBUG" -eq 0 ] && [ "$PRINT_KDE_ERR_MESSAGE" -eq 0 ] && rm kde_*out 
 	    tar -czf non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln.fasta
 	    [ "$DEBUG" -eq 0 ] && [ -s non_recombinant_kdeOK_codon_alignments.tgz ] && rm ./*_cdnAln.fasta
 	    tar -czf IQT_gene_trees_from_non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln*.treefile
@@ -1745,7 +1748,8 @@ then
 	cd "$non_recomb_cdn_alns_dir" || msg "ERROR: cannot cd into $non_recomb_cdn_alns_dir ..." ERROR RED
 	[ "$DEBUG" -eq 1 ] && echo "... working in: $non_recomb_cdn_alns_dir"	
         tar -czf non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln.fasta
-        [ "$DEBUG" -eq 0 ] && [ -s non_recombinant_kdeOK_codon_alignments.tgz ] && rm ./*_cdnAln.fasta ./all_*trees.tre ./Rplots.pdf
+        [ "$DEBUG" -eq 0 ] && [ -s non_recombinant_kdeOK_codon_alignments.tgz ] && rm ./*_cdnAln.fasta ./all_*trees.tre
+	[ "$DEBUG" -eq 0 ] && [ -s non_recombinant_kdeOK_codon_alignments.tgz ] && [ -s ./Rplots.pdf ] && rm ./Rplots.pdf
 	
 	if [ "$search_algorithm" == "F" ]
 	then
@@ -1873,12 +1877,22 @@ then
     print_start_time && msg "# running kde test ..." PROGR BLUE
     [ "$DEBUG" -eq 1 ] && msg " > ${distrodir}/run_kdetrees.R ${gene_tree_ext} all_gene_trees.tre $kde_stringency &> /dev/null" DEBUG NC
     "${distrodir}"/run_kdetrees.R "${gene_tree_ext}" all_gene_trees.tre "$kde_stringency" &> /dev/null
-    [ ! -s kde_dfr_file_all_gene_trees.tre.tab ] && install_Rlibs_msg kde_dfr_file_all_gene_trees.tre.tab kdetrees,ape
-    check_output kde_dfr_file_all_gene_trees.tre.tab "$parent_PID"
+    #[ ! -s kde_dfr_file_all_gene_trees.tre.tab ] && install_Rlibs_msg kde_dfr_file_all_gene_trees.tre.tab kdetrees,ape
+    #check_output kde_dfr_file_all_gene_trees.tre.tab "$parent_PID"
 
-    # 5.3 mv outliers to kde_outliers
-    no_kde_outliers=$(grep -c outlier kde_dfr_file_all_gene_trees.tre.tab)
-    no_kde_ok=$(grep -v outlier kde_dfr_file_all_gene_trees.tre.tab|grep -vc '^file')
+    if [ ! -s kde_dfr_file_all_gene_trees.tre.tab ]
+    then
+        PRINT_KDE_ERR_MESSAGE=1
+	msg "# WARNING: could not write kde_dfr_file_all_gene_trees.tre.tab; check that kdetrees and ape are propperly installed ..." WARNING LRED
+	msg "# WARNING:      will arbitrarily set no_kde_outliers to 0, i.e. NO kde filtering applied to this run!" WARNING LRED
+	msg "# This issue can be easily avoided by running the containerized version available from https://hub.docker.com/r/vinuesa/get_phylomarkers!" PROGR GREEN
+        no_kde_outliers=0 
+	no_kde_ok=$(wc -l all_gene_trees.tre | awk '{print $1}')
+    else
+        # 5.3 mv outliers to kde_outliers
+        no_kde_outliers=$(grep -c outlier kde_dfr_file_all_gene_trees.tre.tab)
+        no_kde_ok=$(grep -v outlier kde_dfr_file_all_gene_trees.tre.tab|grep -vc '^file')
+    fi 
 
     # 5.4 Check how many cdnAlns passed the test and separate into two subirectories those passing and failing the test
     if [ "$no_kde_outliers" -gt 0 ]
@@ -2149,8 +2163,10 @@ then
         tar -czf non_recomb_kdeOK_FAA_alignments.tgz ./*_cluo.faaln
         [ -s non_recomb_kdeOK_FAA_alignments.tgz ] && rm ./*_cluo.faaln
         tar -czf non_recomb_kdeOK_prot_trees.tgz ./*_cluo_*.ph ./*.log
-        [ -s non_recomb_kdeOK_prot_trees.tgz ] && rm ./*_cluo_*.ph ./*.log top100* kde*out
-	rm Rplots.pdf no_tree_branches.list
+        [ -s non_recomb_kdeOK_prot_trees.tgz ] && rm ./*_cluo_*.ph ./*.log top100*
+	[ -s non_recomb_kdeOK_prot_trees.tgz ] && [ "$PRINT_KDE_ERR_MESSAGE" -eq 0 ] && rm kde*out
+	[ -s Rplots.pdf ] && rm Rplots.pdf
+	[ -s no_tree_branches.list ] && rm no_tree_branches.list
 
         cd "$top_dir" || msg "ERROR: cannot cd into $top_dir ..." ERROR RED
  	[ "$DEBUG" -eq 1 ] && echo "... working in: $top_dir"	
@@ -2164,7 +2180,8 @@ then
 
         tar -czf concatenated_alignment_files.tgz concat_protAlns.faa concat_protAlns.faainf
         [ -s concatenated_alignment_files.tgz ] && rm concat_protAlns.faa concat_protAlns.faainf
-        [ "$DEBUG" -eq 0 ] && rm  ../Rplots.pdf ../sorted*perc.tab 
+        [ "$DEBUG" -eq 0 ] && [ -s ../sorted*perc.tab ] && rm ../sorted*perc.tab
+	[ "$DEBUG" -eq 0 ] && [ -s ../Rplots.pdf ] &&  rm  ../Rplots.pdf 
 
         cd "$non_recomb_FAA_alns_dir" || msg "ERROR: cannot cd into $non_recomb_FAA_alns_dir ..." ERROR RED
 	[ "$DEBUG" -eq 1 ] && echo "... working in: $non_recomb_FAA_alns_dir ]"	
@@ -2187,6 +2204,7 @@ if [ "$PRINT_KDE_ERR_MESSAGE" -eq 1 ]
 then 
     msg "# WARNING REMAINDER: run_kdetrees.R could not write kde_dfr_file_all_gene_trees.tre.tab; check that kdetrees and ape packages are propperly installed ..." WARNING LRED
     msg "#                    This run could therefore not apply kde filtering!" WARNING LRED
+    msg "# This issue can be easily avoided by running the containerized version available from https://hub.docker.com/r/vinuesa/get_phylomarkers!" PROGR GREEN
 fi
 
 
