@@ -305,10 +305,10 @@ function check_scripts_in_path()
 
 function check_libnw()
 {
-    if [ ! -s /usr/local/lib/libnw.so.0.0.0 ]
+    if [ ! -s /usr/local/lib/libnw.so ]
     then
          cat <<NWUTIL
-         WARNING: lib libnw.so.0.0.0 was not found in /usr/local/lib!
+         WARNING: lib libnw.so was not found in /usr/local/lib!
      
          If you you want to use the parsimony module, then you will need to do the following
          1. cp /path/to/get_phylomarkers/lib/libnw.so /usr/local/lib 
