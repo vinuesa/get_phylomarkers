@@ -26,7 +26,7 @@
 # Instructions to install ape from source, in case it causes kdetrees errors
 # In MacOS this requires installing gfortran from https://gcc.gnu.org/wiki/GFortranBinaries
 # $ R
-# > install.packages("ape",dependencies=TRUE, lib="lib/R", type="source")
+# > install.packages("ape", dependencies=TRUE, lib="lib/R", type="source")
 # > install.packages("kdetrees",dependencies=TRUE, lib="lib/R", type="source")
 
 repository = 'https://cloud.r-project.org'; #'http://cran.rstudio.com'
@@ -34,7 +34,7 @@ repository = 'https://cloud.r-project.org'; #'http://cran.rstudio.com'
 # do not change (reduce), as it includes dependencies for the GET_HOM+GET_PHYLO image,
 # and from v2.3.0 (2021-09-18) the GET_PHYLO package also includes hcluster_pangenome_matrix.sh, which require "cluster", "dendextend", "factoextra"
 # ape and kdetrees are installed from source
-required_packages = c("stringr", "vioplot", "ggplot2", "gplots", "dplyr", "seqinr", "plyr", "cluster", "dendextend", "factoextra", "Rcpp")
+required_packages = c("ape", "kdetrees", "stringr", "vioplot", "ggplot2", "gplots", "dplyr", "seqinr", "plyr", "cluster", "dendextend", "factoextra")
 
 local_lib = "./lib/R"
 
@@ -44,7 +44,7 @@ local_lib = "./lib/R"
 #remove.packages(c("ape", "cluster", "dendextend", "factoextra", "kdetrees"), lib=local_lib)
 
 # Install ape && kdetrees from source
-install.packages(c("ape", "kdetrees"), dependencies=TRUE, lib="lib/R", type="source")
+# install.packages(c("ape", "kdetrees"), dependencies=TRUE, lib="lib/R", type="source")
 
 # install the remaining required R packages
 for (package in required_packages) {
@@ -53,6 +53,5 @@ for (package in required_packages) {
     install.packages(package, dependencies=TRUE, lib=local_lib, repos=repository)
   }
 }
-
 
 sessionInfo()
