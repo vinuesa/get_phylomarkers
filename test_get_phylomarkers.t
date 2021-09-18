@@ -45,7 +45,7 @@ ok( eval{ `Rscript ./compute_suppValStas_and_RF-dist.R 2>&1` } =~ /Usage/ , 'com
 ok( eval{ `bash ./estimate_pangenome_phylogenies.sh 2>&1` } =~ /NOTES ON/ , 'estimate_pangenome_phylogenies.sh' ); 
 
 # test 12
-ok( eval{ `bash ./hcluster_pangenome_matrix.sh 2>&1` } =~ /USAGE synopsis/, 'hcluster_pangenome_matrix.sh' );
+ok( eval{ `bash ./hcluster_pangenome_matrix.sh 2>&1` } =~ /IMPORTANT NOTES/, 'hcluster_pangenome_matrix.sh' );
 
 # test 13
 ok( eval{ `bash ./run_get_phylomarkers_pipeline.sh 2>&1` } =~ /INVOCATION EXAMPLES/, 'run_get_phylomarkers_pipeline.sh' );
