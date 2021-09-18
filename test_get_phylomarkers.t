@@ -1,7 +1,7 @@
-# version 2021-09-16; vivaMX
+# version 2021-09-17
 use strict;
 use warnings;
-use Test::More tests => 21;
+use Test::More tests => 22;
 
 use lib "lib";
 use lib "lib/perl/bioperl-1.5.2_102/";
@@ -76,4 +76,4 @@ ok( eval{ `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.
 ok( eval{ `cd test_sequences/pan_genome && ../../estimate_pangenome_phylogenies.sh -f pangenome_matrix_t0.fasta -r 2 -S UFBoot | grep "done!"` }, 'estimate_pangenome_phylogenies.sh -r 2 -S UFBoot ...' );
 
 # test 22 estimate a PARS  pan-genome tree with bootstrapping; 50 bootstrap replicates divided on 10 core (5 reps / core)
-#ok( eval{ `cd test_sequences/pan_genome && ../../estimate_pangenome_phylogenies.sh -c PARS -R 3 -i pangenome_matrix_t0.phylip -n 10 -b 5 -j 1 -t 1 | grep -E "seq_key"` }, 'estimate_pangenome_phylogenies.sh -c #PARS -R 3 ...' );
+ok( eval{ `cd test_sequences/pan_genome && ../../estimate_pangenome_phylogenies.sh -c PARS -R 3 -i pangenome_matrix_t0.phylip -n 10 -b 5 -j 1 -t 1 | grep "seq_key"` }, 'estimate_pangenome_phylogenies.sh -c #PARS -R 3 ...' );
