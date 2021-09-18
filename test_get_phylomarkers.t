@@ -76,4 +76,4 @@ ok( eval{ `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.
 ok( eval{ `cd test_sequences/pan_genome && ../../estimate_pangenome_phylogenies.sh -f pangenome_matrix_t0.fasta -r 2 -S UFBoot | grep "done!"` }, 'estimate_pangenome_phylogenies.sh -r 2 -S UFBoot ...' );
 
 # test 22 estimate a PARS  pan-genome tree with bootstrapping; 50 bootstrap replicates divided on 10 core (5 reps / core)
-#ok( eval{ `cd test_sequences/pan_genome && ../../estimate_pangenome_phylogenies.sh -c PARS -R 3 -i pangenome_matrix_t0.phylip -n 10 -b 5 -j 1 -t 1 | grep "wrote file full_pars_tree_rooted_withBoot.ph"` }, 'estimate_pangenome_phylogenies.sh -c #PARS -R 3 ...' );
+#ok( eval{ `cd test_sequences/pan_genome && ../../estimate_pangenome_phylogenies.sh -c PARS -R 3 -i pangenome_matrix_t0.phylip -n 10 -b 5 -j 1 -t 1 | grep -E "seq_key"` }, 'estimate_pangenome_phylogenies.sh -c #PARS -R 3 ...' );
