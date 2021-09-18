@@ -1,3 +1,4 @@
+18Sep21  * install_R_deps.R installs ape and kdetrees from source; fixed estimate_pangenome_phylogenies.sh & test_get_phylomarkers.t; GitHub builds with Travis CI
 17Sep21  * run_get_phylomarkers_pipeline.sh 2.3.0 and all aux. scripts pass cleanly all 22 tests (run_make_tests.sh)
 16Sep21  * updated README.md; added check_libnw() to estimate_pangenome_phylogenies.sh
 16Sep21  * extended number of tests in test_get_phylomarkers.t (22) and run_test_suite.sh (9)
