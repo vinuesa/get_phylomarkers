@@ -41,7 +41,7 @@ local_lib = "./lib/R"
 .libPaths( c( .libPaths(), local_lib) )
 
 # make sure we get latest ape Rcpp packages installed
-remove.packages(c("ape", "cluster", "dendextend", "factoextra", "kdetrees", "Rcpp", "ggplot2", "dplyr"), lib="lib/R")
+#remove.packages(c("ape", "cluster", "dendextend", "factoextra", "kdetrees"), lib=local_lib)
 
 # Install ape && kdetrees from source
 install.packages(c("ape", "kdetrees"), dependencies=TRUE, lib="lib/R", type="source")
