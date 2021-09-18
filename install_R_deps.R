@@ -33,7 +33,7 @@ repository = 'https://cloud.r-project.org'; #'http://cran.rstudio.com'
 
 # do not change (reduce), as it includes dependencies for the GET_HOM+GET_PHYLO image,
 # and from v2.3.0 (2021-09-18) the GET_PHYLO package also includes hcluster_pangenome_matrix.sh, which require "cluster", "dendextend", "factoextra"
-required_packages = c("ape", "kdetrees", "stringr", "vioplot", "ggplot2", "gplots", "dplyr", "seqinr", "plyr", "cluster", "dendextend", "factoextra")
+required_packages = c("stringr", "vioplot", "ggplot2", "gplots", "dplyr", "seqinr", "plyr", "cluster", "dendextend", "factoextra")
 
 local_lib = "./lib/R"
 
@@ -42,8 +42,11 @@ local_lib = "./lib/R"
 for (package in required_packages) {
   if (!require(package, character.only=T, quietly=T)) {
     sprintf("# cannot load %s, will get it from %s and install it in %s",package,repository,local_lib)
-    install.packages(package, dependencies=TRUE, lib=local_lib, repos=repository, clean = TRUE)
+    install.packages(package, dependencies=TRUE, lib=local_lib, repos=repository)
   }
 }
+
+# Install ape && kdetrees from source
+install.packages(c("ape", "kdetrees"), dependencies=TRUE, lib="lib/R", type="source")
 
 sessionInfo()
