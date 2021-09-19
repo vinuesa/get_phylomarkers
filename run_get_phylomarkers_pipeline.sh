@@ -34,7 +34,7 @@
 #
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.3.0_17sep2021'
+VERSION='2.3.1_19sep2021'
 
 # Set GLOBALS
 DEBUG=0
@@ -2188,7 +2188,8 @@ then
         tar -czf non_recomb_kdeOK_FAA_alignments.tgz ./*_cluo.faaln
         [ -s non_recomb_kdeOK_FAA_alignments.tgz ] && rm ./*_cluo.faaln
         tar -czf non_recomb_kdeOK_prot_trees.tgz ./*faaln.treefile ./*.faaln.log all_gene_trees.tre
-        [ -s non_recomb_kdeOK_prot_trees.tgz ] && rm ./*faaln.treefile all_gene_trees.tre ./*.faaln.log kde*.out top100_median_support_values4loci.tab no_tree_branches.list
+        [ -s non_recomb_kdeOK_prot_trees.tgz ] && rm ./*faaln.treefile all_gene_trees.tre ./*.faaln.log top100_median_support_values4loci.tab no_tree_branches.list
+	[ -s non_recomb_kdeOK_prot_trees.tgz ] && [ "$PRINT_KDE_ERR_MESSAGE" -eq 0 ] && rm kde*.out
 
         cd "$top_dir" || msg "ERROR: cannot cd into $top_dir ..." ERROR RED
 	[ "$DEBUG" -eq 1 ] && echo "... working in: $top_dir"	
