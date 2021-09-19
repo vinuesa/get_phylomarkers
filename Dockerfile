@@ -1,5 +1,6 @@
 ## Dockerfile version 2021-09-19
-# - build images using as context the freshly pulled git repo directory get_phylomarkers
+# - build images using as context the freshly pulled get_phylomarkers GitHub repositor (or from git/get_phylomarkers)
+# - now runs 22 tests during the final image's build stage
 
 ## Base images
 # Use ubuntu:18.04 as base layer and r-base:3.6.3-bionic to avoid problems with R's kdetree package
@@ -82,11 +83,10 @@ CMD ["/bin/bash"]
 # bind mount that host directory on the container instance under /home/you/data with the following command:
 # $ docker run -it --rm -v ~/data/genomes/test_sequences:/home/you/data vinuesa/get_phylomarkers:latest /bin/bash
 
-# Copy the test sequences to your data directory and extract them from the gzipped tar files
-# $ cp /get_phylomarkers/test_sequences/*tgz ~/data/
+# Copy the test sequences to your data directory
+# $ cp -r /get_phylomarkers/test_sequences/core_genome ~/data/
+# $ cp -r /get_phylomarkers/test_sequences/pan_genome ~/data/
 # $ cd ~/data 
-# $ for f in *tgz; do tar -xzf $f; done
-# $ rm *tgz && ls
 
 ## Functional testing
 # $ cd ~/data/core_genome
@@ -97,6 +97,6 @@ CMD ["/bin/bash"]
 # $ estimate_pangenome_phylogenies.sh -f pangenome_matrix_t0.fasta -r 1 -S UFBoot
 
 ## Thorough functional testing (8 tests calling the two main scripts) can also be run automatically as follows,
-#   assuming that you have installed the core_genome and pan_genome test sequences, as indicated above.
+#   assuming that you have copied the core_genome and pan_genome test sequences to the data directory, as indicated above.
 # $ cd && run_test_suite.sh /home/you/data
 
