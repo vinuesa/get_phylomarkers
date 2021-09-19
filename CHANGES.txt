@@ -1,3 +1,4 @@
+19Sep21  * test_get_phylomarkers.t runs 23 tests; fixed a rm kde*out case; adjusted install_R_deps.R; new Dockerfile that runs make test during final build stage
 18Sep21  * install_R_deps.R installs ape and kdetrees from source; fixed estimate_pangenome_phylogenies.sh & test_get_phylomarkers.t; GitHub builds with Travis CI
 17Sep21  * run_get_phylomarkers_pipeline.sh 2.3.0 and all aux. scripts pass cleanly all 22 tests (run_make_tests.sh)
 16Sep21  * updated README.md; added check_libnw() to estimate_pangenome_phylogenies.sh
