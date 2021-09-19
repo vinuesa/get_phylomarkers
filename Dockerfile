@@ -1,4 +1,4 @@
-## Dockerfile version 2021-09-15 <vivaMX>
+## Dockerfile version 2021-09-19
 # - build images using as context the freshly pulled git repo directory get_phylomarkers
 
 ## Base images
@@ -7,15 +7,17 @@
 FROM ubuntu:18.04
 
 ## Add metadata 
-LABEL maintainer="Pablo Vinuesa <vinuesa@ccg.unam.mx>" \
- software="get_phylomarkers" \
- version="20210915" \
- summary="An open source tool to estimate maximum-likelihood core-genome phylogenies and pan-genome trees" \
- home="https://github.com/vinuesa/get_phylomarkers" \
- about.documentation="https://vinuesa.github.io/get_phylomarkers/#get_phylomarkers-manual" \
- about.license="GPL-3.0" \
- about.license_file="https://github.com/vinuesa/get_phylomarkers/blob/master/LICENSE" \
- about.tags="bioinformatics genomics phylogenetics pipeline ubuntu"
+LABEL authors="Pablo Vinuesa <https://www.ccg.unam.mx/~vinuesa/ and Bruno Contreras Moreira <https://www.eead.csic.es/compbio/>"
+LABEL keywods="ubuntu18:04, rstudio/r-base:3.6.3-bionic, Docker image"
+LABEL version="20210919"
+LABEL description="Ubuntu 18.04 + rstudio/r-base:3.6.3-bionic based image plus GET_PHYLOMARKERS"
+LABEL summary="This image runs GET_PHYLOMARKERS for advanced and versatile phylogenonic analysis of microbial pan-genomes, \
+  as described in the documentation and referenced publication"
+LABEL home="https://hub.docker.com/r/vinuesa/get_phylomarkers"
+LABEL get_phylomarkers.github.home="<https://github.com/vinuesa/get_phylomarkers>"
+LABEL get_phylomarkers.reference="PMID:29765358 <https://pubmed.ncbi.nlm.nih.gov/29765358/"
+LABEL pubmed.id="29765358"
+LABEL license="GPLv3 <https://www.gnu.org/licenses/gpl-3.0.html>"
 
 ## Install required linux tools
 RUN apt-get update && apt-get install --no-install-recommends -y \
@@ -47,7 +49,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y python2.7 pytho
 && apt-get clean && apt-get purge && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
 && cp /get_phylomarkers/lib/libnw.so /usr/local/lib \
 && export LD_LIBRARY_PATH=/usr/local/lib \
-&& ldconfig
+&& ldconfig \
+&& chmod -R a+wr /get_phylomarkers/test_sequences
 
 ## add version tag to image
 ARG version
@@ -60,6 +63,10 @@ RUN useradd --create-home --shell /bin/bash you
 #  https://docs.docker.com/engine/reference/run/#env-environment-variables
 ENV USER=you
 USER you
+
+# run get_phylomarkers tests on fully built image
+RUN make clean && make test && make clean
+
 WORKDIR /home/you
 ENV PATH="${PATH}:/get_phylomarkers"
 
