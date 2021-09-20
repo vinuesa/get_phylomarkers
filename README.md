@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.com/vinuesa/get_phylomarkers.svg?branch=master)](https://travis-ci.com/vinuesa/get_phylomarkers)
 
-<!--Version Sep 16. 2021.-->
+<!--Version Sep 19. 2021.-->
 
 **GET_PHYLOMARKERS** ([Vinuesa et al. 2018](https://www.frontiersin.org/articles/10.3389/fmicb.2018.00771/full)) is a software package designed to identify optimal genomic markers for phylogenomics, population genetics and genomic taxonomy. It implements a [**pipeline**](https://vinuesa.github.io/get_phylomarkers/#brief-presentation-and-graphical-overview-of-the-pipeline) to filter orthologous gene clusters computed by the companion package [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues) to select those with optimal attributes for phylogenetic inference. Top-scoring alignments are concatenated into a supermatrix, which is used to estimate the species tree under the maximum-likelihood (ML) criterion with state-of-the-art fast ML tree searching algorithms. **GET_PHYLOMARKERS** can also estimate ML and parsimony trees from the pan-genome matrix, including unsupervised learning methods to determine the optimal number of clusters from pan-genome and average genomic distance matrices. A detailed [**manual**](https://vinuesa.github.io/get_phylomarkers/#get_phylomarkers-manual) and step-by-step [**tutorials**](https://vinuesa.github.io/get_phylomarkers/#get_phylomarkers-tutorial) document the software and help the user to get quickly up and running. For your convenience, [**html**](https://vinuesa.github.io/get_phylomarkers/) and [**markdown**](https://github.com/vinuesa/get_phylomarkers/blob/master/docs/GET_PHYLOMARKERS_manual.md) versions of the documentation material are available.
 
@@ -14,9 +14,14 @@ A [**GET_PHYLOMARKERS Docker image**](https://hub.docker.com/r/vinuesa/get_phylo
  GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues), ready to use. Detailed instructions for setting up the Docker environment are provided in [**INSTALL.md**](INSTALL.md). How to run container instances with the test sequences distributed with **GET_PHYLOMARKERS** is described in the [**tutorial**](https://vinuesa.github.io/get_phylomarkers/#get_phylomarkers-tutorial).
 
 ## Aim
-**GET_PHYLOMARKERS** ([Vinuesa et al. 2018](https://www.frontiersin.org/articles/10.3389/fmicb.2018.00771/full)) implements a series of sequential filters (detailed below) to selects markers from the homologous gene clusters produced by [GET_HOMOLOGUES](https://github.com/eead-csic-compbio/get_homologues) with optimal attributes for phylogenomic inference. It estimates **gene-trees** and **species-trees** under the **maximum likelihood (ML) optimality criterion** using state-of-the-art fast ML tree searching algorithms. The species tree is estimated from the supermatrix of concatenated, top-scoring alignments that passed the quality filters. 
+**GET_PHYLOMARKERS** ([Vinuesa et al. 2018](https://www.frontiersin.org/articles/10.3389/fmicb.2018.00771/full)) implements a series of sequential filters (detailed below) to selects markers from the homologous gene clusters produced by [GET_HOMOLOGUES](https://github.com/eead-csic-compbio/get_homologues) with optimal attributes for phylogenomic inference. It estimates **gene-trees** and **species-trees** under the **maximum likelihood (ML) optimality criterion** using state-of-the-art fast ML tree searching algorithms. The species tree is estimated from the supermatrix of concatenated, top-scoring alignments that passed the quality filters outlined in the figures below and explained in detail in the [**manual**](https://vinuesa.github.io/get_phylomarkers/#get_phylomarkers-manual) and [publication](https://www.frontiersin.org/articles/10.3389/fmicb.2018.00771/full).
 
-![**Legend.** GET_PHYLOMARKERS](./pics/summary.jpg)
+![**flowchart**](./pics/get_phylomarkers_flowchart.png) ![**Filtering actions.** GET_PHYLOMARKERS](./pics/summary.jpg) 
+
+<b>Figure 1A.</b> Simplified flow-chart of the GET_PHYLOMARKERS pipeline showing only those parts used and described in this work. The left branch, starting at the top of the diagram, is fully under control of the master script run_get_phylomarkes_pipeline.sh. The names of the worker scripts called by the master program are indicated on the relevant points along the flow, as detailed in the [**manual**](https://vinuesa.github.io/get_phylomarkers/#get_phylomarkers-manual). The image corresponds to [**Fi1. 3 of Vinuesa et al. 2018**](https://www.frontiersin.org/articles/10.3389/fmicb.2018.00771/full).
+
+<b>Figure 1B.</b> Combined filtering actions performed by GET_HOMOLOGUES and GET_PHYLOMARKERS to select top-ranking phylogenetic markers to be concatenated for phylogenomic analyses, and benchmark results of the performance of the FastTree (FT) and IQ-TREE (IQT) maximum-likelihood (ML) phylogeny inference programs. The image corresponds to [**Fig. 3 of Vinuesa et al. 2018**](https://www.frontiersin.org/articles/10.3389/fmicb.2018.00771/full).
+
 
 **GET_HOMOLOGUES** is a genome-analysis software package for microbial pan-genomics and comparative genomics originally described in the following publications: 
 
@@ -28,10 +33,19 @@ which can be used to cluster eukaryotic genes and transcripts, as described in [
 
 If GET_HOMOLOGUES_EST is fed both .fna and .faa files of CDS sequences it will produce **identical output to that of GET_HOMOLOGUES and thus can be analyzed with GET_PHYLOMARKERS all the same**.
 
+* * *
 
 **GET_PHYLOMARKERS** is primarily tailored towards selecting CDSs (gene markers) to infer DNA-level phylogenies of different species of the same genus or family. It can also select optimal markers for population genetics, when the source genomes belong to the same species ([Vinuesa et al. 2018](https://www.frontiersin.org/articles/10.3389/fmicb.2018.00771/full)).
 For more divergent genome sequences, classified in different genera, families, orders or higher taxa,
 the pipeline should be run using protein instead of DNA sequences.
+
+![ML core-genome phylogeny of Stenotrophomonas](./pics/fmicb-09-00771-g005.jpg) ![ML core-genome phylogeny of Stenotrophomonas](./pics/fmicb-09-00771-g006.jpg)
+
+<b>Figure 2A</b>. Best maximum-likelihood **core-genome phylogeny** for the genus <i>Stenotrophomonas</i> found in the IQ-TREE search, based on the supermatrix obtained by concatenation of 55 top-ranking alignments. The image corresponds to [**Fig. 5 of Vinuesa et al. 2018**](https://www.frontiersin.org/articles/10.3389/fmicb.2018.00771/full).
+
+<b>Figure 2B</b>. Maximum-likelihood **pan-genome phylogeny** estimated with IQ-TREE from the consensus pan-genome clusters displayed in the Venn diagram. Clades of lineages belonging to the *S. maltophilia* complex are collapsed and are labeled as in Figure 2A. Numbers on the internal nodes represent the approximate Bayesian posterior probability/UFBoot2 bipartition support values (see methods). The tabular inset shows the results of fitting either the binary (GTR2) or morphological (MK) models implemented in IQ-TREE, indicating that the former has an overwhelmingly better fit. The scale bar represents the number of expected substitutions per site under the binary GTR2+F0+R4 substitution model.  The image corresponds to [**Fig. 6 of Vinuesa et al. 2018**](https://www.frontiersin.org/articles/10.3389/fmicb.2018.00771/full).
+
+* * * 
 
 ## Manual and tutorials
 
