@@ -33,11 +33,14 @@ repository = 'http://cran.rstudio.com' # 'https://cloud.r-project.org';
 
 # do not change (reduce), as it includes dependencies for the GET_HOM+GET_PHYLO image,
 # and from v2.3.0 (2021-09-18) the GET_PHYLO package also includes hcluster_pangenome_matrix.sh, which require "cluster", "dendextend", "factoextra"
-# ape and kdetrees are installed from source
-required_packages = c("ape", "kdetrees", "stringr", "vioplot", "ggplot2", "gplots", "dplyr", "plyr", "seqinr", "cluster", "dendextend", "factoextra")
+# Note that plyr should be called before dplyr; stringi before stringr;
+# https://github.com/tidyverse/stringr/issues/320
+# 
+required_packages = c("ape", "kdetrees", "cluster", "gplots", "vioplot", "plyr", "dplyr", "ggplot2", "stringi", "stringr", "seqinr", "dendextend", "factoextra")
 
 local_lib = "./lib/R"
 
+# Note: this command should be added to .Rprofile to mak permanent, by calling it with each new shell/session start
 .libPaths( c( .libPaths(), local_lib) )
 
 # make sure we get latest ape Rcpp packages installed
@@ -50,7 +53,7 @@ local_lib = "./lib/R"
 for (package in required_packages) {
   if (!require(package, character.only=T, quietly=T)) {
     sprintf("# cannot load %s, will get it from %s and install it in %s",package,repository,local_lib)
-    install.packages(package, dependencies=TRUE, lib=local_lib, repos=repository)
+    install.packages(package, dependencies=TRUE, lib=local_lib, repos=repository, clean=TRUE)
   }
 }
 
