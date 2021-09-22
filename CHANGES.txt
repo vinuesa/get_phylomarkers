@@ -1,3 +1,5 @@
+21Sep21  * install_R_deps.R v2021-09-21; calls plyr before dplyr; added stringi before stringr; additional notes
+20Sep21  * .travis.yml v2021-09-20; adds curl build-essential bc make g++ to sudo apt-get install call
 19Sep21  * test_get_phylomarkers.t runs 22 tests; fixed a rm kde*out case; adjusted install_R_deps.R; new Dockerfile that runs make test during final build stage; removed hcluster_pangenome_matrix
 18Sep21  * install_R_deps.R installs ape and kdetrees from source; fixed estimate_pangenome_phylogenies.sh & test_get_phylomarkers.t; GitHub builds with Travis CI
 17Sep21  * run_get_phylomarkers_pipeline.sh 2.3.0 and all aux. scripts pass cleanly all 22 tests (run_make_tests.sh)
