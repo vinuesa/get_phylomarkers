@@ -23,15 +23,22 @@ Alternatively, you can try to perform a manual install, as follows:
 
 3. cd into get_phylomarkers/ and run './install_R_deps.R', which will install R packages into get_phylomarkers/lib/R
 
-4. cd into the test_sequences/core_genome directory, or copy that directory into a suitable place (e.g. 'cp -r test_sequences $HOME && cd $HOME/test_sequences/core_genome')
+4. from within the get_phylomarkers distribution directory type:
+   rlibs=`for p in $(R -q -e 'print(.libPaths())'); do if [[ "$p" =~ '/' ]]; then echo -n "$p:"; fi; done; echo -n "$wkd"/"$distrodir/lib/R"` && \
+   echo "export R_LIBS_SITE=$rlibs > $HOME/.Rprofile" for single user, or as sudo append  ':/PATH/TO/get_phylomarkers/lib/R' to R_LIBS_SITE=${R_LIBS_SITE-'/usr/local/lib/R/site-library:/usr/lib/R/site-library:/usr/lib/R/library'} in /etc/R/Profile for system-wide permanent changes for all users and session types.
+   
 
-5. If you want to perform a system-wide install, you will have to become the superuser (e.g. 'sudo su').
+5. 'sudo cp /PATH/TO/get_phylomarkers/lib/libnw.so /usr/local/lib && sudo echo "export LD_LIBRARY_PATH=/usr/local/lib" && sudo ldconfig'
 
-6. Issue the following command from within /path/to/test_sequences/core_genome to test if the distro is working on your system: '/path/to/get_phylomarkers/run_get_phylomarkers_pipeline.sh -R 1 -t DNA', which will run in phylogenomics mode (-R 1), on DNA sequences (-t DNA). 
+6. cd into the test_sequences/core_genome directory, or copy that directory into a suitable place (e.g. 'cp -r test_sequences $HOME && cd $HOME/test_sequences/core_genome')
+
+7. If you want to perform a system-wide install, you will have to become the superuser (e.g. 'sudo su').
+
+8. Issue the following command from within /path/to/test_sequences/core_genome to test if the distro is working on your system: '/path/to/get_phylomarkers/run_get_phylomarkers_pipeline.sh -R 1 -t DNA', which will run in phylogenomics mode (-R 1), on DNA sequences (-t DNA). 
  
-7. Check it now on the protein level: 'run_get_phylomarkers_pipeline.sh -R 1 -t PROT'. Note that for this second invocation, you will probably not need to prepend the full path to the script anymore, as symlinks were created to the scripts from your $HOME/bin dir, or if you run the lines above with root privileges, from /usr/local/bin.
+9. Check it now on the protein level: 'run_get_phylomarkers_pipeline.sh -R 1 -t PROT'. Note that for this second invocation, you will probably not need to prepend the full path to the script anymore, as symlinks were created to the scripts from your $HOME/bin dir, or if you run the lines above with root privileges, from /usr/local/bin.
 
-8. Explore the help menu of the master script to see the options available for customizing the runs. It is printed to STDOUT when issuing run_get_phylomarkers_pipeline.sh -h or simply run_get_phylomarkers_pipeline.sh
+10. Explore the help menu of the master script to see the options available for customizing the runs. It is printed to STDOUT when issuing run_get_phylomarkers_pipeline.sh -h or simply run_get_phylomarkers_pipeline.sh
 
 That's it, enjoy!
 
@@ -66,7 +73,6 @@ Once Docker is installed on your machine (the host), it is highly recommended to
 sudo groupadd docker
 sudo usermod -aG docker $USER
 ```
-
 
 ### Pulling and running the latest version of the [GET_PHYLOMARKERS](https://hub.docker.com/r/vinuesa/get_phylomarkers) and/or [GET_HOMOLOGUES + GET_PHYLOMARKERS](https://hub.docker.com/r/csicunam/get_homologues/) Docker images.
 Once Docker is set up on your machine (the host), you can *pull* (fetch) the latest image version available at Dockerhub by typing the following command <code>docker pull <image:version_tag></code> in your terminal: 
@@ -168,8 +174,6 @@ Once you access the data in the mounted '~/data/core_genome' volume, you can lau
 ```
 you@01417f649c72:~/data/test_sequences/core_genome$ run_get_phylomarkers_pipeline.sh -R 1 -t DNA
 ```
-
-
 
 ## Scripts distributed through GitHub
 
