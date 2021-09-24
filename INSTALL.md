@@ -25,7 +25,10 @@ Alternatively, you can try to perform a manual install, as follows:
 
 4. from within the get_phylomarkers distribution directory, as regular user type:
 ```
-rlibs=`for p in $(R -q -e 'print(.libPaths())'); do if [[ "$p" =~ '/' ]]; then echo -n "$p:"; fi; done; echo -n "$wkd"/"$distrodir/lib/R"` && echo "export R_LIBS_SITE=$rlibs >> $HOME/.Rprofile"
+rlibs=`for p in $(R -q -e 'print(.libPaths())'); do if [[ "$p" =~ '/' ]]; then echo -n "$p:"; fi; done; echo -n "$wkd"/"$distrodir/lib/R"` && echo "export R_LIBS_SITE=$rlibs" >> $HOME/.Rprofile
+
+# to verify
+cat $HOME/.Rprofile 
 ```
   - or as sudo append ':/PATH/TO/get_phylomarkers/lib/R' to <code>R_LIBS_SITE=${R_LIBS_SITE-'/usr/local/lib/R/site-library:/usr/lib/R/site-library:/usr/lib/R/library'}</code> in /etc/R/Profile for system-wide permanent changes for all users and session types.
    
