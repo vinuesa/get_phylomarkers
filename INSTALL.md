@@ -25,7 +25,7 @@ Alternatively, you can try to perform a manual install, as follows:
 
 4. from within the get_phylomarkers distribution directory, as regular user type:
 ```
-rlibs=`for p in $(R -q -e 'print(.libPaths())'); do if [[ "$p" =~ '/' ]]; then echo -n "$p:"; fi; done; echo -n "$wkd"/"$distrodir/lib/R"` && echo "export R_LIBS_SITE=$rlibs" >> $HOME/.Rprofile
+rlibs=`for p in $(R -q -e 'print(.libPaths())'); do if [[ "$p" =~ '/' ]]; then echo -n "$p:"; fi; done; echo -n "$wkd"/"$distrodir/lib/R"` && echo "export R_LIBS_SITE=$rlibs" >> $HOME/.bashrc
 
 # to verify
 cat $HOME/.Rprofile 
