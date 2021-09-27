@@ -1,3 +1,4 @@
+23Sep21  * INSTALL.md v2021-09-23; setup R_LIBS_SITE and libnw with impromved text & markup formatting of code snippets
 21Sep21  * install_R_deps.R v2021-09-21; calls plyr before dplyr; added stringi before stringr; additional notes
 20Sep21  * .travis.yml v2021-09-20; adds curl build-essential bc make g++ to sudo apt-get install call
 19Sep21  * test_get_phylomarkers.t runs 22 tests; fixed a rm kde*out case; adjusted install_R_deps.R; new Dockerfile that runs make test during final build stage; removed hcluster_pangenome_matrix
