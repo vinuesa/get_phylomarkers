@@ -1,23 +1,17 @@
-## Dockerfile version 2021-09-19
+## Dockerfile version 2021-09-20
 # - build images using as context the freshly pulled get_phylomarkers GitHub repositor (or from git/get_phylomarkers)
-# - now runs 22 tests during the final image's build stage
-
-## Base images
-# Use ubuntu:18.04 as base layer and r-base:3.6.3-bionic to avoid problems with R's kdetree package
-#  Note however, that r-base:3.6.3-bionic overwrites python2.7, which needs to be installed after the former
+# - now runs 22 tests during the final image's build stage & sets ENV R_LIBS_SITE
 FROM ubuntu:18.04
+FROM rstudio/r-base:3.6.3-bionic
 
-## Add metadata 
-LABEL authors="Pablo Vinuesa <https://www.ccg.unam.mx/~vinuesa/ and Bruno Contreras Moreira <https://www.eead.csic.es/compbio/>"
-LABEL keywods="ubuntu18:04, rstudio/r-base:3.6.3-bionic, Docker image"
-LABEL version="20210919"
-LABEL description="Ubuntu 18.04 + rstudio/r-base:3.6.3-bionic based image plus GET_PHYLOMARKERS"
-LABEL summary="This image runs GET_PHYLOMARKERS for advanced and versatile phylogenonic analysis of microbial pan-genomes, \
-  as described in the documentation and referenced publication"
-LABEL home="https://hub.docker.com/r/vinuesa/get_phylomarkers"
+LABEL authors="Pablo Vinuesa <https://www.ccg.unam.mx/~vinuesa/> and Bruno Contreras Moreira <https://www.eead.csic.es/compbio/>"
+LABEL keywods="bioinformatics, genomics, phylogenetics, phylogenomics, core-genome, pan-genome, maximum likelihood, parsimony, population genetics, molecular clock, Docker image"
+LABEL version="20210920"
+LABEL description="Ubuntu 18.04 + rstudio/r-base:3.6.3-bionic based image of GET_PHYLOMARKERS"
+LABEL summary="This image runs GET_PHYLOMARKERS for advanced and versatile phylogenomic analysis of microbial pan-genomes"
+LABEL home="<https://hub.docker.com/r/vinuesa/get_phylomarkers>"
 LABEL get_phylomarkers.github.home="<https://github.com/vinuesa/get_phylomarkers>"
 LABEL get_phylomarkers.reference="PMID:29765358 <https://pubmed.ncbi.nlm.nih.gov/29765358/"
-LABEL pubmed.id="29765358"
 LABEL license="GPLv3 <https://www.gnu.org/licenses/gpl-3.0.html>"
 
 ## Install required linux tools
@@ -26,23 +20,24 @@ bash-completion \
 bc \
 build-essential \
 cpanminus \
+curl \
 gcc \
+libssl-dev \
 make \
 wget \
 && apt-get clean && apt-get purge && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && cpanm Term::ReadLine
-
-## use r-base:3.6.3-bionic to avoid problems with R's kdetree package
-# NOTE: seems that rstudio/r-base:3.6.3-bionic overwritesÂpython2.7
-FROM rstudio/r-base:3.6.3-bionic
 
 ## mkdir get_phylomarkes in /, copy all contents into it; make it the working directory & install required R packages
 RUN mkdir get_phylomarkers 
 COPY . /get_phylomarkers 
 WORKDIR /get_phylomarkers 
-RUN Rscript /get_phylomarkers/install_R_deps.R
+RUN Rscript /get_phylomarkers/install_R_deps.R 
+
+# set R paths; run R -q -e '.libPaths()' on Linux (Ubuntu) host, and docker container;
+ENV R_LIBS_SITE=/usr/local/lib/R/site-library:/usr/lib/R/site-library/:/usr/lib/R/library:/opt/R/3.6.3/lib/R/library:/get_phylomarkers/lib/R
 
 ## python2.7 required by paup; python2.7-dev to get libpython2.7.so.1.0
-#   add python2.7 at this stage, as rstudio/r-base:3.6.3-bionic seems to overwriteÂpython2.7 in the first RUN apt-get above
+#   add python2.7 at this stage, as rstudio/r-base:3.6.3-bionic seems to overwriteï¿½python2.7 in the first RUN apt-get above
 #   this seems the only way to get python2.7 and python2.7-dev in newer ubuntu:18.04 images
 #   as otherwise only python 3.6 gets installed.
 #  Copy libnw required by newick-utils to /usr/local/lib and export LD_LIBRARY_PATH for ldconfig
