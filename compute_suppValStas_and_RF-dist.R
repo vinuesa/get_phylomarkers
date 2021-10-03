@@ -19,7 +19,7 @@ LOCAL_LIB = paste(script.dir,"/lib/R",sep = "")
 # http://yihui.name/en/2014/07/library-vs-require/
 # http://stackoverflow.com/questions/5595512/what-is-the-difference-between-require-and-library
 
-for (package in c('ape', 'stringr', 'ggplot2', 'gplots', 'plyr', 'seqinr')) {
+for (package in c('ape', 'gplots',  'seqinr')) {
   if (!require(package, character.only=T, quietly=T)) {
     sprintf("unable to locate %s, will install it for you from %s", package, REPOS)
     install.packages(package, repos=REPOS, lib=LOCAL_LIB)
@@ -30,7 +30,7 @@ for (package in c('ape', 'stringr', 'ggplot2', 'gplots', 'plyr', 'seqinr')) {
 
 # library(package, character.only=T) # don't load all packages to avoid namespace pollution/collision
 # load the required seqinr apt and gplots::functions individually
-for ( pkg in  c("stringr", "ggplot2", "plyr") ){
+for ( pkg in  c("plyr", "stringr", "ggplot2") ){
   library( pkg, character.only=T, quietly=T) 
 }
 
