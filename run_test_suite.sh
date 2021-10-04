@@ -8,7 +8,7 @@
 #: - hcluster_pangenome_matrix.sh
 
 progname="${0##*/}"
-version="2021-09-16"
+version="2021-10-04"
 
 function usage()
 {
@@ -101,5 +101,5 @@ echo
 
 # 9. cluster the pan-genome matrix and run silhoute statistic to define the optimal number of clusters
 echo ">>> Test # 9. cluster the pan-genome matrix and run silhoute statistic to define the optimal number of clusters"
-hcluster_pangenome_matrix.sh -i pangenome_matrix_t0.tab -a ward.D2 -d gower -O pdf -A 'NULL,45' -X 0.8 -T "Pangenome tree"
+hcluster_pangenome_matrix.sh -i pangenome_matrix_t0.tab -a ward.D2 -d gower -o pdf -A 'NULL,45' -X 0.8 -T "Pangenome tree"
 echo
