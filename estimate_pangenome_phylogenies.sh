@@ -42,7 +42,8 @@
 #-------------------------------------------------------------------------------------------------------
 
 progname=${0##*/}
-VERSION='1.2_16Sep21' # v1.2_16Sep21 added function check_libnw() for lib /usr/local/lib/libnw.so.0.0.0; -R 3 only warns if could not write full_pars_tree_rooted_withBoot.ph
+VERSION='1.2.1_04Oct21' #v1.2.1_04Oct21; preppended missing "${bindir}" to first pars call
+       # v1.2_16Sep21 added function check_libnw() for lib /usr/local/lib/libnw.so.0.0.0; -R 3 only warns if could not write full_pars_tree_rooted_withBoot.ph
        # v.1.2_10Jan20; added option -S <abayes|UFBoot|both> default: $IQT_support
        #'1.0.5_28Mar18' # check_scripts_in_path() checks wether USER is regular or root
        #'1.0.4_17Feb18' # prepended $bindir/ to a nw_reroot call that was missing it
@@ -993,7 +994,7 @@ then
   if [ -e infile ]
   then    
      write_pars_full_search_cmd "$n_jumbles" "$sequential"
-     pars < pars.params &> /dev/null & 
+     "${bindir}"/pars < pars.params &> /dev/null & 
      cd "$wkdir"
   else
      echo
