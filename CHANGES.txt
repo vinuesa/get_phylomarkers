@@ -1,3 +1,4 @@
+04Oct21  * run_test_suite.sh v2021-10-04; corrected typo in test #9; -o instead of -O
 23Sep21  * INSTALL.md v2021-09-23; setup R_LIBS_SITE and libnw with impromved text & markup formatting of code snippets
 21Sep21  * install_R_deps.R v2021-09-21; calls plyr before dplyr; added stringi before stringr; additional notes
 20Sep21  * .travis.yml v2021-09-20; adds curl build-essential bc make g++ to sudo apt-get install call
