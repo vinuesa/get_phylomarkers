@@ -1,4 +1,4 @@
-#: VERSION: 2020-11-23
+#: VERSION: 2022-06-12
 #: LIBRARY: get_phylomarkers_fun_lib
 #     * functions called by run_get_phylomarkers_pipeline.sh
 #     * part of the GET_PHYLOMARKERS software package
@@ -16,6 +16,7 @@
 #           see https://github.com/vinuesa/get_phylomarkers/blob/master/LICENSE
 #
 #: AVAILABILITY: freely available from GitHub @ https://github.com/vinuesa/get_phylomarkers
+#                freely available from DockerHub @ https://hub.docker.com/r/vinuesa/get_phylomarkers
 #
 #: CITATION:
 #  Pablo Vinuesa*, Luz Edith Ochoa-Sánchez and Bruno Contreras-Moreira (2018). 
@@ -27,7 +28,6 @@
 #---------------------------------------------------------------------------------#
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>> FUNCTION DEFINITIONS <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<#
 #---------------------------------------------------------------------------------#
-
 
 function get_script_PID()
 {
@@ -436,6 +436,26 @@ compute_MJRC_tree()
 #   [ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 #}
 #-----------------------------------------------------------------------------------------
+
+function run_ASTRAL()
+{
+   # estimate species trees from multiple source gene trees
+   local gene_trees=$1
+   local num_markers=$2
+   local tree_labels_dir=$3
+   
+   [ "$DEBUG" -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
+
+   [ "$DEBUG" -eq 1 ] && msg " > java -jar $distrodir/ASTRAL/astral.jar -i $gene_trees -o astral_species_tree.tre 2> astral.log" DEBUG NC
+   java -jar "$distrodir"/ASTRAL/astral.jar -i "$gene_trees" -o astral_top"${num_markers}"geneTrees.sptree 2> astral.log
+   check_output "astral_top${num_markers}geneTrees.sptree" "$parent_PID"
+   "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list "astral_top${num_markers}geneTrees.sptree" &> /dev/null
+   check_output "astral_top${num_markers}geneTrees_ed.sptree" "$parent_PID"
+   [ -s "astral_top${num_markers}geneTrees.sptree" ] && rm "astral_top${num_markers}geneTrees.sptree"
+   [ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
+}
+#-----------------------------------------------------------------------------------------
+
 
 function process_IQT_species_trees_for_molClock()
 {
