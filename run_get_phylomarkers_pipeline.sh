@@ -10,10 +10,11 @@
 #              but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
 #              See the GNU General Public License for more details. 
 #
-#: LICENSE: This software is freely available under the GNU GENERAL PUBLIC LICENSE v.3.0
+#: LICENSE: This software is freely available under the GNU GENERAL PUBLIC LICENSE v.3.0 (GPLv3)
 #           see https://github.com/vinuesa/get_phylomarkers/blob/master/LICENSE
 #
 #: AVAILABILITY: freely available from GitHub @ https://github.com/vinuesa/get_phylomarkers
+#                freely available from DockerHub @ https://hub.docker.com/r/vinuesa/get_phylomarkers
 #
 #: PROJECT START: April 2017; This is a wrapper script to automate the whole process of marker selection and downstream analyses.
 #
@@ -34,7 +35,7 @@
 #
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.3.1_19sep2021'
+VERSION='2.4.1_12jun2022'
 
 # Set GLOBALS
 DEBUG=0
@@ -88,20 +89,27 @@ function set_pipeline_environment()
 {
   if [[ "$OSTYPE" == "linux-gnu" ]]
   then
-    scriptdir=$(readlink -f "${BASH_SOURCE[0]}")
-    distrodir=$(dirname "$scriptdir") #echo "scriptdir: $scriptdir|basedir:$distrodir|OSTYPE:$OSTYPE"
-    bindir="$distrodir/bin/linux"
-    OS='linux'
-    no_cores=$(awk '/^processor/{n+=1}END{print n}' /proc/cpuinfo)
+    local wkd=$(pwd)
+    local scriptdir=$(readlink -f "${BASH_SOURCE[0]}")
+    local distrodir=$(dirname "$scriptdir") #echo "scriptdir: $scriptdir|basedir:$distrodir|OSTYPE:$OSTYPE"
+    local bindir="$distrodir/bin/linux"
+    local OS='linux'
+    local no_cores=$(awk '/^processor/{n+=1}END{print n}' /proc/cpuinfo)
+    #local  rlibs=`for p in $(R -q -e 'print(.libPaths())'); do if [[ "$p" =~ '/' ]]; then echo -n "$p:"; fi; done; echo -n "$wkd"/"$distrodir/lib/R"`
+    #export R_LIBS_SITE="$rlibs"
   elif [[ "$OSTYPE" == "darwin"* ]]
   then
     # get abs path of script as in 
     # https://stackoverflow.com/questions/5756524/how-to-get-absolute-path-name-of-shell-script-on-macos
-    scriptdir=${BASH_SOURCE[0]}
-    distrodir=$(cd "$(dirname "$scriptdir")"; pwd -P)
-    bindir="$distrodir/bin/macosx-intel"
-    OS='darwin'
-    no_cores=$(sysctl -n hw.ncpu)
+    local wkd=$(pwd)
+    local scriptdir=${BASH_SOURCE[0]}
+    local distrodir=$(cd "$(dirname "$scriptdir")"; pwd -P)
+    local distrodir="$wkd"/"$distrodir"
+    local bindir="$distrodir/bin/macosx-intel"
+    local OS='darwin'
+    local no_cores=$(sysctl -n hw.ncpu)
+    #local  rlibs=`for p in $(R -q -e 'print(.libPaths())'); do if [[ "$p" =~ '/' ]]; then echo -n "$p:"; fi; done; echo -n "$distrodir/lib/R"`
+    #export R_LIBS_SITE="$rlibs"
   else
     echo "ERROR: untested OS $OSTYPE, exit"
     exit 1
@@ -421,7 +429,7 @@ function print_usage_notes()
 	   Note that these may take a considerable time (up to several hours)
 	   for large datasets (~ 100 taxa and > 300 concatenated genes).
 
-	   For protein alignments, the search parameters are the same, only the model changes to lg
+	   For protein alignments, the search parameters are the same, only the model changes to LG
 
 	   Please refer to the FastTree manual for the details.
 
@@ -1471,6 +1479,21 @@ then
 	  compute_MJRC_tree ph "$search_algorithm" 
 
 
+	  msg "" PROGR NC
+	  msg " >>>>>>>>>>>>>>> Computing ASTRAL species tree on ${no_top_markers} top marker gene trees <<<<<<<<<<<<<<< " PROGR YELLOW
+	  msg "" PROGR NC
+
+          # compute ASTRAL species tree on the alltrees.nwk file
+          if [ -s alltrees.nwk ]
+          then
+             print_start_time && msg "# computing ASTRAL species tree from ${no_top_markers} top marker gene trees ..." PROGR BLUE
+             [ "$DEBUG" -eq 1 ] && msg " > java -jar $distrodir/ASTRAL/astral.jar -i alltrees.nwk -o astral_species_tree.tre 2> astral.log" DEBUG NC
+             run_ASTRAL alltrees.nwk "${no_top_markers}" "$tree_labels_dir"
+          else
+             msg " >>> WARNING: file alltrees.nwk was not found; cannot run ASTRAL ..." WARNING LRED
+          fi
+
+	  
 	  # top100_median_support_values4loci.tab should probably not be written in the first instance
 	  [ -s top100_median_support_values4loci.tab -a "${no_top_markers}" -lt 101 ] && rm top100_median_support_values4loci.tab
 
@@ -1489,7 +1512,7 @@ then
 
           print_start_time && msg "# running compute_MJRC_tree treefile $search_algorithm ..." PROGR BLUE
 	  compute_MJRC_tree treefile "$search_algorithm" 
-
+	  
 	  print_start_time && msg "# running ModelFinder on the concatenated alignment with $IQT_models. This will take a while ..." PROGR BLUE
 
           iqtree -s concat_cdnAlns.fnainf -st DNA -mset "$IQT_models" -m MF -nt AUTO -fast &> /dev/null
@@ -1546,6 +1569,22 @@ then
 	     best_tree_file="${tree_prefix}_nonRecomb_KdeFilt_iqtree_${best_model}.treefile"
              process_IQT_species_trees_for_molClock iqtree_abayes "$best_tree_file"
 	  fi
+
+	   msg "" PROGR NC
+	   msg " >>>>>>>>>>>>>>> Computing ASTRAL species tree on ${no_top_markers} top marker gene trees <<<<<<<<<<<<<<< " PROGR YELLOW
+	   msg "" PROGR NC
+	  
+
+           # compute ASTRAL species tree on the alltrees.nwk file
+           if [ -s alltrees.nwk ]
+           then
+             print_start_time && msg "# computing ASTRAL species tree from ${no_top_markers} top marker gene trees ..." PROGR BLUE
+             [ "$DEBUG" -eq 1 ] && msg " > java -jar $distrodir/ASTRAL/astral.jar -i alltrees.nwk -o astral_species_tree.tre 2> astral.log" DEBUG NC
+             run_ASTRAL alltrees.nwk "${no_top_markers}" "$tree_labels_dir"
+           else
+             msg " >>> WARNING: file alltrees.nwk was not found; cannot run ASTRAL ..." WARNING LRED
+           fi
+
        fi # if [ "$search_algorithm" == "I" ]
 
 
@@ -1659,7 +1698,8 @@ then
 	    tar -czf concatenated_alignment_files.tgz concat_cdnAlns.fna concat_cdnAlns.fnainf
             [ -s concatenated_alignment_files.tgz ] && rm concat_cdnAlns.fna concat_cdnAlns.fnainf
 	    [ "$DEBUG" -eq 0 ] && rm gene_trees2_concat_tree_RF_distances.tab ./*cdnAln.fasta ./*.log sorted_aggregated_support_values4loci_*.tab 
-	    [ "$DEBUG" -eq 0 ] && rm ./*ckp.gz ./*model.gz ./*uniqueseq.phy
+	    [ "$DEBUG" -eq 0 ] && rm ./*ckp.gz ./*model.gz 
+	    [ "$DEBUG" -eq 0 ] && if ls ./*uniqueseq.phy &> /dev/null; then rm ./*uniqueseq.phy; fi
             [ "$DEBUG" -eq "0" ] && rm list2concat Rplots.pdf ./*cdnAln.ph 
 
             cd "$non_recomb_cdn_alns_dir" || msg "ERROR: cannot cd into $non_recomb_cdn_alns_dir ..." ERROR RED
@@ -2048,9 +2088,24 @@ then
 	
         print_start_time && msg "# running compute_MJRC_tree ph $search_algorithm ..." PROGR BLUE
 	compute_MJRC_tree ph "$search_algorithm" 
+	
+	msg "" PROGR NC
+	msg " >>>>>>>>>>>>>>> Computing ASTRAL species tree on ${no_top_markers} top marker gene trees <<<<<<<<<<<<<<< " PROGR YELLOW
+	msg "" PROGR NC
+	
+        # compute ASTRAL species tree on the alltrees.nwk file
+        if [ -s alltrees.nwk ]
+        then
+           print_start_time && msg "# computing ASTRAL species tree from ${no_top_markers} top marker gene trees ..." PROGR BLUE
+           [ "$DEBUG" -eq 1 ] && msg " > java -jar $distrodir/ASTRAL/astral.jar -i alltrees.nwk -o astral_species_tree.tre 2> astral.log" DEBUG NC
+           run_ASTRAL alltrees.nwk "${no_top_markers}" "$tree_labels_dir"
+        else
+           msg " >>> WARNING: file alltrees.nwk was not found; cannot run ASTRAL ..." WARNING LRED
+        fi
 
         [ "$DEBUG" -eq 1 ] && msg " > compute_suppValStas_and_RF-dist.R $top_markers_dir 2 faaln ph 1 &> /dev/null" DEBUG NC
         "${distrodir}"/compute_suppValStas_and_RF-dist.R "$top_markers_dir" 2 faaln ph 1 &> /dev/null
+
    fi # [ "$search_algorithm" == "F" ]
 
 
@@ -2068,7 +2123,7 @@ then
        #wkdir=$(pwd)
        print_start_time && msg "# running compute_MJRC_tree treefile $search_algorithm ..." PROGR BLUE
        compute_MJRC_tree treefile "$search_algorithm" 
-       
+              
        print_start_time && msg "# running ModelFinder on the $no_top_markers concatenated $mol_type alignments with $IQT_models. This will take a while ..." PROGR BLUE
 
        iqtree -s concat_protAlns.faainf -st PROT -mset "$IQT_models" -m MF -nt AUTO -fast &> /dev/null
@@ -2144,9 +2199,22 @@ then
 #	  print_start_time && msg "# computing the mean support values and RF-distances of each gene tree to the concatenated tree ..." PROGR BLUE
 #	  [ "$DEBUG" -eq 1 ] && msg " > compute_suppValStas_and_RF-dist.R $top_markers_dir 2 fasta treefile 1 &> /dev/null" DEBUG NC
 #          $distrodir/compute_suppValStas_and_RF-dist.R $top_markers_dir 2 fasta ph 1 &> /dev/null
-
-	  
        fi
+
+       msg "" PROGR NC
+       msg " >>>>>>>>>>>>>>> Computing ASTRAL species tree on ${no_top_markers} top marker gene trees <<<<<<<<<<<<<<< " PROGR YELLOW
+       msg "" PROGR NC
+
+       # compute ASTRAL species tree on the alltrees.nwk file
+       if [ -s alltrees.nwk ]
+       then
+          print_start_time && msg "# computing ASTRAL species tree from ${no_top_markers} top marker gene trees ..." PROGR BLUE
+          [ "$DEBUG" -eq 1 ] && msg " > java -jar $distrodir/ASTRAL/astral.jar -i alltrees.nwk -o astral_species_tree.tre 2> astral.log" DEBUG NC
+          run_ASTRAL alltrees.nwk "${no_top_markers}" "$tree_labels_dir"
+       else
+          msg " >>> WARNING: file alltrees.nwk was not found; cannot run ASTRAL ..." WARNING LRED
+       fi
+
     fi # if [ "$search_algorithm" == "I" ]
 
     # >>> 5.9 CLEANUP <<< #
