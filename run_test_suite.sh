@@ -8,12 +8,17 @@
 #: - hcluster_pangenome_matrix.sh
 
 progname="${0##*/}"
-version="2021-10-05"
+version="2022-06-12"
 
 function usage()
 {
    cat <<USAGE
-
+   
+   1. Run the Makefile with:
+      make
+      make clean
+   
+   2. As standard script
    ${progname} v.${version} <full path to BASE_DIRECTORY holding core_genome and pan_genome test data>
    
    EXAMPLES:
