@@ -1,13 +1,13 @@
 ## Dockerfile version 2022-06-12
 # - build images using as context the freshly pulled get_phylomarkers GitHub repositor (or from git/get_phylomarkers)
 # - now runs 22 tests during the final image's build stage & sets ENV R_LIBS_SITE
-FROM ubuntu:18.04
-FROM rstudio/r-base:3.6.3-bionic
+FROM ubuntu:latest
+FROM rstudio/r-base:4.0.3-focal
 
 LABEL authors="Pablo Vinuesa <https://www.ccg.unam.mx/~vinuesa/> and Bruno Contreras Moreira <https://www.eead.csic.es/compbio/>"
-LABEL keywods="bioinformatics, genomics, phylogenetics, phylogenomics, core-genome, pan-genome, maximum likelihood, parsimony, population genetics, molecular clock, Docker image"
+LABEL keywods="bioinformatics, genomics, phylogenetics, phylogenomics, species tree, core-genome, pan-genome, maximum likelihood, parsimony, population genetics, molecular clock, Docker image"
 LABEL version="20220612"
-LABEL description="Ubuntu 18.04 + rstudio/r-base:3.6.3-bionic based image of GET_PHYLOMARKERS"
+LABEL description="Ubuntu 20.04 + Rstudio/r-base 4.0.3-focalbased image of GET_PHYLOMARKERS"
 LABEL summary="This image runs GET_PHYLOMARKERS for advanced and versatile phylogenomic analysis of microbial pan-genomes"
 LABEL home="<https://hub.docker.com/r/vinuesa/get_phylomarkers>"
 LABEL get_phylomarkers.github.home="<https://github.com/vinuesa/get_phylomarkers>"
@@ -15,35 +15,60 @@ LABEL get_phylomarkers.reference="PMID:29765358 <https://pubmed.ncbi.nlm.nih.gov
 LABEL license="GPLv3 <https://www.gnu.org/licenses/gpl-3.0.html>"
 
 ## Install required linux tools
-RUN apt-get update && apt-get install --no-install-recommends -y \
+RUN apt update && apt install --no-install-recommends -y \
+software-properties-common \
+dirmngr \
 bash-completion \
 bc \
 build-essential \
 cpanminus \
 curl \
 gcc \
+git \
 default-jre \
 libssl-dev \
 make \
+parallel \
 wget \
-&& apt-get clean && apt-get purge && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && cpanm Term::ReadLine
+&& apt clean && apt purge && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && cpanm Term::ReadLine
 
 ## mkdir get_phylomarkes in /, copy all contents into it; make it the working directory & install required R packages
-RUN mkdir get_phylomarkers 
-COPY . /get_phylomarkers 
+RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | sudo tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
+RUN add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
+RUN add-apt-repository ppa:c2d4u.team/c2d4u4.0+
+RUN apt install --no-install-recommends -y \
+r-cran-ape \
+r-cran-cluster \
+r-cran-gplots \
+r-cran-vioplot \
+r-cran-plyr \
+r-cran-dplyr \
+r-cran-ggplot2 \
+r-cran-ggthemes \
+r-cran-stringi \
+r-cran-stringr \
+r-cran-seqinr \
+r-cran-dendextend \
+&& apt clean && apt purge && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+
+
+RUN git clone https://github.com/vinuesa/get_phylomarkers.git
+#RUN mkdir get_phylomarkers 
+#COPY . /get_phylomarkers 
 WORKDIR /get_phylomarkers 
-RUN Rscript /get_phylomarkers/install_R_deps.R 
+RUN Rscript /get_phylomarkers/install_kdetrees_from_src.R
 
 # set R paths; run R -q -e '.libPaths()' on Linux (Ubuntu) host, and docker container;
 ENV R_LIBS_SITE=/usr/local/lib/R/site-library:/usr/lib/R/site-library/:/usr/lib/R/library:/opt/R/3.6.3/lib/R/library:/get_phylomarkers/lib/R
 
 ## python2.7 required by paup; python2.7-dev to get libpython2.7.so.1.0
-#   add python2.7 at this stage, as rstudio/r-base:3.6.3-bionic seems to overwrite�python2.7 in the first RUN apt-get above
+#   add python2.7 at this stage, as rstudio/r-base:3.6.3-bionic seems to overwrite�python2.7 in the first RUN apt above
 #   this seems the only way to get python2.7 and python2.7-dev in newer ubuntu:18.04 images
 #   as otherwise only python 3.6 gets installed.
 #  Copy libnw required by newick-utils to /usr/local/lib and export LD_LIBRARY_PATH for ldconfig
-RUN apt-get update && apt-get install --no-install-recommends -y python2.7 python2.7-dev \
-&& apt-get clean && apt-get purge && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+RUN apt update && apt install --no-install-recommends -y python2.7 python2.7-dev \
+&& apt clean && apt purge && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
 && cp /get_phylomarkers/lib/libnw.so /usr/local/lib \
 && export LD_LIBRARY_PATH=/usr/local/lib \
 && ldconfig \
