@@ -1,4 +1,4 @@
-## Dockerfile version 2021-09-20
+## Dockerfile version 2022-06-12
 # - build images using as context the freshly pulled get_phylomarkers GitHub repositor (or from git/get_phylomarkers)
 # - now runs 22 tests during the final image's build stage & sets ENV R_LIBS_SITE
 FROM ubuntu:18.04
@@ -6,7 +6,7 @@ FROM rstudio/r-base:3.6.3-bionic
 
 LABEL authors="Pablo Vinuesa <https://www.ccg.unam.mx/~vinuesa/> and Bruno Contreras Moreira <https://www.eead.csic.es/compbio/>"
 LABEL keywods="bioinformatics, genomics, phylogenetics, phylogenomics, core-genome, pan-genome, maximum likelihood, parsimony, population genetics, molecular clock, Docker image"
-LABEL version="20210920"
+LABEL version="20220612"
 LABEL description="Ubuntu 18.04 + rstudio/r-base:3.6.3-bionic based image of GET_PHYLOMARKERS"
 LABEL summary="This image runs GET_PHYLOMARKERS for advanced and versatile phylogenomic analysis of microbial pan-genomes"
 LABEL home="<https://hub.docker.com/r/vinuesa/get_phylomarkers>"
@@ -22,6 +22,7 @@ build-essential \
 cpanminus \
 curl \
 gcc \
+default-jre \
 libssl-dev \
 make \
 wget \
