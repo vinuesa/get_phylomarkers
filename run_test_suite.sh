@@ -5,7 +5,7 @@
 #: AIM: used for functional testing of the following scripts of the GET_PHYLOMARKERS package:
 #: - run_get_phylomarkers_pipeline.sh
 #: - estimate_pangenome_phylogenies.sh
-#: - hcluster_pangenome_matrix.sh
+#: - hcluster_pangenome_matrix.sh # <<< is officially distributed through the get_homologues GitHub repo
 
 progname="${0##*/}"
 version="2022-06-12"
@@ -105,6 +105,7 @@ estimate_pangenome_phylogenies.sh -c PARS -R 3 -i pangenome_matrix_t0.phylip -n 
 echo
 
 # 9. cluster the pan-genome matrix and run silhoute statistic to define the optimal number of clusters
-echo ">>> Test # 9. cluster the pan-genome matrix and run silhoute statistic to define the optimal number of clusters"
-hcluster_pangenome_matrix.sh -i pangenome_matrix_t0.tab -a ward.D2 -d gower -O pdf -A 'NULL,45' -X 0.8 -T "Pangenome tree"
-echo
+#    hcluster_pangenome_matrix.sh is officially distributed through the get_homologues GitHub repo; should not test here
+#echo ">>> Test # 9. cluster the pan-genome matrix and run silhoute statistic to define the optimal number of clusters"
+#hcluster_pangenome_matrix.sh -i pangenome_matrix_t0.tab -a ward.D2 -d gower -O pdf -A 'NULL,45' -X 0.8 -T "Pangenome tree"
+#echo
