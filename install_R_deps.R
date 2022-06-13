@@ -2,7 +2,7 @@
 
 # check R packages required by get_phylomarkers and install missing ones 
 # Bruno Contreras Moreira, Pablo Vinuesa, Nov2017-Oct2020
-# version: 2021-09-16
+# version: 2022-06-12
 
 # WARNING: some packages require C (gcc) and C++ (g++) compilers to be installed
 # These can be installed with these commands:
@@ -36,7 +36,7 @@ repository = 'http://cran.rstudio.com' # 'https://cloud.r-project.org';
 # Note that plyr should be called before dplyr; stringi before stringr;
 # https://github.com/tidyverse/stringr/issues/320
 # 
-required_packages = c("ape", "kdetrees", "cluster", "gplots", "vioplot", "plyr", "dplyr", "ggplot2", "stringi", "stringr", "seqinr", "dendextend", "factoextra")
+required_packages = c("ape", "cluster", "gplots", "vioplot", "plyr", "dplyr", "ggplot2", "stringi", "stringr", "seqinr", "dendextend", "factoextra")
 
 local_lib = "./lib/R"
 
@@ -56,5 +56,8 @@ for (package in required_packages) {
     install.packages(package, dependencies=TRUE, lib=local_lib, repos=repository, clean=TRUE)
   }
 }
+
+# install /kdetrees_0.1.2.tar.gz from source, as it was removed from CRAN!
+install.packages("src/kdetrees_0.1.2.tar.gz", repos = NULL, type="source")
 
 sessionInfo()
