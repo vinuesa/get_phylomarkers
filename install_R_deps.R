@@ -57,7 +57,8 @@ for (package in required_packages) {
   }
 }
 
-# install /kdetrees_0.1.2.tar.gz from source, as it was removed from CRAN!
-install.packages("lib/R/kdetrees_0.1.2.tar.gz", repos = NULL, type="source")
+# install /kdetrees_0.1.2.tar.gz from source, as it was removed from CRAN! 
+# PV 2022-06-12s
+install.packages("kdetrees_0.1.2.tar.gz", repos = NULL, type="source")
 
 sessionInfo()
