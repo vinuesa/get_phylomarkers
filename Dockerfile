@@ -57,7 +57,7 @@ RUN git clone https://github.com/vinuesa/get_phylomarkers.git
 #RUN mkdir get_phylomarkers 
 #COPY . /get_phylomarkers 
 WORKDIR /get_phylomarkers 
-RUN Rscript /get_phylomarkers/install_kdetrees_from_src.R
+RUN Rscript install_kdetrees_from_src.R
 
 # set R paths; run R -q -e '.libPaths()' on Linux (Ubuntu) host, and docker container;
 ENV R_LIBS_SITE=/usr/local/lib/R/site-library:/usr/lib/R/site-library/:/usr/lib/R/library:/opt/R/3.6.3/lib/R/library:/get_phylomarkers/lib/R
