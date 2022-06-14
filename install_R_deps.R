@@ -2,7 +2,7 @@
 
 # check R packages required by get_phylomarkers and install missing ones 
 # Bruno Contreras Moreira, Pablo Vinuesa, Nov2017-Oct2020
-# version: 2022-06-12
+# version: 2022-06-13
 
 # WARNING: some packages require C (gcc) and C++ (g++) compilers to be installed
 # These can be installed with these commands:
@@ -36,11 +36,11 @@ repository = 'http://cran.rstudio.com' # 'https://cloud.r-project.org';
 # Note that plyr should be called before dplyr; stringi before stringr;
 # https://github.com/tidyverse/stringr/issues/320
 # 
-required_packages = c("ape", "cluster", "gplots", "vioplot", "plyr", "dplyr", "ggplot2", "stringi", "stringr", "seqinr", "dendextend", "factoextra")
+required_packages = c("devtools", "ape", "cluster", "gplots", "vioplot", "plyr", "dplyr", "ggplot2", "stringi", "stringr", "seqinr", "dendextend", "factoextra")
 
 local_lib = "./lib/R"
 
-# Note: this command should be added to .Rprofile to mak permanent, by calling it with each new shell/session start
+# Note: this command should be added to .Rprofile to make permanent, by calling it with each new shell/session start
 .libPaths( c( .libPaths(), local_lib) )
 
 # make sure we get latest ape Rcpp packages installed
@@ -57,8 +57,13 @@ for (package in required_packages) {
   }
 }
 
-# install /kdetrees_0.1.2.tar.gz from source, as it was removed from CRAN! 
-# PV 2022-06-12s
-install.packages("kdetrees_0.1.2.tar.gz", repos = NULL, type="source")
+# install /kdetrees_0.1.5.tar.gz from GitHub, as it was removed from CRAN!  
+#   > Archived on 2022-05-10 as email to the maintainer is undeliverable. 
+# https://cran.r-project.org/src/contrib/Archive/kdetrees/ << version 
+# PV 2022-06-12s; GitHub repo 'http://github.com/grady/kdetrees'
+# install.packages("kdetrees_0.1.5.tar.gz", lib='/usr/lib/R/site-library', repos = NULL, type="source")
+
+library("devtools")
+install_github("grady/kdetrees", dependencies = TRUE)
 
 sessionInfo()
