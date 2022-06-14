@@ -1,12 +1,13 @@
 # Makefile for Travis CI tests and installation
 # https://docs.travis-ci.com/user/languages/perl
-# version 2022-06-12
+# version 2022-06-13
 
 test:
 	perl test_get_phylomarkers.t
 
 install:
-	Rscript install_R_deps.R
+	bash apt-install_R_dependencies.sh
+        Rscript install_kdetrees_from_github.R 
 
 clean:
 	rm -rf test_sequences/core_genome/get_phylomarkers_run_* 
