@@ -12,16 +12,13 @@ apt install --no-install-recommends -y \
 r-cran-ape \
 r-cran-phangorn \
 r-cran-devtools \
-r-cran-optparse \
 r-cran-cluster \
 r-cran-gplots \
 r-cran-vioplot \
 r-cran-plyr \
 r-cran-dplyr \
 r-cran-ggplot2 \
-r-cran-ggthemes \
 r-cran-stringi \
 r-cran-stringr \
 r-cran-seqinr \
-r-cran-dendextend \
 && apt clean && apt purge && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
