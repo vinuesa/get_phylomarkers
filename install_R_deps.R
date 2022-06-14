@@ -29,7 +29,7 @@
 # > install.packages("ape", dependencies=TRUE, lib="lib/R", type="source")
 # > install.packages("kdetrees",dependencies=TRUE, lib="lib/R", type="source")
 
-repository = 'http://cran.rstudio.com' # 'https://cloud.r-project.org'; 
+repository = 'https://CRAN.R-project.org' # ; 'http://cran.rstudio.com' # 'https://cloud.r-project.org'; https://CRAN.R-project.org/
 
 # do not change (reduce), as it includes dependencies for the GET_HOM+GET_PHYLO image,
 # and from v2.3.0 (2021-09-18) the GET_PHYLO package also includes hcluster_pangenome_matrix.sh, which require "cluster", "dendextend", "factoextra"
