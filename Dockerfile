@@ -1,4 +1,4 @@
-## Dockerfile version 2022-06-12
+## Dockerfile version 2022-06-13
 # - build images using as context the freshly pulled get_phylomarkers GitHub repositor (or from git/get_phylomarkers)
 # - now runs 22 tests during the final image's build stage & sets ENV R_LIBS_SITE
 FROM ubuntu:latest
@@ -6,8 +6,8 @@ FROM rstudio/r-base:4.0.3-focal
 
 LABEL authors="Pablo Vinuesa <https://www.ccg.unam.mx/~vinuesa/> and Bruno Contreras Moreira <https://www.eead.csic.es/compbio/>"
 LABEL keywods="bioinformatics, genomics, phylogenetics, phylogenomics, species tree, core-genome, pan-genome, maximum likelihood, parsimony, population genetics, molecular clock, Docker image"
-LABEL version="20220612"
-LABEL description="Ubuntu 20.04 + Rstudio/r-base 4.0.3-focalbased image of GET_PHYLOMARKERS"
+LABEL version="20220613"
+LABEL description="Ubuntu 20.04 + Rstudio/r-base 4.0.3-focal based image of GET_PHYLOMARKERS"
 LABEL summary="This image runs GET_PHYLOMARKERS for advanced and versatile phylogenomic analysis of microbial pan-genomes"
 LABEL home="<https://hub.docker.com/r/vinuesa/get_phylomarkers>"
 LABEL get_phylomarkers.github.home="<https://github.com/vinuesa/get_phylomarkers>"
@@ -38,6 +38,9 @@ RUN add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_r
 RUN add-apt-repository ppa:c2d4u.team/c2d4u4.0+
 RUN apt install --no-install-recommends -y \
 r-cran-ape \
+r-cran-phangorn \
+r-cran-devtools \
+r-cran-optparse \
 r-cran-cluster \
 r-cran-gplots \
 r-cran-vioplot \
@@ -52,12 +55,11 @@ r-cran-dendextend \
 && apt clean && apt purge && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 
-
 RUN git clone https://github.com/vinuesa/get_phylomarkers.git
-#RUN mkdir get_phylomarkers 
-#COPY . /get_phylomarkers 
 WORKDIR /get_phylomarkers 
-RUN Rscript install_kdetrees_from_src.R
+
+# need to install kdetrees from the github repo, as it was removed from CRAN
+RUN Rscript install_kdetrees_from_github.R
 
 # set R paths; run R -q -e '.libPaths()' on Linux (Ubuntu) host, and docker container;
 ENV R_LIBS_SITE=/usr/local/lib/R/site-library:/usr/lib/R/site-library/:/usr/lib/R/library:/opt/R/3.6.3/lib/R/library:/get_phylomarkers/lib/R
