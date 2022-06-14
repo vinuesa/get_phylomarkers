@@ -1,0 +1,11 @@
+useDynLib(distory, .registration = TRUE)
+
+export(bethe.tree, bin.multiPhylo, boot.samples.idxs,
+       convert.table.to.idx, dist.multiPhylo, distinct.edges,
+       edge.from.split, get.bipartition, gromov.hyperbolicity,
+       lookup.samples, mcmc.target.seq, orthant.boundary.tree,
+       partition.leaves, phylo.diff, position.leverage)
+
+importFrom(graphics, par, plot)
+importFrom(stats, as.dist, runif)
+import(ape)

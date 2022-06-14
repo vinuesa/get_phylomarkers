@@ -1,0 +1,17 @@
+distory-package	distory-package
+bethe.tree	bethe.tree
+bin.multiPhylo	bin.multiPhylo
+boot.samples.idxs	mcmc.target.seq
+convert.table.to.idx	mcmc.target.seq
+dist.multiPhylo	dist.multiPhylo
+distinct.edges	phylo.diff
+distory	distory-package
+edge.from.split	phylo.diff
+get.bipartition	phylo.diff
+gromov.hyperbolicity	gromov.hyperbolicity
+lookup.samples	mcmc.target.seq
+mcmc.target.seq	mcmc.target.seq
+orthant.boundary.tree	orthant.boundary.tree
+partition.leaves	phylo.diff
+phylo.diff	phylo.diff
+position.leverage	position.leverage

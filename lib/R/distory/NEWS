@@ -1,0 +1,11 @@
+		CHANGES IN DISTORY VERSION 1.4.4
+
+
+NEW FEATURES
+
+    o Calls to is.binary.tree() have replaced by calls to
+      is.binary.phylo().
+
+    o The file NAMESPACE has been updated.
+
+    o EP is taking over as maintainer of distory.

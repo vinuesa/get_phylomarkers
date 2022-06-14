@@ -1,0 +1,18 @@
+Package: distory
+Version: 1.4.4
+Date: 2020-04-19
+Title: Distance Between Phylogenetic Histories
+Author: John Chakerian [aut, cre], Susan Holmes [aut, cre]
+Maintainer: Emmanuel Paradis <Emmanuel.Paradis@ird.fr>
+Depends: ape (>= 5.0)
+Imports: graphics, stats
+Description: Geodesic distance between phylogenetic trees and
+  associated functions. The theoretical background of 'distory'
+  is published in Billera et al. (2001) "Geometry of the space of
+  phylogenetic trees." <doi:10.1006/aama.2001.0759>.
+License: BSD_3_clause + file LICENSE
+NeedsCompilation: yes
+Packaged: 2020-04-19 03:33:59 UTC; paradis
+Repository: CRAN
+Date/Publication: 2020-04-19 09:00:02 UTC
+Built: R 4.1.0; x86_64-pc-linux-gnu; 2021-07-14 02:32:36 UTC; unix
