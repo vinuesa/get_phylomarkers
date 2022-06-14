@@ -15,7 +15,7 @@ However, **GET_PHYLOMARKERS** can also estimate **maximum likelihood and parsimo
 <!--![Figure 1](pics/getphylo_flowchart_FINAL.png) -->
 
 
-<img src="pics/getphylo_flowchart_FINAL.png" width="80%" height="80%" style="display: block; margin: auto;" />
+<img src="pics/getphylo_flowchart_FINAL_with_ASTRAL.png" width="80%" height="80%" style="display: block; margin: auto;" />
 
 
 <!--<img src="pics/getphylo_flowchart_FINAL.png" alt="GET_PHYLOMARKERS pipeline workflow"
@@ -303,6 +303,7 @@ The pipeline code and accessory scripts were written Pablo Vinuesa and Bruno Con
 * [ModelFinder](http://www.iqtree.org/ModelFinder/): Fast model selection for accurate phylogenetic estimates. [(Kalyaanamoorthy et al. 2017)](https://www.nature.com/articles/nmeth.4285)
 * [IQ-TREE](http://www.iqtree.org/). Highly accurate maximum-likelihood tree searching program. [Nguyen et. al (2015)](https://academic.oup.com/mbe/article/32/1/268/2925592). 
 * [paup*](https://people.sc.fsu.edu/~dswofford/paup_test/). Multipurpose phylogenetics software package developed by David Swofford and colleagues. NOTE: This is a test version that expires every 6 months! So please update regularly.
+* [ASTRAL-III](https://github.com/smirarab/ASTRAL). Accurate Species TRee ALgorithm. [Zhang et. al (2018)](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-018-2129-y).
 * pars, seqboot and consense from Joe Felsenstein's [PHYLIP](http://evolution.genetics.washington.edu/phylip.html) package.
 * nw_reroot and nw_support from the [Newick utilities](http://bioinformatics.oxfordjournals.org/cgi/content/abstract/btq243v1) package.
 * you may also need to install [**bc**](https://www.gnu.org/software/bc/),an arbitrary-precision language for performing math calculations with Bash and other shells
@@ -322,8 +323,8 @@ From the [BioPerl](http://bioperl.org/) suite:
   
 ### R packages
 - [ape](https://cran.r-project.org/web/packages/ape/index.html)
-- [kdetrees](https://cran.r-project.org/web/packages/kdetrees/index.html)
-- [stingr](https://cran.r-project.org/web/packages/stringr/index.html)
+- [kdetrees](https://github.com/grady/kdetrees)
+- [stringr](https://cran.r-project.org/web/packages/stringr/index.html)
 - [vioplot](https://cran.r-project.org/web/packages/vioplot/index.html)
 - [ggplot2](https://cran.r-project.org/web/packages/ggplot2/index.html)
 - [gplots](https://cran.r-project.org/web/packages/gplots/index.html)
