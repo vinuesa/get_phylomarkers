@@ -6,7 +6,7 @@ test:
 	perl test_get_phylomarkers.t
 
 install:
-	bash apt-install_R_dependencies.sh
+	sudo bash apt-install_R_dependencies.sh
 	Rscript install_kdetrees_from_github.R 
 
 clean:
