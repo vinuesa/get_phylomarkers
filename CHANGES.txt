@@ -1,3 +1,4 @@
+16Jun22  * updated to iqtree v.2.2.0; new docker image uploaded to DockerHub https://hub.docker.com/r/vinuesa/get_phylomarkers
 12Jun22  * updated documentation and R's ape and kdetrees packages
 10Jun22  * added binaries and code to estimate species trees from filtered gene trees using ASTRAL-III
 04Oct21  * run_test_suite.sh v2021-10-04; corrected typo in test #9; -o instead of -O
