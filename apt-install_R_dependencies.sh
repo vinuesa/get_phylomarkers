@@ -22,5 +22,4 @@ r-cran-stringi \
 r-cran-stringr \
 r-cran-seqinr \
 r-cran-remotes \
-r-cran-devtools \
 && sudo apt clean && apt purge && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
