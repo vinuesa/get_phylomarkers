@@ -1,3 +1,4 @@
+12Jun22  * updated documentation and R's ape and kdetrees packages
 10Jun22  * added binaries and code to estimate species trees from filtered gene trees using ASTRAL-III
 04Oct21  * run_test_suite.sh v2021-10-04; corrected typo in test #9; -o instead of -O
 23Sep21  * INSTALL.md v2021-09-23; setup R_LIBS_SITE and libnw with impromved text & markup formatting of code snippets
