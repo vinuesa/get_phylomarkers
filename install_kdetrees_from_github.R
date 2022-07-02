@@ -24,7 +24,6 @@ for (package in required_packages) {
 
 
 library("devtools")
-install_github("grady/kdetrees", dependencies = TRUE)
-
+sudo Rscript -e 'devtools::install_github("grady/kdetrees", dependencies = TRUE)'
 
 sessionInfo()
