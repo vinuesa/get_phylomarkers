@@ -7,7 +7,6 @@ test:
 
 install:
 	bash apt-install_R_dependencies.sh
-	Rscript install_kdetrees_from_github.R 
 
 clean:
 	rm -rf test_sequences/core_genome/get_phylomarkers_run_* 
