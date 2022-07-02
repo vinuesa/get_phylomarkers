@@ -2,22 +2,21 @@ os: linux
 dist: focal
 language: perl
 perl:
-  - "5.30.0" 
-
-
+- 5.30.0
 before_install:
-  - "sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9"
-  - "sudo add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu focal-cran40/'"
-  - "sudo apt update"
-  - "sudo apt install -y libssl-dev libcurl4-openssl-dev curl build-essential bc make g++ r-base r-base-dev python2.7 python2.7-dev"
-  - "cpanm --sudo -v --installdeps --notest --cpanfile cpanfile ."
-
+- sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
+- sudo add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu focal-cran40/'
+- sudo apt update
+- sudo apt install -y libssl-dev libcurl4-openssl-dev curl build-essential bc make
+  g++ r-base r-base-dev python2.7 python2.7-dev
+- cpanm --sudo -v --installdeps --notest --cpanfile cpanfile .
 before_script:
-  - "sudo make install"
-
+- sudo make install
 script:
-  - "make test"
-
+- make test
 notifications:
   email:
     on_failure: always
+env:
+  global:
+    secure: FPVcZ07L2ZSaa5KLYms3iFa3+6IytBL7VZVRWxcNlKZHp+/6VTLofRdriSOVWmXy3Oy+A8jp4el56evn6DQt92JmkUZkvZl4X2l22zytvPRFbw76xzSvR171e4Dcnxj4DOUgfuisZEuXHZQKqkt9dyDRG9OYAGouHR98VBOSR1z0ZVy11VvFWnVmE6nef8GrFIQlRzNGmbR7GWnyzY4I/YUxY1jHMJVmjUu7N1hThtKRzdwAYOO2h5QGxqKdEUH07FggM1nDbCWcu/CrsRb1MqIEnyJZIW5RWns93Tai5pDaAVYAq+t2qmXCwNLIJ+wDOQhnIuEXs7MFymRQH1edX8tcGIoLeAfJgkeJt28pXp00FVxn66dF7YmAK4nWWevISvxNvfSZJlYWrUp0mvO9aMP8u2i/BbobtP8X6jUQuKgplQJOJI/N1TgraO/Wx9RQE2wiuvUNnw1XFdoPHABJ/J1ZkYdeZABK9dL1s1cEsG8dgHoLD0OFzWp8tVsUqvOTtc2sAD6iHUCcaxD7GaJ+ElXlTDFdFLapDWmtLz+xGDg+qADkQ46gGINeRK//cni00Q/JOjfd/z7mYPsz4yspS0ejnT2ZMz1LBHXkPcSlR7WbXEr+/Hr9p9HDzZgLKt/PwP7tZHtdXb8i2viI64l9qUJnl0XItjZ7fxAdKqQVp8s=
