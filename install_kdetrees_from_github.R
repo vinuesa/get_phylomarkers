@@ -11,8 +11,7 @@
 # install.packages("kdetrees_0.1.2.tar.gz", lib='http://github.com/grady/kdetrees'  repos = NULL, type="source")
 
 
-required_packages <- c("devtools")
-
+required_packages <- c("remotes")
 
 # install the remaining required R packages
 for (package in required_packages) {
