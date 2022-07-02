@@ -23,7 +23,7 @@ for (package in required_packages) {
 }
 
 
-library("devtools")
-devtools::install_github("grady/kdetrees", dependencies = TRUE)
+library("remotes")
+remotes::install_github("grady/kdetrees", dependencies = TRUE)
 
 sessionInfo()
