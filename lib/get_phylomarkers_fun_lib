@@ -242,7 +242,7 @@ function compute_FT_gene_tree_stats()
             # paste src files into table
 	    paste "FT_lnL_cdnAln_FTGTRG_T${search_thoroughness}.tsv" "FT_tot_wc_seconds_cdnAln_FTGTRG_T${search_thoroughness}.tsv" s_type.txt > \
 	    "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv"
-	    check_output "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv"
+	    check_output "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv" "$parent_PID"
         
 	    # add header
 	    cat "FT_gene_tree_stats.header" "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv" > ed && \
@@ -272,7 +272,7 @@ function compute_FT_gene_tree_stats()
             # paste src files into table
 	    paste "FT_lnL_protAln_FTlgG_T${search_thoroughness}.tsv" "FT_tot_wc_seconds_protAln_FTlgG_T${search_thoroughness}.tsv" s_type.txt > \
 	    "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv"
-	    check_output "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv"
+	    check_output "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv" "$parent_PID"
         
 	    # add header
 	    cat FT_gene_tree_stats.header "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv" > ed && mv ed "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv"
@@ -361,7 +361,7 @@ function compute_IQT_gene_tree_stats()
     	# paste src files into table
     	paste tot_wcsecs_IQT_mset_gtrees.tsv tot_CPUsecs_IQT_mset_gtrees.tsv sorted_by_FILE_NAME_lnL_mset_gene_trees.tsv IQT_best_models_for_gene_tree.tsv s_type.txt > \
     	"IQT_${mol_type}_gene_tree_T${search_thoroughness}_stats.tsv"
-    	check_output "IQT_${mol_type}_gene_tree_T${search_thoroughness}_stats.tsv"
+    	check_output "IQT_${mol_type}_gene_tree_T${search_thoroughness}_stats.tsv" "$parent_PID"
     
     	# fix columns and add header
     	cut -f1,2,4,6,8,9 "IQT_${mol_type}_gene_tree_T${search_thoroughness}_stats.tsv" > ed && mv ed "IQT_${mol_type}_gene_tree_T${search_thoroughness}_stats.tsv"
@@ -374,7 +374,7 @@ function compute_IQT_gene_tree_stats()
     
     	mkdir iqtree_output_files && mv ./*.iqtree ./*.bionj ./*.mldist ./*model.gz ./*uniqueseq.phy iqtree_output_files
     	[ -d iqtree_output_files ] && tar -czf iqtree_output_files.tgz iqtree_output_files && rm -rf iqtree_output_files
-    	check_output iqtree_output_files.tgz
+    	check_output iqtree_output_files.tgz "$parent_PID"
     fi
    [ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
