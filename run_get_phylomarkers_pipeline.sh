@@ -734,8 +734,7 @@ export R_LIBS="$distrodir/lib/R"
 
 
 # 0.4 append the $distrodir/lib/perl to PERL5LIB and export
-[ -n ${PERL5LIB} ] && export PERL5LIB="${PERL5LIB}:${distrodir}/lib/perl:${distrodir}/lib/perl/bioperl-1.5.2_102"
-[ -z ${PERL5LIB} ] && export PERL5LIB="${distrodir}/lib/perl:${distrodir}/lib/perl/bioperl-1.5.2_102"
+export PERL5LIB="${distrodir}/lib/perl:${distrodir}/lib/perl/bioperl-1.5.2_102"
 
 # 0.5 check all dependencies are in place
 check_dependencies 0
