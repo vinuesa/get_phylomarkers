@@ -1,4 +1,12 @@
+14nov22  *  run_get_phylomarkers v2.4.3_2022-11-14; updated iqtree calls to iqtree2 syntax; print_start_time now uses printf builtin instead of calling date
+13nov22  * get_phylomarkers_funlib v2022-11-13; minor modifications for greater shellcheck compliance; fixed PERL5LIB: unbound variable error in export PERL5LIB call
+13nov22  * v2.4.2_2022-11-13 run_get_phylomarkers implements strict mode; simplified if checks for command output status; consistent bash arithmetic syntax; shellcheck and other corrections
+23oct22  * added Publication DOI, GPLv3 and DockerHub badges
+24jul22  * iqtree-2.2.0-MacOSX
+2jul22   * added encrypted GitHub token using travis CLI;  encrypted env var GITHUB_PAT, for remotes::install_github()
+2jul22   * added library remotes for remotes::install_github(); kdetrees; calls Rscript install_kdetrees_from_github.R using library(remotes
 16Jun22  * updated to iqtree v.2.2.0; new docker image uploaded to DockerHub https://hub.docker.com/r/vinuesa/get_phylomarkers
+13Jun22  * manual version 2022-06-13; with ASTRAL ref and new flowchart
 12Jun22  * updated documentation and R's ape and kdetrees packages
 10Jun22  * added binaries and code to estimate species trees from filtered gene trees using ASTRAL-III
 04Oct21  * run_test_suite.sh v2021-10-04; corrected typo in test #9; -o instead of -O
