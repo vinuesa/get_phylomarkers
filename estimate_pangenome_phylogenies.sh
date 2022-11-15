@@ -42,7 +42,8 @@
 #-------------------------------------------------------------------------------------------------------
 
 progname=${0##*/}
-VERSION='1.2.1_04Oct21' #v1.2.1_04Oct21; preppended missing "${bindir}" to first pars call
+VERSION='v1.2.2_15Nov22' # v1.2.2_15Nov22 updated iqtree calls to match current IQTreee2 syntax
+       #'v1.2.1_04Oct21' #v1.2.1_04Oct21; preppended missing "${bindir}" to first pars call
        # v1.2_16Sep21 added function check_libnw() for lib /usr/local/lib/libnw.so.0.0.0; -R 3 only warns if could not write full_pars_tree_rooted_withBoot.ph
        # v.1.2_10Jan20; added option -S <abayes|UFBoot|both> default: $IQT_support
        #'1.0.5_28Mar18' # check_scripts_in_path() checks wether USER is regular or root
@@ -311,7 +312,7 @@ function check_libnw()
          cat <<NWUTIL
          WARNING: lib libnw.so was not found in /usr/local/lib!
      
-         If you you want to use the parsimony module, then you will need to do the following
+         If you you want to use the parsimony module, then you will need to do the following:
          1. cp /path/to/get_phylomarkers/lib/libnw.so /usr/local/lib 
          2. add the following line to your .bashrc or .bash_profile file in your home
             export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/local/lib
@@ -396,9 +397,9 @@ function run_IQT_discrete
 	
 	if [ "$IQT_support" == "both" ]
 	then
-	    lmsg=" # running iqtree -s $input_fasta -st $discrete_model -m MFP -nt AUTO -abayes -bb 1000 &> /dev/null"
+	    lmsg=" # running iqtree -s $input_fasta -st $discrete_model -m MFP -T AUTO -abayes -B 1000 &> /dev/null"
 	    print_start_time && msg "$lmsg" PROGR BLUE
-            "${bindir}"/iqtree -s "$input_fasta" -st "$discrete_model" -m MFP -nt AUTO -abayes -bb 1000 &> /dev/null 
+            "${bindir}"/iqtree -s "$input_fasta" -st "$discrete_model" -m MFP -T AUTO -abayes -B 1000 &> /dev/null 
 	
 	    best_model=$(grep '^Best-fit model' "${input_fasta}".log | cut -d' ' -f 3)
 	    msg " >>> Best-fit model: ${best_model} ..." PROGR GREEN
@@ -412,9 +413,9 @@ function run_IQT_discrete
 	    rm ./*.ckp.gz
        elif [ "$IQT_support" == "abayes" ]
        then
-	    lmsg=" # running iqtree -s $input_fasta -st $discrete_model -m MFP -nt AUTO -abayes &> /dev/null"
+	    lmsg=" # running iqtree -s $input_fasta -st $discrete_model -m MFP -T AUTO -abayes &> /dev/null"
 	    print_start_time && msg "$lmsg" PROGR BLUE
-            "${bindir}"/iqtree -s "$input_fasta" -st "$discrete_model" -m MFP -nt AUTO -abayes &> /dev/null 
+            "${bindir}"/iqtree -s "$input_fasta" -st "$discrete_model" -m MFP -T AUTO -abayes &> /dev/null 
 	
 	    best_model=$(grep '^Best-fit model' "${input_fasta}".log | cut -d' ' -f 3)
 	    msg " >>> Best-fit model: ${best_model} ..." PROGR GREEN
@@ -427,9 +428,9 @@ function run_IQT_discrete
             # cleanup
 	    rm ./*.ckp.gz       
        else
-	    lmsg=" # running iqtree -s $input_fasta -st $discrete_model -m MFP -nt AUTO -bb 1000 &> /dev/null"
+	    lmsg=" # running iqtree -s $input_fasta -st $discrete_model -m MFP -T AUTO -B 1000 &> /dev/null"
 	    print_start_time && msg "$lmsg" PROGR BLUE
-            "${bindir}"/iqtree -s "$input_fasta" -st "$discrete_model" -m MFP -nt AUTO -bb 1000 &> /dev/null 
+            "${bindir}"/iqtree -s "$input_fasta" -st "$discrete_model" -m MFP -T AUTO -B 1000 &> /dev/null 
 	
 	    best_model=$(grep '^Best-fit model' "${input_fasta}".log | cut -d' ' -f 3)
 	    msg " >>> Best-fit model: ${best_model} ..." PROGR GREEN
@@ -447,7 +448,7 @@ function run_IQT_discrete
 	[ "$DEBUG" -eq 1 ] && msg "working in $wkdir" DEBUG NC
 	# 1. first run without testing branch supports, to find the best-fitting model
 	print_start_time && msg " >>> running iqtree -s $input_fasta -st $discrete_model to find best model" PROGR GREEN
-        "${bindir}"/iqtree -s "$input_fasta" -st "$discrete_model" -m MF -nt AUTO &> /dev/null
+        "${bindir}"/iqtree -s "$input_fasta" -st "$discrete_model" -m MF -T AUTO &> /dev/null
 	
 	best_model=$(grep '^Best-fit model' "${input_fasta}".log | cut -d' ' -f 3)
 	msg " >>> Best-fit model: ${best_model} ..." PROGR GREEN
@@ -468,10 +469,10 @@ function run_IQT_discrete
 	    # run nrep_IQT_searches IQ-TREE searches under the best-fit model found
 	    for ((rep=1;rep<=nrep_IQT_searches;rep++))
 	    do
-	        lmsg="> iqtree -s $input_fasta -st $discrete_model -m $best_model -abayes -bb 1000 -nt AUTO -pre abayes_UFBboot_run${rep} &> /dev/null"
+	        lmsg="> iqtree -s $input_fasta -st $discrete_model -m $best_model -abayes -B 1000 -T AUTO -pre abayes_UFBboot_run${rep} &> /dev/null"
 	        print_start_time && msg "$lmsg" PROGR LBLUE
 
-	        iqtree -s "$input_fasta" -st "$discrete_model" -m "$best_model" -abayes -bb 1000 -nt AUTO -pre "abayes_UFBboot_run${rep}" &> /dev/null
+	        iqtree -s "$input_fasta" -st "$discrete_model" -m "$best_model" -abayes -B 1000 -T AUTO -pre "abayes_UFBboot_run${rep}" &> /dev/null
 	    done
 
 	    grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_lnL_scores_IQ-TREE_searches.out
@@ -499,10 +500,10 @@ function run_IQT_discrete
 	    # run nrep_IQT_searches IQ-TREE searches under the best-fit model found
 	    for ((rep=1;rep<=nrep_IQT_searches;rep++))
 	    do
-	        lmsg="> iqtree -s $input_fasta -st $discrete_model -m $best_model -abayes -nt AUTO -pre abayes_run${rep} &> /dev/null"
+	        lmsg="> iqtree -s $input_fasta -st $discrete_model -m $best_model -abayes -T AUTO -pre abayes_run${rep} &> /dev/null"
 	        print_start_time && msg "$lmsg" PROGR LBLUE
 
-	        iqtree -s "$input_fasta" -st "$discrete_model" -m "$best_model" -abayes -nt AUTO -pre "abayes_run${rep}" &> /dev/null
+	        iqtree -s "$input_fasta" -st "$discrete_model" -m "$best_model" -abayes -T AUTO -pre "abayes_run${rep}" &> /dev/null
 	    done
 
 	    grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_lnL_scores_IQ-TREE_searches.out
@@ -529,10 +530,10 @@ function run_IQT_discrete
 	    # run nrep_IQT_searches IQ-TREE searches under the best-fit model found
 	    for ((rep=1;rep<=nrep_IQT_searches;rep++))
 	    do
-	        lmsg="> iqtree -s $input_fasta -st $discrete_model -m $best_model -bb 1000 -nt AUTO -pre UFBoot_run${rep} &> /dev/null"
+	        lmsg="> iqtree -s $input_fasta -st $discrete_model -m $best_model -B 1000 -T AUTO -pre UFBoot_run${rep} &> /dev/null"
 	        print_start_time && msg "$lmsg" PROGR LBLUE
 
-	        iqtree -s "$input_fasta" -st "$discrete_model" -m "$best_model" -bb 1000 -nt AUTO -pre "UFBoot_run${rep}" &> /dev/null
+	        iqtree -s "$input_fasta" -st "$discrete_model" -m "$best_model" -B 1000 -T AUTO -pre "UFBoot_run${rep}" &> /dev/null
 	    done
 
 	    grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_lnL_scores_IQ-TREE_searches.out
