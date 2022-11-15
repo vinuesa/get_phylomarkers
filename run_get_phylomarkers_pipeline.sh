@@ -43,7 +43,7 @@ set -u
 set -o pipefail
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.4.2_13nov2022' # 1. enforces strict mode (working with set -uo pipefail; need to solve set -e
+VERSION='2.4.3_14nov2022' # 1. enforces strict mode (working with set -uo pipefail; need to solve set -e
                           # 2. uses (( )) syntax for arithmetics 
 			  # 3. simplifies if commands; then cmd; fi statements, avoiding if [ $? -eq 0 ] 
 
@@ -92,7 +92,8 @@ NC='\033[0m' # No Color => end color
 
 function print_start_time()
 {
-   echo -n "[$(date +%T)] "
+   #echo -n "[$(date +%T)] "
+   printf '%(%T )T' '-1' # requires Bash >= 4.3
 }
 #-----------------------------------------------------------------------------------------
 
@@ -161,7 +162,7 @@ function check_scripts_in_path()
     
     bash_scripts=(run_parallel_molecClock_test_with_paup.sh)
     perl_scripts=(run_parallel_cmmds.pl add_nos2fasta_header.pl pal2nal.pl rename.pl concat_alignments.pl \
-	add_labels2tree.pl convert_aln_format_batch_bp.pl popGen_summStats.pl)
+      add_labels2tree.pl convert_aln_format_batch_bp.pl popGen_summStats.pl)
     R_scripts=( run_kdetrees.R compute_suppValStas_and_RF-dist.R )
 
     # check if scripts are in path; if not, set flag
@@ -604,7 +605,7 @@ search_thoroughness='medium'
 kde_stringency=1.5
 min_supp_val=0.7
 min_no_ext_branches=4
-n_cores=2
+n_cores=''
 #VERBOSITY=0
 spr_length=10
 spr=4
@@ -747,9 +748,9 @@ check_dependencies 0
 
 # check for bare minimum dependencies: bash R perl awk cut grep sed sort uniq Rscript
 
-if [ -z "$runmode" ]
+if (( runmode < 1 )) || (( runmode > 2 ))
 then
-       msg "# ERROR: no runmode defined!" HELP RED
+       msg "# ERROR: need to define a runmode <int> [1|2]!" HELP RED
        print_help
        exit 1
 fi
@@ -878,8 +879,6 @@ msg "$lmsg" PROGR YELLOW
 #    Check that we have fna faa input FASTA file pairs and that they contain the same number of sequences and
 #    instances of each taxon. Mark dir as top_dir
 #----------------------------------------------------------------------------------------------------------------
-
-
 
 if [ -d "get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}" ]
 then
@@ -1407,7 +1406,7 @@ then
         # >>> FastTree species tree <<< #
         #:::::::::::::::::::::::::::::::#
 
-	if [ "$search_algorithm" == "F" ]	
+	if [[ "$search_algorithm" == "F" ]]	
         then
 	   msg "" PROGR NC
 	   msg " >>>>>>>>>>>>>>> FastTree run on supermatrix to estimate the species tree <<<<<<<<<<<<<<< " PROGR YELLOW
@@ -1417,28 +1416,28 @@ then
           print_start_time && msg "# running FastTree on the supermatrix with $search_thoroughness thoroughness. This may take a while ..." PROGR BLUE
 	  
           (( DEBUG == 1 )) && msg " search_thoroughness: $search_thoroughness" DEBUG NC
-	  if [ "$search_thoroughness" == "high" ]
+	  if [[ "$search_thoroughness" == "high" ]]
           then
             "$bindir"/FastTree -quiet -nt -gtr -gamma -bionj -slow -slownni -mlacc 3 -spr "$spr" -sprlength "$spr_length" \
 	    -log "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log < concat_cdnAlns.fnainf > \
 	     "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
           fi
 
-          if [ "$search_thoroughness" == "medium" ]
+          if [[ "$search_thoroughness" == "medium" ]]
           then
             "$bindir"/FastTree -quiet -nt -gtr -gamma -bionj -slownni -mlacc 2 -spr "$spr" -sprlength "$spr_length" \
 	    -log "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log < concat_cdnAlns.fnainf > \
 	    "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
           fi
 
-          if [ "$search_thoroughness" == "low" ]
+          if [[ "$search_thoroughness" == "low" ]]
           then
             "$bindir"/FastTree -quiet -nt -gtr -gamma -bionj -spr "$spr" -sprlength "$spr_length" \
 	    -log "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log < concat_cdnAlns.fnainf > \
 	    "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
           fi
 
-          if [ "$search_thoroughness" == "lowest" ]
+          if [[ "$search_thoroughness" == "lowest" ]]
           then
             "$bindir"/FastTree -quiet -nt -gtr -gamma -mlnni 4 -log "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log \
 	    < concat_cdnAlns.fnainf > "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
@@ -1462,7 +1461,7 @@ then
           (( DEBUG == 1 )) && msg "$longmsg" DEBUG NC
           "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph &> /dev/null
 
-          if [ -s "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG_ed.ph ]
+          if [[ -s "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG_ed.ph ]]
           then
 	     # for compute_suppValStats_and_RF-dist.R
              mv "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG_ed.ph "${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}cdnAlns_FTGTRG_ed.sptree"
@@ -1485,7 +1484,7 @@ then
 	  msg "" PROGR NC
 
           # compute ASTRAL species tree on the alltrees.nwk file
-          if [ -s alltrees.nwk ]
+          if [[ -s alltrees.nwk ]]
           then
              print_start_time && msg "# computing ASTRAL species tree from ${no_top_markers} top marker gene trees ..." PROGR BLUE
              (( DEBUG == 1 )) && msg " > java -jar $distrodir/ASTRAL/astral.jar -i alltrees.nwk -o astral_species_tree.tre 2> astral.log" DEBUG NC
@@ -1504,7 +1503,7 @@ then
        #::::::::::::::::::::::::::::::#
        # >>> IQ-TREE species tree <<< #
        #::::::::::::::::::::::::::::::#
-       if [ "$search_algorithm" == "I" ]
+       if [[ "$search_algorithm" == "I" ]]
        then
 	  # 5.5 run IQ-tree in addition to FastTree, if requested
           msg "" PROGR NC
@@ -1516,7 +1515,7 @@ then
 	  
 	  print_start_time && msg "# running ModelFinder on the concatenated alignment with $IQT_models. This will take a while ..." PROGR BLUE
 
-          iqtree -s concat_cdnAlns.fnainf -st DNA -mset "$IQT_models" -m MF -nt AUTO -fast &> /dev/null
+          iqtree -s concat_cdnAlns.fnainf -st DNA -mset "$IQT_models" -m MF -T AUTO --fast &> /dev/null
 
 	  check_output concat_cdnAlns.fnainf.log "$parent_PID"
 
@@ -1526,7 +1525,7 @@ then
 	  mkdir iqtree_abayes && cd iqtree_abayes || "ERROR: cannot cd into iqtree_abayes ..." ERROR RED
 	  ln -s ../concat_cdnAlns.fnainf .
 
-	  if [ "$search_thoroughness" == "high" ]
+	  if [[ "$search_thoroughness" == "high" ]]
 	  then
 	     lmsg="# Will launch $nrep_IQT_searches IQ-TREE searches on the supermatrix with best model ${best_model} -abayes -bb 1000!.
 	                This will take a while ..."
@@ -1535,9 +1534,9 @@ then
 	     # run nrep_IQT_searches IQ-TREE searches under the best-fit model found
 	     for ((rep=1;rep<=nrep_IQT_searches;rep++))
 	     do
-	         print_start_time && msg " > iqtree -s concat_cdnAlns.fnainf -st DNA -m $best_model -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null" PROGR LBLUE
+	         print_start_time && msg " > iqtree -s concat_cdnAlns.fnainf -st DNA -m $best_model -abayes -B 1000 -T AUTO -pre abayes_run${rep} &> /dev/null" PROGR LBLUE
 
-		 iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run"${rep}" &> /dev/null
+		 iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -B 1000 -T AUTO -pre abayes_run"${rep}" &> /dev/null
 	     done
 
 	     grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_IQ-TREE_searches.out
@@ -1556,9 +1555,9 @@ then
 	     # 4. removes the double extension name *.fasta.treefile and changes treefile for ph to make it paup-compatible for clock-test
              process_IQT_species_trees_for_molClock "$best_search_base_name" "$best_tree_file"
 	  else
-	     print_start_time && msg "# running IQ-tree on the concatenated alignment with best model ${best_model} -abayes -bb 1000. This will take a while ..." PROGR BLUE
+	     print_start_time && msg "# running IQ-tree on the concatenated alignment with best model ${best_model} -abayes -B 1000. This will take a while ..." PROGR BLUE
 
-	     iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -bb 1000 -nt AUTO -pre iqtree_abayes &> /dev/null
+	     iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -B 1000 -T AUTO -pre iqtree_abayes &> /dev/null
 
 	     grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_IQ-TREE_searches.out
 
@@ -1624,7 +1623,7 @@ then
 
 	     mol_clock_tab=$(ls ./*_ClockTest.tab)
 
-       	     if [ -s "$mol_clock_tab" ]
+       	     if [[ -s "$mol_clock_tab" ]]
 	     then
 	        msg " >>> generated the molecular clock results file $mol_clock_tab ..." PROGR GREEN
 
@@ -1654,7 +1653,7 @@ then
  # >>> 5.4 cleanup <<< #
  #---------------------#
 
-	if [ "$search_algorithm" == "F" ]
+	if [[ "$search_algorithm" == "F" ]]
 	then
 	    if (( eval_clock == 1 ))
 	    then
@@ -1665,10 +1664,10 @@ then
 	    fi
 	    
 	    tar -czf concatenated_alignment_files.tgz concat_cdnAlns.fna concat_cdnAlns.fnainf
-            [ -s concatenated_alignment_files.tgz ] && rm concat_cdnAlns.fna concat_cdnAlns.fnainf
+            [[ -s concatenated_alignment_files.tgz ]] && rm concat_cdnAlns.fna concat_cdnAlns.fnainf
 	    (( DEBUG == 0 )) && rm gene_trees2_concat_tree_RF_distances.tab ./*cdnAln_FTGTR.ph ./*cdnAln.fasta ./*cdnAln.log ./sorted_aggregated_*tab
 	    concat_logfile=$(find . -name 'concat*log')
-	    [ -s "$concat_logfile" ] && gzip "$concat_logfile"
+	    [[ -s "$concat_logfile" ]] && gzip "$concat_logfile"
 
             cd "$non_recomb_cdn_alns_dir" || msg "ERROR: cannot cd into $non_recomb_cdn_alns_dir ..." ERROR RED
 	    (( DEBUG == 1 )) && echo "... working in: $non_recomb_cdn_alns_dir"	
@@ -1677,16 +1676,16 @@ then
 	    (( DEBUG == 0 )) && tar -czf non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln.fasta
 	    [ -s non_recombinant_kdeOK_codon_alignments.tgz ] && rm ./*_cdnAln.fasta
 	    tar -czf gene_trees_from_non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln*.ph
-	    (( DEBUG == 0 )) && [ -s gene_trees_from_non_recombinant_kdeOK_codon_alignments.tgz ] && rm ./*_cdnAln*.ph
+	    (( DEBUG == 0 )) && [[ -s gene_trees_from_non_recombinant_kdeOK_codon_alignments.tgz ]] && rm ./*_cdnAln*.ph
 	    tar -czf FastTree_logfiles.tgz ./*.log 
-            (( DEBUG == 0 )) && [ -s FastTree_logfiles.tgz ] && rm ./*.log
+            (( DEBUG == 0 )) && [[ -s FastTree_logfiles.tgz ]] && rm ./*.log
 	    
 	    cd "$top_dir" || msg "ERROR: cannot cd into $top_dir ..." ERROR RED
 	    (( DEBUG == 1 )) && echo "... working in: $top_dir"	
 	    tar -czf codon_alignments.tgz ./*_cdnAln.fasta
-            (( DEBUG == 0 )) && [ -s codon_alignments.tgz ] && rm ./*_cdnAln.fasta clustalo.log
+            (( DEBUG == 0 )) && [[ -s codon_alignments.tgz ]] && rm ./*_cdnAln.fasta clustalo.log
             tar -czf protein_alignments.tgz ./*.faaln
-            (( DEBUG == 0 )) && [ -s protein_alignments.tgz ] && rm ./*.faaln
+            (( DEBUG == 0 )) && [[ -s protein_alignments.tgz ]] && rm ./*.faaln
 	else
 	    if (( eval_clock == 1 ))
 	    then
@@ -1706,21 +1705,21 @@ then
             cd "$non_recomb_cdn_alns_dir" || msg "ERROR: cannot cd into $non_recomb_cdn_alns_dir ..." ERROR RED
 	    (( DEBUG == 1 )) && echo "... working in: $non_recomb_cdn_alns_dir"	
 	    (( DEBUG == 0 )) && rm sorted_aggregated_*tab ./all_*trees.tre ./top100_median_support_values4loci.tab
-	    (( DEBUG == 0 )) && [ -s ./Rplots.pdf ] && rm ./Rplots.pdf 
+	    (( DEBUG == 0 )) && [[ -s ./Rplots.pdf ]] && rm ./Rplots.pdf 
 	    (( DEBUG == 0 )) && (( PRINT_KDE_ERR_MESSAGE == 0 )) && rm kde_*out 
 	    tar -czf non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln.fasta
-	    (( DEBUG == 0 )) && [ -s non_recombinant_kdeOK_codon_alignments.tgz ] && rm ./*_cdnAln.fasta
+	    (( DEBUG == 0 )) && [[ -s non_recombinant_kdeOK_codon_alignments.tgz ]] && rm ./*_cdnAln.fasta
 	    tar -czf IQT_gene_trees_from_non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln*.treefile
-	    (( DEBUG == 0 )) && [ -s IQT_gene_trees_from_non_recombinant_kdeOK_codon_alignments.tgz ] && rm ./*_cdnAln*.treefile
+	    (( DEBUG == 0 )) && [[ -s IQT_gene_trees_from_non_recombinant_kdeOK_codon_alignments.tgz ]] && rm ./*_cdnAln*.treefile
 	    tar -czf IQT_gene_tree_logfiles.tgz ./*fasta.log
-	    (( DEBUG == 0 )) && [ -s IQT_gene_tree_logfiles.tgz ] && rm ./*fasta.log
+	    (( DEBUG == 0 )) && [[ -s IQT_gene_tree_logfiles.tgz ]] && rm ./*fasta.log
 	    
 	    cd "$top_dir" || msg "ERROR: cannot cd into $top_dir ..." ERROR RED
 	    (( DEBUG == 1 )) && echo "... working in: $top_dir"	
 	    tar -czf codon_alignments.tgz ./*_cdnAln.fasta
-            (( DEBUG == 0 )) && [ -s codon_alignments.tgz ] && rm ./*_cdnAln.fasta clustalo.log
+            (( DEBUG == 0 )) && [[ -s codon_alignments.tgz ]] && rm ./*_cdnAln.fasta clustalo.log
             tar -czf protein_alignments.tgz ./*.faaln
-            (( DEBUG == 0 )) && [ -s protein_alignments.tgz ] && rm ./*.faaln
+            (( DEBUG == 0 )) && [[ -s protein_alignments.tgz ]] && rm ./*.faaln
 	fi
     fi # if [ $runmode -eq 1 ]; then run phylo pipeline on DNA seqs
 
@@ -1792,21 +1791,21 @@ then
         (( DEBUG == 0 )) && [ -s non_recombinant_kdeOK_codon_alignments.tgz ] && rm ./*_cdnAln.fasta ./all_*trees.tre
 	(( DEBUG == 0 )) && [ -s non_recombinant_kdeOK_codon_alignments.tgz ] && [ -s ./Rplots.pdf ] && rm ./Rplots.pdf
 	
-	if [ "$search_algorithm" == "F" ]
+	if [[ "$search_algorithm" == "F" ]]
 	then
             tar -czf FT_gene_trees_from_non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln*.ph ./*_cdnAln.log
-            (( DEBUG == 0 )) && [ -s FT_gene_trees_from_non_recombinant_kdeOK_codon_alignments.tgz ] && rm ./*_cdnAln*.ph ./*_cdnAln.log
+            (( DEBUG == 0 )) && [[ -s FT_gene_trees_from_non_recombinant_kdeOK_codon_alignments.tgz ]] && rm ./*_cdnAln*.ph ./*_cdnAln.log
         else
             tar -czf IQT_gene_trees_from_non_recombinant_kdeOK_codon_alignments.tgz ./*.fasta.log ./*.fasta.treefile
-            (( DEBUG == 0 )) && [ -s IQT_gene_trees_from_non_recombinant_kdeOK_codon_alignments.tgz ] && rm ./*.fasta.log ./*.fasta.treefile
+            (( DEBUG == 0 )) && [[ -s IQT_gene_trees_from_non_recombinant_kdeOK_codon_alignments.tgz ]] && rm ./*.fasta.log ./*.fasta.treefile
         fi
 
         cd "$top_dir" || msg "ERROR: cannot cd into $top_dir ..." ERROR RED
 	(( DEBUG == 1 )) && echo "... working in: $top_dir"	
         tar -czf codon_alignments.tgz ./*_cdnAln.fasta
-        [ -s codon_alignments.tgz ] && rm ./*_cdnAln.fasta clustalo.log
+        [[ -s codon_alignments.tgz ]] && rm ./*_cdnAln.fasta clustalo.log
         tar -czf protein_alignments.tgz ./*.faaln
-        [ -s protein_alignments.tgz ] && rm ./*.faaln
+        [[ -s protein_alignments.tgz ]] && rm ./*.faaln
     fi # if $runmode -eq 2
 fi # if [ "$mol_type" == "DNA"
 
@@ -1818,7 +1817,7 @@ fi # if [ "$mol_type" == "DNA"
 # >>>  Block 5. -t PROTEIN GENE AND SPECIES TREES  <<< #
 #======================================================#
 
-if [ "$mol_type" == "PROT" ]
+if [[ "$mol_type" == "PROT" ]]
 then
     cd non_recomb_FAA_alns || "ERROR: cannot cd into non_recomb_FAA_alns ..." ERROR RED
     non_recomb_FAA_alns_dir=$(pwd)
@@ -1828,10 +1827,10 @@ then
 
 
     # 5.1 >>> estimate_IQT_gene_trees | estimate_FT_gene_trees
-    if [ "$search_algorithm" == "F" ]
+    if [[ "$search_algorithm" == "F" ]]
     then
 	msg "" PROGR NC
-	msg " >>>>>>>>>>>>>>> parallel FastTree runs to estimate gene trees <<<<<<<<<<<<<<< " PROGR YELLOW
+	msg " >>>>>>>>>>>>>>> parallel FastTree runs to estimate gene trees <<<<<<<<<<<<<<< " PROGR YELLOW 
 	msg "" PROGR NC
 
         gene_tree_ext="ph"
@@ -2127,7 +2126,7 @@ then
               
        print_start_time && msg "# running ModelFinder on the $no_top_markers concatenated $mol_type alignments with $IQT_models. This will take a while ..." PROGR BLUE
 
-       iqtree -s concat_protAlns.faainf -st PROT -mset "$IQT_models" -m MF -nt AUTO -fast &> /dev/null
+       iqtree -s concat_protAlns.faainf -st PROT -mset "$IQT_models" -m MF -T AUTO --fast &> /dev/null
 
        check_output concat_protAlns.faainf.log "$parent_PID"
 
@@ -2146,7 +2145,7 @@ then
     	  # run nrep_IQT_searches IQ-TREE searches under the best-fit model found
     	  for ((rep=1;rep<=nrep_IQT_searches;rep++))
     	  do
-    	     lmsg=" > iqtree -s concat_protAlns.faainf -st PROT -m $best_model -abayes -bb 1000 -nt AUTO -pre abayes_run${rep} &> /dev/null"
+    	     lmsg=" > iqtree -s concat_protAlns.faainf -st PROT -m $best_model -abayes -B 1000 -T AUTO -pre abayes_run${rep} &> /dev/null"
     	     print_start_time && msg "$lmsg" PROGR LBLUE
 
     	      iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run"${rep}" &> /dev/null
@@ -2176,10 +2175,10 @@ then
     	  cd "$top_markers_dir" || "ERROR: cannot cd into $top_markers_dir ..." ERROR RED
     	  rm -rf iqtree_abayes concat_protAlns.faainf.treefile concat_protAlns.faainf.uniqueseq.phy ./*ckp.gz
        else
-    	  print_start_time && msg "# running IQ-tree on the concatenated alignment with best model ${best_model} -abayes -bb 1000. This will take a while ..." PROGR BLUE
+    	  print_start_time && msg "# running IQ-tree on the concatenated alignment with best model ${best_model} -abayes -B 1000. This will take a while ..." PROGR BLUE
 
-    	  print_start_time && msg "# running: iqtree -s concat_protAlns.faainf -st PROT -m $best_model -abayes -bb 1000 -nt AUTO -pre iqtree_abayes &> /dev/null  ..." PROGR BLUE
-    	  iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" -abayes -bb 1000 -nt AUTO -pre iqtree_abayes &> /dev/null
+    	  print_start_time && msg "# running: iqtree -s concat_protAlns.faainf -st PROT -m $best_model -abayes -B 1000 -T AUTO -pre iqtree_abayes &> /dev/null  ..." PROGR BLUE
+    	  iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" -abayes -B 1000 -T AUTO -pre iqtree_abayes &> /dev/null
 
     	  best_tree_file="${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}concat_protAlns_iqtree_${best_model}.spTree"
 	  numbered_nwk="${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}concat_protAlns_iqtree_${best_model}_numbered.nwk"
