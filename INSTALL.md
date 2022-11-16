@@ -262,5 +262,6 @@ NOTES:
 * pars, seqboot and consense from Joe Felsenstein's [PHYLIP](http://evolution.genetics.washington.edu/phylip.html) package.
 * nw_reroot and nw_support from the [Newick utilities](http://bioinformatics.oxfordjournals.org/cgi/content/abstract/btq243v1) package.
 * you may also need to install **bc**,an arbitrary-precision language for performing math calculations with Bash and other shells
+* [ASTRAL](https://github.com/smirarab/ASTRAL). From version 2.4.1, <code>run_get_phylomarkers_pipeline.sh</code> also estimates a <b>species tree</b> with the aid of the [Accurate Species TRee ALgorithm](doi:10.1186/s12859-018-2129-y), using as input the filtered gene trees, i.e., without concatenation.
 
 3. Source code and manual compilation instructions are also provided in the corresponding \$bindir, in case bundled binaries fail.
