@@ -31,7 +31,7 @@
 
 function get_script_PID()
 {
-    #(( DEBUG > 0 )) && msg " => working in $FUNCNAME ..." DEBUG NC
+    #(( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
     # returns the PID of the script, run by USER
     prog=${0%.*} # remove the script's .extension_name
     #proc_ID=$(ps -eaf|grep "$prog"|grep -v grep|grep '-'|grep $USER|awk '{print $2}')
@@ -45,7 +45,7 @@ function get_script_PID()
 
 function install_Rlibs_msg()
 {
-   (( DEBUG > 0 )) && msg " => working in $FUNCNAME ..." DEBUG NC
+   (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
    (( DEBUG > 0 )) && caller 0
    local outfile Rpackage distrodir
    outfile=$1
@@ -70,7 +70,7 @@ RCMD
 
 function count_tree_labels()
 {
-   (( DEBUG > 0 )) && msg " => working in $FUNCNAME ..." DEBUG NC
+   (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
    (( DEBUG > 0 )) && caller 0
    # call R pacake 'ape' to count the number of labels in a tree
    local ext outfile   
@@ -106,13 +106,13 @@ function count_tree_labels()
    sink()
 RCMD
 
-   (( DEBUG > 0 )) && msg " <= exiting $FUNCNAME ..." DEBUG NC
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 
 function count_tree_branches()
 {
-   (( DEBUG > 0 )) && msg " => working in $FUNCNAME ..." DEBUG NC
+   (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
    (( DEBUG > 0 )) && caller 0
    local ext outfile   
    ext=$1
@@ -177,13 +177,13 @@ function count_tree_branches()
 
 RCMD
 
-   (( DEBUG > 0 )) && msg " <= exiting $FUNCNAME ..." DEBUG NC
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 function estimate_FT_gene_trees()
 {
    # estimate gene trees running FT in parallel using the user-defined thoroughness
-    (( DEBUG > 0 )) && msg " => working in $FUNCNAME ..." DEBUG NC
+    (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
     (( DEBUG > 0 )) && caller 0
     local mol_type search_thoroughness cmd fext basemod n_cores spr spr_length
     
@@ -222,13 +222,13 @@ function estimate_FT_gene_trees()
    (( DEBUG > 0 )) && msg "$cmd" DEBUG NC
    echo "$cmd" | bash &> /dev/null
 
-   (( DEBUG > 0 )) && msg " <= exiting $FUNCNAME ..." DEBUG NC
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 
 function compute_FT_gene_tree_stats()
 {
-   (( DEBUG > 0 )) && msg " => working in $FUNCNAME ..." DEBUG NC
+   (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
    (( DEBUG > 0 )) && caller 0
    local mol_type search_thoroughness parent_PID i N
    mol_type=$1
@@ -297,14 +297,14 @@ function compute_FT_gene_tree_stats()
 	    rm FT_gene_tree_stats.header "FT_lnL_protAln_FTlgG_T${search_thoroughness}.tsv" "FT_tot_wc_seconds_protAln_FTlgG_T${search_thoroughness}.tsv" s_type.txt
        fi
     fi
-   (( DEBUG > 0 )) && msg " <= exiting $FUNCNAME ..." DEBUG NC
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 
 estimate_IQT_gene_trees()
 {
    # estimate gene trees running IQT in parallel using the user-defined mset
-   (( DEBUG > 0 )) && msg " => working in $FUNCNAME ..." DEBUG NC
+   (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
    (( DEBUG > 0 )) && caller 0
    local cmd fext mol_type search_thoroughness
    mol_type=$1
@@ -335,13 +335,13 @@ estimate_IQT_gene_trees()
    #       Then we can execute run_parallel_cmmds.pl with a customized command, resulting from the interpolation of multiple varialbles
    (( DEBUG > 0 )) && msg " > $cmd | bash &> /dev/null" DEBUG NC
    echo "$cmd" | bash &> /dev/null
-   (( DEBUG > 0 )) && msg " <= exiting $FUNCNAME ..." DEBUG NC
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 
 function compute_IQT_gene_tree_stats()
 {
-    (( DEBUG > 0 )) && msg " => working in $FUNCNAME ..." DEBUG NC
+    (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
     (( DEBUG > 0 )) && caller 0
     local mol_type search_thoroughness i N
     mol_type=$1
@@ -394,12 +394,12 @@ function compute_IQT_gene_tree_stats()
     	[ -d iqtree_output_files ] && tar -czf iqtree_output_files.tgz iqtree_output_files && rm -rf iqtree_output_files
     	check_output iqtree_output_files.tgz "$parent_PID"
     fi
-   (( DEBUG > 0 )) && msg " <= exiting $FUNCNAME ..." DEBUG NC
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 compute_MJRC_tree()
 {
-    (( DEBUG > 0 )) && msg " => working in $FUNCNAME ..." DEBUG NC
+    (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
     (( DEBUG > 0 )) && caller 0
     local ext algo contree_outfile
     
@@ -426,7 +426,7 @@ compute_MJRC_tree()
     #          >>> Therefore check_output was changed for simple warning messages to avoid premature exit <<<
     [ ! -s "$contree_outfile" ] && msg " >>> Warning, $contree_outfile was not produced!" WARNING LRED
     [ -s "$contree_outfile" ] && msg " >>> Wrote file $contree_outfile ... " PROGR GREEN
-    (( DEBUG > 0 )) && msg " <= exiting $FUNCNAME ..." DEBUG NC
+    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
     
     #"$distrodir"/add_labels2tree.pl "$top_dir"/tree_labels.list $contree_outfile &> /dev/null
     # check_output "$labelled_contree_outfile"
@@ -435,7 +435,7 @@ compute_MJRC_tree()
 # NOTE: this consense-based version does not work if trees have different number of nodes! Use iqtree-based function above
 #function compute_MJRC_tree()
 #{
-#     (( DEBUG > 0 )) && msg " => working in $FUNCNAME ..." DEBUG NC
+#     (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
 #
 #     src_tree_ext=$1
 #    
@@ -452,14 +452,14 @@ compute_MJRC_tree()
 #
 #     #5.6 compute average bipartition support values for each gene tree
 #     #	 and their RF-fistance to the consensus tree computed with consense
-#   (( DEBUG > 0 )) && msg " <= exiting $FUNCNAME ..." DEBUG NC
+#   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
 #}
 #-----------------------------------------------------------------------------------------
 
 function run_ASTRAL()
 {
    # estimate species trees from multiple source gene trees
-   (( DEBUG > 0 )) && msg " => working in $FUNCNAME ..." DEBUG NC
+   (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
    (( DEBUG > 0 )) && caller 0
    local gene_trees num_markers tree_labels_dir
    gene_trees=$1
@@ -472,13 +472,13 @@ function run_ASTRAL()
    "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list "astral_top${num_markers}geneTrees.sptree" &> /dev/null
    check_output "astral_top${num_markers}geneTrees_ed.sptree" "$parent_PID"
    [ -s "astral_top${num_markers}geneTrees.sptree" ] && rm "astral_top${num_markers}geneTrees.sptree"
-   (( DEBUG > 0 )) && msg " <= exiting $FUNCNAME ..." DEBUG NC
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 
 function process_IQT_species_trees_for_molClock()
 {
-    (( DEBUG > 0 )) && msg " => working in $FUNCNAME ..." DEBUG NC    
+    (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC    
     (( DEBUG > 0 )) && caller 0
     local best_search_base_name best_tree_file top_markers_dir no_top_markers
     best_search_base_name=$1
@@ -532,13 +532,13 @@ function process_IQT_species_trees_for_molClock()
     # top100_median_support_values4loci.tab should probably not be written in the first instance
     [ -s top100_median_support_values4loci.tab ] && (( no_top_markers < 101 )) && rm top100_median_support_values4loci.tab
 
-   (( DEBUG > 0 )) && msg " <= exiting $FUNCNAME ..." DEBUG NC
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 
 function concat_alns()
 {
-    (( DEBUG > 0 )) && msg " => working in $FUNCNAME ..." DEBUG NC
+    (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
     (( DEBUG > 0 )) && caller 0
     local aln_ext pPID
     aln_ext=$1
@@ -561,7 +561,7 @@ function concat_alns()
     #concat_alignments.pl list2concat > $concat_file
     check_output "$concat_file" "$pPID"
     perl -ne 'if (/^#|^$/){ next }else{print}' "$concat_file" > k && mv k "$concat_file"
-    (( DEBUG > 0 )) && msg " <= exiting $FUNCNAME ..." DEBUG NC
+    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 
@@ -569,7 +569,7 @@ function fix_fastaheader()
 {
    # extract the relevant fields from the long '|'-delimited fasta headers generated by get_homologues
    # to construct a shorte one, suitable for display as tree labels
-   (( DEBUG > 0 )) && msg " => working in $FUNCNAME ..." DEBUG NC
+   (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
    (( DEBUG > 0 )) && caller 0
    local file
    file=$1
@@ -577,39 +577,39 @@ function fix_fastaheader()
      perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}ed";
 
    check_output "${file}ed" "$parent_PID"
-   (( DEBUG > 0 )) && msg " <= exiting $FUNCNAME ..." DEBUG NC
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 
 function get_critical_TajD_values()
 {
-   (( DEBUG > 0 )) && msg " => working in $FUNCNAME ..." DEBUG NC
+   (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
    (( DEBUG > 0 )) && caller 0
    local no_seq
    no_seq=$1
    TajD_low=$(awk -v n="$no_seq" '$1 == n' "${distrodir}"/pop_gen_tables/TajD_predicted_CIs.tsv|cut -d' ' -f2)
    TajD_up=$(awk -v n="$no_seq" '$1 == n' "${distrodir}"/pop_gen_tables/TajD_predicted_CIs.tsv|cut -d' ' -f3)
    echo "$TajD_low $TajD_up"
-   (( DEBUG > 0 )) && msg " <= exiting $FUNCNAME ..." DEBUG NC
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 
 function get_critical_FuLi_values()
 {
-   (( DEBUG > 0 )) && msg " => working in $FUNCNAME ..." DEBUG NC
+   (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
    (( DEBUG > 0 )) && caller 0
    local no_seq
    no_seq=$1
    FuLi_low=$(awk -v n="$no_seq" 'BEGIN{FS="\t"}$1 == n' "${distrodir}"/pop_gen_tables/Fu_Li_predicted_CIs.tsv|cut -f2)
    FuLi_up=$(awk -v n="$no_seq" 'BEGIN{FS="\t"}$1 == n'  "${distrodir}"/pop_gen_tables/Fu_Li_predicted_CIs.tsv|cut -f3)
    echo "$FuLi_low $FuLi_up"
-   (( DEBUG > 0 )) && msg " <= exiting $FUNCNAME ..." DEBUG NC
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 
 function check_output()
 {
-    (( DEBUG > 0 )) && msg " => working in $FUNCNAME ..." DEBUG NC
+    (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
     (( DEBUG > 0 )) && caller 0
     local outfile pPID
     outfile=$1
@@ -627,13 +627,13 @@ function check_output()
 	(( DEBUG > 0 )) && msg "check_output running: kill -9 $pPID" DEBUG NC
 	kill -9 "$pPID"
     fi
-   (( DEBUG > 0 )) && msg " <= exiting $FUNCNAME ..." DEBUG NC
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
 }
 
 #-----------------------------------------------------------------------------------------
 function check_IQT_DNA_models
 {
-    (( DEBUG > 0 )) && msg " => working in $FUNCNAME ..." DEBUG NC
+    (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
     (( DEBUG > 0 )) && caller 0
     # https://unix.stackexchange.com/questions/299217/grepping-array-from-file-and-reusing-search-pattern
     # https://stackoverflow.com/questions/21058210/use-grep-on-array-to-find-words
@@ -669,13 +669,13 @@ function check_IQT_DNA_models
         fi
 	modelOK=0
     done
-   (( DEBUG > 0 )) && msg " <= exiting $FUNCNAME ..." DEBUG NC
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
 }
 
 #-----------------------------------------------------------------------------------------
 function check_IQT_PROT_models
 {
-    (( DEBUG > 0 )) && msg " => working in $FUNCNAME ..." DEBUG NC
+    (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
     (( DEBUG > 0 )) && caller 0
 
     # https://unix.stackexchange.com/questions/299217/grepping-array-from-file-and-reusing-search-pattern
@@ -712,13 +712,13 @@ function check_IQT_PROT_models
         fi
 	modelOK=0
     done
-   (( DEBUG > 0 )) && msg " <= exiting $FUNCNAME ..." DEBUG NC
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
 }
 
 #-----------------------------------------------------------------------------------------
 function msg()
 {
-    #(( DEBUG > 0 )) && msg " => working in $FUNCNAME ..." DEBUG NC
+    #(( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
     (( DEBUG > 0 )) && caller 0
     local msg mtype col
     msg=$1
@@ -746,6 +746,6 @@ function msg()
        DEBUG)  printf "${col}%s${NC}\n" "$msg" >&1 | tee -a "${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log";;
        VERBOSE)  printf "${col}%s${NC}\n" "$msg" >&1 | tee -a "${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log";;
     esac
-   #(( DEBUG > 0 )) && msg " <= exiting $FUNCNAME ..." DEBUG NC
+   #(( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------

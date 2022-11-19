@@ -912,22 +912,22 @@ then
 fi
 
 msg "" PROGR NC
-msg " >>>>>>>>>>>>>>> running input data sanity checks <<<<<<<<<<<<<<< " PROGR YELLOW
+msg " >>>>>>>>>>>>>> running input data sanity checks <<<<<<<<<<<<<< " PROGR YELLOW
 msg "" PROGR NC
 
 
 # make sure we have *.faa and *.fna file pairs to work on
-if ! nfna=$(find . -name "*.fna" | wc -l)
+if ! nfna=$(find . -maxdepth 1 -name "*.fna" | wc -l)
 then
    
-   msg " >>> ERROR: there are no input fna files to work on!\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES -n]\n\tPlease check the GET_HOMOLOGUES manual" ERROR RED
+   msg " ERROR: there are no input fna files to work on!\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES -n]\n\tPlease check the GET_HOMOLOGUES manual" ERROR RED
 msg "http://eead-csic-compbio.github.io/get_homologues/manual/" ERROR BLUE
    exit 2
 fi
 
-if ! nfaa=$(find . -name "*.faa" | wc -l)
+if ! nfaa=$(find . -maxdepth 1 -name "*.faa" | wc -l)
 then
-   msg " >>> ERROR: there are no input faa files to work on!\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES]\n\tPlease check the GET_HOMOLOGUES manual" ERROR RED
+   msg "ERROR: there are no input faa files to work on!\n\tPlease check input FASTA files: [you may need to run compare_clusters.pl with -t NUM_OF_INPUT_GENOMES]\n\tPlease check the GET_HOMOLOGUES manual" ERROR RED
    msg "http://eead-csic-compbio.github.io/get_homologues/manual/" ERROR BLUE
    exit 2
 fi
@@ -938,9 +938,11 @@ then
   msg "$lmsg" ERROR RED
   msg "  Please check the GET_HOMOLOGUES manual at: " ERROR RED
   msg "  http://eead-csic-compbio.github.io/get_homologues/manual/" ERROR LBLUE
+  exit 3
 fi
 
-mkdir "get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}" && cd "get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}" || { msg "ERROR: cannot cd into get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}" ERROR RED && exit 1 ; }
+mkdir "get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}" && cd "get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}" \
+ || { msg "ERROR: cannot cd into  get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}" ERROR RED && exit 1 ; }
 top_dir=$(pwd)
 
 print_start_time && msg "# processing source fastas in directory get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT} ..." PROGR BLUE
