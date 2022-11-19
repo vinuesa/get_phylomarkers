@@ -73,7 +73,7 @@ date_F=$(date +%F |sed 's/-/_/g')-   # 2013_10_20
 date_T=$(date +%T |sed 's/:/./g')    # 23.28.22 (hr.min.secs)
 start_time="$date_F$date_T"
 
-sleeptime=30
+sleeptime=1
 topdir=$(pwd)
 declare -A pids
 
@@ -195,21 +195,26 @@ function print_start_time()
 #----------------------------------------------------------------------------------
 function wait_for_PIDs_to_finish
 {
+   # This function receives a hash as argument
+   # https://www.linuxquestions.org/questions/programming-9/bash-passing-associative-arrays-as-arguments-4175474655/
+   # https://stackoverflow.com/questions/17557434/passing-associative-array-as-argument-with-bash
+   # https://www.gnu.org/software/bash/manual/bash.html#index-declare
+
+   # receives an associative array as argument, using the following call:
+   #  wait_for_PIDs_to_finish "$(declare -p pids)" 
+   
    (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]} ..." DEBUG NC
-   local flag PID sleeptime
-   declare -A pids=$1
+   local flag PID
+   eval "declare -A ref"=${1#*=}
    flag=0
 
    while [ "$flag" -eq 0 ] 
    do
-     for PID in "${pids[@]}"
+     for PID in "${!ref[@]}"
      do
        #echo "PID is $PID"
        flag=1
-       ps -ef | grep "${PID}" | grep -v 'grep' &> /dev/null
-       r=${?}
-
-       if [ ${r} -eq 0 ]
+       if ps -ef | grep "${ref[$PID]}" | grep -v 'grep' &> /dev/null
        then 
          flag=0
          sleep "$sleeptime"
@@ -423,7 +428,7 @@ function run_IQT_discrete
 	    msg " >>> Best-fit model: ${best_model} ..." PROGR GREEN
             treefile=PGM_IQT_${best_model}_${IQT_support}.treefile
 	    mv pangenome_matrix_t0.fastaed.treefile "$treefile"
-	    check_output "$treefile"
+	    check_output "$treefile" "$pPID"
 	    msg " ... found in $wkdir" PROGR GREEN
 	    msg " ... done!" PROGR GREEN
 	
@@ -439,7 +444,7 @@ function run_IQT_discrete
 	    msg " >>> Best-fit model: ${best_model} ..." PROGR GREEN
             treefile=PGM_IQT_${best_model}_${IQT_support}.treefile
 	    mv pangenome_matrix_t0.fastaed.treefile "$treefile"
-	    check_output "$treefile"
+	    check_output "$treefile" "$pPID"
 	    msg " ... found in $wkdir" PROGR GREEN
 	    msg " ... done!" PROGR GREEN
 	
@@ -454,7 +459,7 @@ function run_IQT_discrete
 	    msg " >>> Best-fit model: ${best_model} ..." PROGR GREEN
             treefile=PGM_IQT_${best_model}_${IQT_support}.treefile
 	    mv pangenome_matrix_t0.fastaed.treefile "$treefile"
-	    check_output "$treefile"
+	    check_output "$treefile" "$pPID"
 	    msg " ... found in $wkdir" PROGR GREEN
 	    msg " ... done!" PROGR GREEN
 	
@@ -494,7 +499,7 @@ function run_IQT_discrete
 	    done
 
 	    grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_lnL_scores_IQ-TREE_searches.out
-	    check_output sorted_lnL_scores_IQ-TREE_searches.out 
+	    check_output sorted_lnL_scores_IQ-TREE_searches.out "$pPID"
 
 	    best_search=$(head -1 sorted_lnL_scores_IQ-TREE_searches.out)
 	    best_search_base_name=$(head -1 sorted_lnL_scores_IQ-TREE_searches.out | cut -d\. -f 1)
@@ -503,7 +508,7 @@ function run_IQT_discrete
 	    best_tree_file=best_PGM_IQT_${best_search_base_name}_${best_model}.treefile
 	    mv "${best_search_base_name}".treefile "$best_tree_file"
 	
-	    check_output "$best_tree_file"
+	    check_output "$best_tree_file" "$pPID"
 	    msg " ... found in $wkdir" PROGR GREEN
 	    msg " ... done!" PROGR GREEN
 	
@@ -525,7 +530,7 @@ function run_IQT_discrete
 	    done
 
 	    grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_lnL_scores_IQ-TREE_searches.out
-	    check_output sorted_lnL_scores_IQ-TREE_searches.out 
+	    check_output sorted_lnL_scores_IQ-TREE_searches.out "$pPID"
 
 	    best_search=$(head -1 sorted_lnL_scores_IQ-TREE_searches.out)
 	    best_search_base_name=$(head -1 sorted_lnL_scores_IQ-TREE_searches.out | cut -d\. -f 1)
@@ -534,7 +539,7 @@ function run_IQT_discrete
 	    best_tree_file=best_PGM_IQT_${best_search_base_name}_${best_model}.treefile
 	    mv "${best_search_base_name}".treefile "$best_tree_file"
 	
-	    check_output "$best_tree_file"
+	    check_output "$best_tree_file" "$pPID"
 	    msg " ... found in $wkdir" PROGR GREEN
 	    msg " ... done!" PROGR GREEN
 	
@@ -555,7 +560,7 @@ function run_IQT_discrete
 	    done
 
 	    grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_lnL_scores_IQ-TREE_searches.out
-	    check_output sorted_lnL_scores_IQ-TREE_searches.out 
+	    check_output sorted_lnL_scores_IQ-TREE_searches.out "$pPID"
 
 	    best_search=$(head -1 sorted_lnL_scores_IQ-TREE_searches.out)
 	    best_search_base_name=$(head -1 sorted_lnL_scores_IQ-TREE_searches.out | cut -d\. -f 1)
@@ -564,7 +569,7 @@ function run_IQT_discrete
 	    best_tree_file=best_PGM_IQT_${best_search_base_name}_${best_model}.treefile
 	    mv "${best_search_base_name}".treefile "$best_tree_file"
 	
-	    check_output "$best_tree_file"
+	    check_output "$best_tree_file" "$pPID"
 	    msg " ... found in $wkdir" PROGR GREEN
 	    msg " ... done!" PROGR GREEN
 	
@@ -857,6 +862,7 @@ distrodir=$(echo "$env_vars" | awk '{print $1}')
 bindir=$(echo "$env_vars" | awk '{print $2}')
 OS=$(echo "$env_vars" | awk '{print $3}')
 no_proc=$(echo "$env_vars" | awk '{print $4}')
+pPID=$(get_script_PID)
 
 #-----------------------------------------------------------------------------------------
 
@@ -957,7 +963,7 @@ if [ "$criterion" == "ML" ]; then
     mkdir "$iqt_dir" && cd "$iqt_dir" && ln -s ../"$input_fasta" .
     [ -d "$iqt_dir" ] && msg "...created and moved into subdir $iqt_dir" PROGR LBLUE
     sed 's#\.gb[fk]##g' "$input_fasta" > "${input_fasta}ed"
-    [ "$DEBUG" -eq 1 ] && check_output "${input_fasta}ed"
+    [ "$DEBUG" -eq 1 ] && check_output "${input_fasta}ed" "$pPID"
     [ "$DEBUG" -eq 1 ] && msg "calling: run_IQT_discrete ${input_fasta}ed $discrete_model $num_IQT_runs $IQT_support in dir: $wkdir" DEBUG NC
     run_IQT_discrete "${input_fasta}ed" "$discrete_model" "$num_IQT_runs" "$IQT_support"
 fi
@@ -1020,7 +1026,7 @@ then
 
   if [ -e infile ]
   then    
-     write_pars_full_search_cmd "$n_jumbles" "$sequential"
+     write_pars_full_search_cmd "$n_jumbles" "$sequential" 1
      "${bindir}"/pars < pars.params &> /dev/null & 
      cd "$wkdir" || { msg "ERROR: cannot cd into $wkdir" ERROR RED && exit 1 ; }
   else
@@ -1044,8 +1050,8 @@ then
   start=1
   end=$n_cores
 
-  pids=()
-  
+ pids=()
+ 
   for ((i=start; i<=end; i++))
   do
       dirname="pars${i}" # <CHECK
@@ -1081,7 +1087,10 @@ then
   done
 
   msg "# waiting for pars jobs to finish ..." PROGR LBLUE
-  wait_for_PIDs_to_finish "$pids"
+  
+  # https://www.gnu.org/software/bash/manual/bash.html#index-declare
+  # https://stackoverflow.com/questions/17557434/passing-associative-array-as-argument-with-bash
+  wait_for_PIDs_to_finish "$(declare -p pids)"
 fi
 
 #>>> Runmode -eq 3: now run the bootstrap replicates from individual directories
@@ -1136,7 +1145,9 @@ then
   done
 
   msg "# waiting for pars jobs to finish ..." PROGR LBLUE
-  wait_for_PIDs_to_finish "$pids"
+  # https://www.gnu.org/software/bash/manual/bash.html#index-declare
+  # https://stackoverflow.com/questions/17557434/passing-associative-array-as-argument-with-bash
+  wait_for_PIDs_to_finish "$(declare -p pids)"
 fi
 
 
@@ -1163,7 +1174,7 @@ then
        echo -e "$d\t$score"
     done > pars_search_scores.tsv
     
-    check_output pars_search_scores.tsv
+    check_output pars_search_scores.tsv "$pPID"
     
     grep '^pars' pars_search_scores.tsv | sort -nk2 > t && mv t pars_search_scores.tsv
     cut -f2 pars_search_scores.tsv | uniq -c > pars_search_profile_stats.tsv
@@ -1172,15 +1183,15 @@ then
     best_pars_run_score=$(head -1 pars_search_scores.tsv | cut -f2)
     
     echo -e "$best_pars_run_dir\t$best_pars_run_score" >  best_pars_run_ID_and_score.tsv
-    check_output best_pars_run_ID_and_score.tsv
+    check_output best_pars_run_ID_and_score.tsv "$pPID"
     
     best_pars_tree="best_pars_tree_${best_pars_run_dir}J${n_jumbles}n${n_cores}.ph"
     best_pars_tree_outfile="best_pars_tree_${best_pars_run_dir}J${n_jumbles}n${n_cores}.outfile"
     cp "$best_pars_run_dir"/outtree "$best_pars_tree"
     cp "$best_pars_run_dir"/outfile "$best_pars_tree_outfile"
     
-    check_output "$best_pars_tree"
-    check_output "$best_pars_tree_outfile"
+    check_output "$best_pars_tree" "$pPID"
+    check_output "$best_pars_tree_outfile" "$pPID"
 fi
 
 #>>> 5. Run consense and nw_* tools after all pars jobs have finished
@@ -1294,7 +1305,7 @@ then
   "${distrodir}"/add_labels2tree.pl pang_ID-Strain_corresp.tsv full_pars_tree_rooted_withBoot.ph 
   
   mv full_pars_tree_rooted_withBoot_ed.ph best_pars_tree_rooted_withBoot_ed.ph
-  check_output best_pars_tree_rooted_withBoot_ed.ph
+  check_output best_pars_tree_rooted_withBoot_ed.ph "$pPID"
   
   mv full_pars_tree_rooted_withBoot.ph best_pars_tree_rooted_withBoot.ph 
 
