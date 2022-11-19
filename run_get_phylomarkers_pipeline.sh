@@ -615,7 +615,7 @@ mol_type=''
 # Optional, with defaults
 cluster_format=STD
 search_thoroughness='medium'
-IQT_threads=4
+IQT_threads=2
 kde_stringency=1.5
 min_supp_val=0.7
 min_no_ext_branches=4
@@ -2191,7 +2191,7 @@ then
     	     lmsg=" > iqtree -s concat_protAlns.faainf -st PROT -m $best_model -abayes -B 1000 -T $IQT_threads --prefix abayes_run${rep} &> /dev/null"
     	     print_start_time && msg "$lmsg" PROGR LBLUE
 
-    	      iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" -abayes -B 1000 -T "$IQT_threads" --prefix abayes_run"${rep}" &> /dev/null
+    	      iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" -abayes -B 1000 "$IQT_threads" --prefix abayes_run"${rep}" &> /dev/null
     	  done
 
     	  grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_IQ-TREE_searches.out
@@ -2220,7 +2220,7 @@ then
        else
     	  print_start_time && msg "# running IQ-tree on the concatenated alignment with best model ${best_model} -abayes -B 1000. This will take a while ..." PROGR BLUE
 
-    	  print_start_time && msg "# running: iqtree -s concat_protAlns.faainf -st PROT -m $best_model -abayes -B 1000 -T $$IQT_threads --prefix iqtree_abayes &> /dev/null  ..." PROGR BLUE
+    	  print_start_time && msg "# running: iqtree -s concat_protAlns.faainf -st PROT -m $best_model -abayes -B 1000 -T $IQT_threads --prefix iqtree_abayes &> /dev/null  ..." PROGR BLUE
     	  iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" -abayes -B 1000 -T "$IQT_threads" --prefix iqtree_abayes &> /dev/null
 
     	  best_tree_file="${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}concat_protAlns_iqtree_${best_model}.spTree"
