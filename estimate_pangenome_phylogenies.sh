@@ -84,7 +84,7 @@ discrete_model=BIN
 input_fasta=''
 num_IQT_runs=1
 IQT_support=both #<abayes|UFBoot|both>
-IQT_threads=4
+IQT_threads=2
 
 input_phylip=''
 n_cores=50
