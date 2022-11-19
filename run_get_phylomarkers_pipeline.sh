@@ -134,7 +134,7 @@ function check_dependencies()
 {
     #local VERBOSITY="$1"
     # check if scripts are in path; if not, set flag
-    (( DEBUG > 0 )) && msg " => working in $FUNCNAME ..." DEBUG NC
+    (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]} ..." DEBUG NC
     
     local prog bin
     system_binaries=(bash R perl awk bc cut grep sed sort uniq Rscript find)
@@ -153,13 +153,13 @@ function check_dependencies()
 	  # printf "${GREEN}%s${NC}\n"  "# $prog OK!" PROGR GREEN
        fi
     done
-    (( DEBUG > 0 )) && msg " <= exiting $FUNCNAME ..." DEBUG NC
+    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]} ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 
 function check_scripts_in_path()
 {
-    (( DEBUG > 0 )) && msg " => working in $FUNCNAME ..." DEBUG NC
+    (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]} ..." DEBUG NC
 
     local bash_scripts perl_scripts R_scripts prog bin distrodir not_in_path
 
@@ -242,13 +242,13 @@ function check_scripts_in_path()
        	   fi
        fi
     fi
-    (( DEBUG > 0 )) && msg " <= exiting $FUNCNAME ..." DEBUG NC
+    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]} ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 
 function set_bindirs()
 {
-    (( DEBUG > 0 )) && msg " => working in $FUNCNAME ..." DEBUG NC
+    (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]} ..." DEBUG NC
     # receives: $bindir $homebinpathflag
     local bindir
     bindir=$1
@@ -940,7 +940,7 @@ then
   msg "  http://eead-csic-compbio.github.io/get_homologues/manual/" ERROR LBLUE
 fi
 
-mkdir "get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}" && cd "get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}" || "ERROR: cannot cd into get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}" ERROR RED
+mkdir "get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}" && cd "get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}" || { msg "ERROR: cannot cd into get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}" ERROR RED && exit 1 ; }
 top_dir=$(pwd)
 
 print_start_time && msg "# processing source fastas in directory get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT} ..." PROGR BLUE
@@ -1094,7 +1094,8 @@ rm ./*aedno
 #---------------------------------------------------------------------------------------------------------#
 # 3.1 make a new PhiPack subdirectory to work in. generate symlinks to ../*fasta files
 #     Mark dir as phipack_dir
-mkdir PhiPack && cd PhiPack || "ERROR: cannot cd into PhiPack ..." ERROR RED
+mkdir PhiPack || { msg "ERROR: cannot mkdir PhiPack ..." ERROR RED && exit 1 ; }
+cd PhiPack || { msg "ERROR: cannot cd into PhiPack ..." ERROR RED && exit 1 ; }
 ln -s ../*fasta .
 
 # 3.1.2 check that we have codon alignments before proceeding
@@ -1108,7 +1109,7 @@ msg "" PROGR NC
 
 # 3.2 run Phi from the PhiPack in parallel
 print_start_time && msg "# running Phi recombination test in PhiPack dir ..." PROGR LBLUE
-(( DEBUG > 0 )) && msg " > ${distrodir}/run_parallel_cmmds.pl fasta 'Phi -f \$file -p 1000 > \${file%.*}_Phi.log' $n_cores &> /dev/null" DEBUG NC || msg "WARNING in $LINENO" WARNING LRED
+(( DEBUG > 0 )) && msg " > ${distrodir}/run_parallel_cmmds.pl fasta 'Phi -f $file -p 1000 > ${file%.*}_Phi.log' $n_cores &> /dev/null" DEBUG NC || msg "WARNING in $LINENO" WARNING LRED
 
 # NOTE: here Phi can exit with ERROR: Too few informative sites to test significance.  Try decreasing windowsize or increasing alignment length
 #   which breaks set -e
@@ -1218,7 +1219,7 @@ rm ./*cdnAln.fasta
 #:::::::::::::::::::::::::::#
 if [ "$mol_type" == "DNA" ]
 then
-    cd non_recomb_cdn_alns || "ERROR: cannot cd into non_recomb_cdn_alns" ERROR RED
+    cd non_recomb_cdn_alns || { msg "ERROR: cannot cd into non_recomb_cdn_alns" ERROR RED && exit 1 ; }
     non_recomb_cdn_alns_dir=$(pwd)
 
     print_start_time && msg "# working in dir non_recomb_cdn_alns ..." PROGR LBLUE
@@ -1416,7 +1417,7 @@ then
 
         # >>> 5.2 move top-ranking markers to $top_markers_dir
 	print_start_time && msg "# making dir $top_markers_dir and moving $no_top_markers top markers into it ..." PROGR LBLUE
-        mkdir "$top_markers_dir" && cd "$top_markers_dir" || "ERROR: cannot cd into $top_markers_dir" ERROR RED
+        mkdir "$top_markers_dir" && cd "$top_markers_dir" || { msg "ERROR: cannot cd into $top_markers_dir" ERROR RED && exit 1 ; }
         top_markers_dir=$(pwd)
         ln -s ../"$top_markers_tab" .
         for base in $(awk '{print $1}' "$top_markers_tab" | grep -v loci|sed 's/"//g'); do ln -s ../"${base}"* .; done
@@ -1562,7 +1563,7 @@ then
 	  best_model=$(grep '^Best-fit model' concat_cdnAlns.fnainf.log | cut -d' ' -f 3)
 	  msg " >>> Best-fit model: ${best_model} ..." PROGR GREEN
 
-	  mkdir iqtree_abayes && cd iqtree_abayes || "ERROR: cannot cd into iqtree_abayes" ERROR RED
+	  mkdir iqtree_abayes && cd iqtree_abayes || { msg "ERROR: cannot cd into iqtree_abayes" ERROR RED && exit 1 ; }
 	  ln -s ../concat_cdnAlns.fnainf .
 
 	  if [[ "$search_thoroughness" == "high" ]]
@@ -1574,9 +1575,9 @@ then
 	     # run nrep_IQT_searches IQ-TREE searches under the best-fit model found
 	     for ((rep=1;rep<=nrep_IQT_searches;rep++))
 	     do
-	         print_start_time && msg " > iqtree -s concat_cdnAlns.fnainf -st DNA -m $best_model -abayes -B 1000 -T AUTO --prefix abayes_run${rep} &> /dev/null" PROGR LBLUE
+	         print_start_time && msg " > iqtree -s concat_cdnAlns.fnainf -st DNA -m $best_model -abayes -B 1000 -T $IQT_threads --prefix abayes_run${rep} &> /dev/null" PROGR LBLUE
 
-		 iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -B 1000 -T AUTO --prefix abayes_run"${rep}" &> /dev/null
+		 iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -B 1000 -T "$IQT_threads" --prefix abayes_run"${rep}" &> /dev/null
 	     done
 
 	     grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_IQ-TREE_searches.out
@@ -1597,7 +1598,7 @@ then
 	  else
 	     print_start_time && msg "# running IQ-tree on the concatenated alignment with best model ${best_model} -abayes -B 1000. This will take a while ..." PROGR BLUE
 
-	     iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -B 1000 -T AUTO --prefix iqtree_abayes &> /dev/null
+	     iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -B 1000 -T "$IQT_threads" --prefix iqtree_abayes &> /dev/null
 
 	     grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_IQ-TREE_searches.out
 
@@ -1729,8 +1730,7 @@ then
 	else
 	    if (( eval_clock == 1 ))
 	    then
-	        tar -czf IQT_molClock_PAUP_files.tgz ./*_paup.block ./*.nex  ./*_clockTest.log ./*tre ./*clock.scores ./*critical_X2_val.R \
-	        "$mol_clock_tab" "${mol_clock_tab}"sorted ./mol_clock_*_ClockTest.ta*
+	        tar -czf IQT_molClock_PAUP_files.tgz ./*_paup.block ./*.nex  ./*_clockTest.log ./*tre ./*clock.scores ./*critical_X2_val.R "$mol_clock_tab" "${mol_clock_tab}"sorted ./mol_clock_*_ClockTest.ta*
                 [ -s IQT_molClock_PAUP_files.tgz ] && rm ./*_paup.block ./*.nex ./*_clockTest.log ./*tre ./*clock.scores ./*critical_X2_val.R ./mol_clock_*_ClockTest.ta*
 		(( DEBUG == 0 )) && rm header.tmp list2grep.tmp
             fi
@@ -1742,10 +1742,10 @@ then
 	    (( DEBUG == 0 )) && if ls ./*uniqueseq.phy &> /dev/null; then rm ./*uniqueseq.phy; fi
             (( DEBUG == 0 )) && rm list2concat Rplots.pdf ./*cdnAln.ph 
 
-            cd "$non_recomb_cdn_alns_dir" || msg "ERROR: cannot cd into $non_recomb_cdn_alns_dir ..." ERROR RED
+            cd "$non_recomb_cdn_alns_dir" || { msg "ERROR: cannot cd into $non_recomb_cdn_alns_dir ..." ERROR RED; exit 1 ; }
 	    (( DEBUG > 0 )) && echo "... working in: $non_recomb_cdn_alns_dir"	
-	    (( DEBUG == 0 )) && rm sorted_aggregated_*tab ./all_*trees.tre ./top100_median_support_values4loci.tab
-	    (( DEBUG == 0 )) && [[ -s ./Rplots.pdf ]] && rm ./Rplots.pdf 
+	    (( DEBUG == 0 )) && rm sorted_aggregated_*tab all_*trees.tre top100_median_support_values4loci.tab
+	    (( DEBUG == 0 )) && [[ -s Rplots.pdf ]] && rm Rplots.pdf 
 	    (( DEBUG == 0 )) && (( PRINT_KDE_ERR_MESSAGE == 0 )) && rm kde_*out 
 	    tar -czf non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln.fasta
 	    (( DEBUG == 0 )) && [[ -s non_recombinant_kdeOK_codon_alignments.tgz ]] && rm ./*_cdnAln.fasta
@@ -1754,7 +1754,7 @@ then
 	    tar -czf IQT_gene_tree_logfiles.tgz ./*fasta.log
 	    (( DEBUG == 0 )) && [[ -s IQT_gene_tree_logfiles.tgz ]] && rm ./*fasta.log
 	    
-	    cd "$top_dir" || msg "ERROR: cannot cd into $top_dir ..." ERROR RED
+	    cd "$top_dir" || { msg "ERROR: cannot cd into $top_dir ..." ERROR RED; exit 1 ; }
 	    (( DEBUG > 0 )) && echo "... working in: $top_dir"	
 	    tar -czf codon_alignments.tgz ./*_cdnAln.fasta
             (( DEBUG == 0 )) && [[ -s codon_alignments.tgz ]] && rm ./*_cdnAln.fasta clustalo.log
@@ -1762,6 +1762,7 @@ then
             (( DEBUG == 0 )) && [[ -s protein_alignments.tgz ]] && rm ./*.faaln
 	fi
     fi # if [ $runmode -eq 1 ]; then run phylo pipeline on DNA seqs
+
 
 #----------------------------------------#
 # >>> BLOCK 4.3: POPULATION GENETICS <<< #
@@ -1774,7 +1775,7 @@ then
         msg " >>>>>>>>>>>>>>> run descriptive DNA polymorphism statistics and neutrality tests <<<<<<<<<<<<<<< " PROGR YELLOW
         msg "" PROGR NC
 
-        mkdir popGen && cd popGen || "ERROR: cannot cd into popGen" ERROR RED
+        mkdir popGen && cd popGen || { msg "ERROR: cannot cd into popGen" ERROR RED && exit 1 ; }
 	popGen_dir=$(pwd)
 
         print_start_time && msg "# Moved into dir popGen ..." PROGR LBLUE
@@ -1825,7 +1826,7 @@ then
 #            (( DEBUG == 0 )) && rm list2concat Rplots.pdf header.tmp list2grep.tmp
 #	fi
 # 
-	cd "$non_recomb_cdn_alns_dir" || msg "ERROR: cannot cd into $non_recomb_cdn_alns_dir ..." ERROR RED
+	cd "$non_recomb_cdn_alns_dir" || { msg "ERROR: cannot cd into $non_recomb_cdn_alns_dir ..." ERROR RED && exit 1 ; }
 	(( DEBUG > 0 )) && echo "... working in: $non_recomb_cdn_alns_dir"	
         tar -czf non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln.fasta
         (( DEBUG == 0 )) && [ -s non_recombinant_kdeOK_codon_alignments.tgz ] && rm ./*_cdnAln.fasta ./all_*trees.tre
@@ -1840,7 +1841,7 @@ then
             (( DEBUG == 0 )) && [[ -s IQT_gene_trees_from_non_recombinant_kdeOK_codon_alignments.tgz ]] && rm ./*.fasta.log ./*.fasta.treefile
         fi
 
-        cd "$top_dir" || msg "ERROR: cannot cd into $top_dir ..." ERROR RED
+        cd "$top_dir" || { msg "ERROR: cannot cd into $top_dir ..." ERROR RED; exit 1 ; }
 	(( DEBUG > 0 )) && echo "... working in: $top_dir"	
         tar -czf codon_alignments.tgz ./*_cdnAln.fasta
         [[ -s codon_alignments.tgz ]] && rm ./*_cdnAln.fasta clustalo.log
@@ -1859,7 +1860,7 @@ fi # if [ "$mol_type" == "DNA"
 
 if [[ "$mol_type" == "PROT" ]]
 then
-    cd non_recomb_FAA_alns || "ERROR: cannot cd into non_recomb_FAA_alns" ERROR RED
+    cd non_recomb_FAA_alns || { msg "ERROR: cannot cd into non_recomb_FAA_alns" ERROR RED && exit 1 ; }
     non_recomb_FAA_alns_dir=$(pwd)
 
     print_start_time && msg "# working in dir $non_recomb_FAA_alns_dir ..." PROGR LBLUE
@@ -2040,7 +2041,7 @@ then
 
     # >>> 5.2 move top-ranking markers to $top_markers_dir
     print_start_time && msg "# making dir $top_markers_dir and moving $no_top_markers top markers into it ..." PROGR LBLUE
-    mkdir "$top_markers_dir" && cd "$top_markers_dir" || "ERROR: cannot cd into $top_markers_dir" ERROR RED
+    mkdir "$top_markers_dir" && cd "$top_markers_dir" || { msg "ERROR: cannot cd into $top_markers_dir" ERROR RED && exit 1 ; }
     top_markers_dir=$(pwd)
     ln -s ../"$top_markers_tab" .
     for base in $(awk '{print $1}' "$top_markers_tab" |grep -v loci|sed 's/"//g'); do ln -s ../"${base}"* .; done
@@ -2173,7 +2174,7 @@ then
        best_model=$(grep '^Best-fit model' concat_protAlns.faainf.log | cut -d' ' -f 3)
        msg " >>> Best-fit model: ${best_model} ..." PROGR GREEN
 
-       mkdir iqtree_abayes && cd iqtree_abayes || "ERROR: cannot cd into iqtree_abayes" ERROR RED
+       mkdir iqtree_abayes && cd iqtree_abayes || { msg "ERROR: cannot cd into iqtree_abayes" ERROR RED && exit 1 ; }
        ln -s ../concat_protAlns.faainf .
 
        if [ "$search_thoroughness" == "high" ]
@@ -2185,10 +2186,10 @@ then
     	  # run nrep_IQT_searches IQ-TREE searches under the best-fit model found
     	  for ((rep=1;rep<=nrep_IQT_searches;rep++))
     	  do
-    	     lmsg=" > iqtree -s concat_protAlns.faainf -st PROT -m $best_model -abayes -B 1000 -T AUTO --prefix abayes_run${rep} &> /dev/null"
+    	     lmsg=" > iqtree -s concat_protAlns.faainf -st PROT -m $best_model -abayes -B 1000 -T $IQT_threads --prefix abayes_run${rep} &> /dev/null"
     	     print_start_time && msg "$lmsg" PROGR LBLUE
 
-    	      iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" -abayes -B 1000 -T AUTO --prefix abayes_run"${rep}" &> /dev/null
+    	      iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" -abayes -B 1000 -T "$IQT_threads" --prefix abayes_run"${rep}" &> /dev/null
     	  done
 
     	  grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_IQ-TREE_searches.out
@@ -2212,13 +2213,13 @@ then
 
     	  check_output "$sp_tree" "$parent_PID"
     	  cp "$sp_tree" "$numbered_nwk" "$top_markers_dir"
-    	  cd "$top_markers_dir" || "ERROR: cannot cd into $top_markers_dir" ERROR RED
+    	  cd "$top_markers_dir" || { msg "ERROR: cannot cd into $top_markers_dir" ERROR RED && exit 1 ; }
     	  rm -rf iqtree_abayes concat_protAlns.faainf.treefile concat_protAlns.faainf.uniqueseq.phy ./*ckp.gz
        else
     	  print_start_time && msg "# running IQ-tree on the concatenated alignment with best model ${best_model} -abayes -B 1000. This will take a while ..." PROGR BLUE
 
-    	  print_start_time && msg "# running: iqtree -s concat_protAlns.faainf -st PROT -m $best_model -abayes -B 1000 -T AUTO --prefix iqtree_abayes &> /dev/null  ..." PROGR BLUE
-    	  iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" -abayes -B 1000 -T AUTO --prefix iqtree_abayes &> /dev/null
+    	  print_start_time && msg "# running: iqtree -s concat_protAlns.faainf -st PROT -m $best_model -abayes -B 1000 -T $$IQT_threads --prefix iqtree_abayes &> /dev/null  ..." PROGR BLUE
+    	  iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" -abayes -B 1000 -T "$IQT_threads" --prefix iqtree_abayes &> /dev/null
 
     	  best_tree_file="${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}concat_protAlns_iqtree_${best_model}.spTree"
 	  numbered_nwk="${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}concat_protAlns_iqtree_${best_model}_numbered.nwk"
@@ -2233,7 +2234,7 @@ then
 
     	  check_output "$sp_tree" "$parent_PID"
     	  cp "$sp_tree" "$numbered_nwk" "$top_markers_dir"
-    	  cd "$top_markers_dir" || "ERROR: cannot cd into $top_markers_dir" ERROR RED
+    	  cd "$top_markers_dir" || { msg "ERROR: cannot cd into $top_markers_dir" ERROR RED && exit 1 ; }
     	  rm -rf iqtree_abayes concat_protAlns.faainf.treefile concat_protAlns.faainf.uniqueseq.phy ./*ckp.gz
 	  
 #	  print_start_time && msg "# computing the mean support values and RF-distances of each gene tree to the concatenated tree ..." PROGR BLUE
