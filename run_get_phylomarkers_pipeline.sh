@@ -43,7 +43,7 @@ set -u
 set -o pipefail
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.4.4_17nov2022' 
+VERSION='2.4.5_17nov2022' # implements DEBUG <0|1|2|3>
                          		   
 # Set GLOBALS
 # in Strict mode, need to explicitly set undefined variables to an empty string var=''
@@ -75,7 +75,7 @@ TIMESTAMP_SHORT_HMS=$(date +${DATEFORMAT_SHORT}-${DATEFORMAT_HMS})
 
 RED='\033[0;31m'
 LRED='\033[1;31m'
-GREEN='\033[0;32m'
+#GREEN='\033[0;32m'
 #YELLOW='\033[1;33m'
 #BLUE='\033[0;34m'
 #LBLUE='\033[1;34m'
@@ -99,25 +99,27 @@ function set_pipeline_environment()
 {
   if [[ "$OSTYPE" == "linux-gnu" ]]
   then
-    local wkd=$(pwd)
-    local scriptdir=$(readlink -f "${BASH_SOURCE[0]}")
-    local distrodir=$(dirname "$scriptdir") #echo "scriptdir: $scriptdir|basedir:$distrodir|OSTYPE:$OSTYPE"
-    local bindir="$distrodir/bin/linux"
-    local OS='linux'
-    local no_cores=$(awk '/^processor/{n+=1}END{print n}' /proc/cpuinfo)
+    local wkd scriptdir distrodir bindir OS no_cores 
+    wkd=$(pwd)
+    scriptdir=$(readlink -f "${BASH_SOURCE[0]}")
+    distrodir=$(dirname "$scriptdir") #echo "scriptdir: $scriptdir|basedir:$distrodir|OSTYPE:$OSTYPE"
+    bindir="$distrodir/bin/linux"
+    OS='linux'
+    no_cores=$(awk '/^processor/{n+=1}END{print n}' /proc/cpuinfo)
     #local  rlibs=`for p in $(R -q -e 'print(.libPaths())'); do if [[ "$p" =~ '/' ]]; then echo -n "$p:"; fi; done; echo -n "$wkd"/"$distrodir/lib/R"`
     #export R_LIBS_SITE="$rlibs"
   elif [[ "$OSTYPE" == "darwin"* ]]
   then
     # get abs path of script as in 
     # https://stackoverflow.com/questions/5756524/how-to-get-absolute-path-name-of-shell-script-on-macos
-    local wkd=$(pwd)
-    local scriptdir=${BASH_SOURCE[0]}
-    local distrodir=$(cd "$(dirname "$scriptdir")"; pwd -P)
-    local distrodir="$wkd"/"$distrodir"
-    local bindir="$distrodir/bin/macosx-intel"
-    local OS='darwin'
-    local no_cores=$(sysctl -n hw.ncpu)
+    local wkd scriptdir distrodir bindir OS no_cores
+    wkd=$(pwd)
+    scriptdir=${BASH_SOURCE[0]}
+    distrodir=$(cd "$(dirname "$scriptdir")" || { msg "ERROR: could not cd into $scriptdir" ERROR RED && exit 1 ; }; pwd -P)
+    distrodir="$wkd"/"$distrodir"
+    bindir="$distrodir/bin/macosx-intel"
+    OS='darwin'
+    no_cores=$(sysctl -n hw.ncpu)
     #local  rlibs=`for p in $(R -q -e 'print(.libPaths())'); do if [[ "$p" =~ '/' ]]; then echo -n "$p:"; fi; done; echo -n "$distrodir/lib/R"`
     #export R_LIBS_SITE="$rlibs"
   else
@@ -133,7 +135,10 @@ function check_dependencies()
     #local VERBOSITY="$1"
     # check if scripts are in path; if not, set flag
     (( DEBUG > 0 )) && msg " => working in $FUNCNAME ..." DEBUG NC
+    
+    local prog
     system_binaries=(bash R perl awk bc cut grep sed sort uniq Rscript find)
+
     for prog in "${system_binaries[@]}" 
     do
        bin=$(type -P "$prog")
@@ -158,6 +163,8 @@ function check_scripts_in_path()
     not_in_path=0
 
    (( DEBUG > 0 )) && msg "check_scripts_in_path() distrodir: $distrodir" DEBUG NC
+    
+    local bash_scripts perl_scripts R_scripts prog
     
     bash_scripts=(run_parallel_molecClock_test_with_paup.sh)
     perl_scripts=(run_parallel_cmmds.pl add_nos2fasta_header.pl pal2nal.pl rename.pl concat_alignments.pl \
@@ -240,6 +247,7 @@ function set_bindirs()
 {
     (( DEBUG > 0 )) && msg " => working in $FUNCNAME ..." DEBUG NC
     # receives: $bindir $homebinpathflag
+    local bindir
     bindir=$1
 #   not_in_path=1
 
@@ -283,7 +291,7 @@ function print_software_versions()
    "${bindir}"/FastTree &> FT.tmp && FT_vers=$(head -1 FT.tmp | sed 's/Usage for FastTree //; s/://') && rm FT.tmp
    echo "FastTree v.${FT_vers}"
    echo '-------------------------'
-   "${bindir}"/iqtree --version
+   "${bindir}"/iqtree --version | head -1
    echo '-------------------------'
    echo "consense, pars and seqboot v.3.69"
    echo '-------------------------'
@@ -534,21 +542,22 @@ function print_help()
     -t <string> type of input sequences: DNA|PROT
 
    OPTIONAL:
-     -h flag, print this short help notes
+     -h|--help flag, print this short help notes
      -H flag, print extensive Help and details about search modes and models
      -A <string> Algorithm for tree searching: <F|I> [FastTree|IQ-TREE]                            [default:$search_algorithm]
      -c <integer> NCBI codontable number (1-23) for pal2nal.pl to generate codon alignment         [default:$codontable]
      -C flag to print codontables
-     -D <int [1|2] to print debugging messages of low and high verbosity, respectively
-                   please use if you encounter problems executing the code                         [default: $DEBUG]
+     -D <int [1|2|3] to print debugging messages of low, high (set -v) and very high (set -vx) 
+             verbosity, respectively. Please use -D <1|2> if you encounter problems                [default: $DEBUG]
      -e <integer> select gene trees with at least (min. = $min_no_ext_branches) external branches  [default: $min_no_ext_branches]
      -f <string> GET_HOMOLOGUES cluster format <STD|EST>                                           [default: $cluster_format]
+     -I|--IQT_threads <integer> threads/cores for IQTree2 searching                                [default: $IQT_threads]
      -k <real> kde stringency (0.7-1.6 are reasonable values; less is more stringent)              [default: $kde_stringency]
      -K flag to run molecular clock test on codon alignments                                       [default: $eval_clock]
      -l <integer> max. spr length (7-12 are reasonable values)                                     [default: $spr_length]
      -m <real> min. average support value (0.7-0.8 are reasonable values) for trees to be selected [default: $min_supp_val]
      -M <string> base Model for clock test (use one of: GTR|TrN|HKY|K2P|F81); uses +G in all cases [default: $base_mod]
-     -n <integer> number of cores/threads to use                                                   [default: all cores]
+     -n <integer> number of cores/threads to use for parallel computations except IQT searches     [default: all cores]
      -N <integer> number of IQ-TREE searches to run [only active with -T high]                     [default: $nrep_IQT_searches]
      -q <real> quantile (0.95|0.99) of Chi-square distribution for computing molec. clock p-value  [default: $q]
      -r <string> root method (midpoint|outgroup)                                                   [default: $root_method]
@@ -561,8 +570,9 @@ function print_help()
               <'BLOSUM62,cpREV,Dayhoff,DCMut,FLU,HIVb,HIVw,JTT,JTTDCMut,LG,
                 mtART,mtMAM,mtREV,mtZOA,Poisson,PMB,rtREV,VT,WAG'>           for PROT alignments   [default: $IQT_PROT_models]
      -T <string> tree search Thoroughness: high|medium|low|lowest (see -H for details)             [default: $search_thoroughness]
-     -v flag, print version and exit
-     -V flag, print software versions
+     -v|--version flag, print version and exit
+     -V|--Versions flag, print software versions
+
 
    INVOCATION EXAMPLES:
      1. default on DNA sequences (uses IQ-TREE evaluating a subset of models specified in the detailed help)
@@ -602,6 +612,7 @@ mol_type=''
 # Optional, with defaults
 cluster_format=STD
 search_thoroughness='medium'
+IQT_threads=4
 kde_stringency=1.5
 min_supp_val=0.7
 min_no_ext_branches=4
@@ -624,9 +635,9 @@ nrep_IQT_searches=5
 
 software_versions=0
 
-while getopts ':c:D:e:f:k:l:m:M:n:N:p:q:r:s:t:A:T:R:S:hCHKvV' OPTIONS
+while getopts ':-:c:D:e:f:I:k:l:m:M:n:N:p:q:r:s:t:A:T:R:S:hCHKvV' VAL
 do
-   case $OPTIONS in
+   case $VAL in
    h)   print_help
         ;;
    A)   search_algorithm=$OPTARG
@@ -644,6 +655,8 @@ do
    f)   cluster_format=$OPTARG
         ;;
    H)   print_usage_notes
+        ;;
+   I)   IQT_threads=$OPTARG
         ;;
    K)   eval_clock=1
         ;;
@@ -677,16 +690,24 @@ do
         ;;
    V)   software_versions=1
         ;;
+#----------- add support for parsing long argument names-----------------------
+   - ) 
+       case $OPTARG in
+          IQT* ) IQT_threads=$OPTARG ;;
+          h*   ) print_help ;;
+	  v*   ) echo "$progname v$VERSION" && check_dependencies 1 && exit 0 ;;
+	  V*   ) software_versions=1 ;;
+          *    ) echo "# ERROR: invalid long options --$OPTARG" && print_help ;;
+       esac >&2   # print the ERROR MESSAGES to STDERR
+  ;;  
+#------------------------------------------------------------------------------	 
    :)   printf "argument missing from -%s option\n" "-$OPTARG" 
    	print_help
      	;;
-   ?)   echo "invalid option: -$OPTARG"
-   	 print_help
-	 ;;
-   *)   msg "An unexpected parsing error occurred" ERROR RED
-         echo
-         print_help
-	 ;;
+   *)   echo "invalid option: -$OPTARG" 
+        echo
+        print_help
+	;;
    esac >&2   # print the ERROR MESSAGES to STDERR
 done
 
@@ -710,6 +731,18 @@ no_proc=$(echo "$env_vars"|awk '{print $4}')
 # source get_phylomarkers_fun_lib into the script to get access to reminder of the functions
 source "${distrodir}"/lib/get_phylomarkers_fun_lib
 
+
+if (( DEBUG == 2 )); then
+   # Print shell input lines as they are read. 
+   set -v
+elif (( DEBUG == 3 )); then # hysteric DEBUG level 
+   # Print shell input lines as they are read.
+   set -v
+   
+   # Print a trace of simple commands, for commands, case commands, select commands, and arithmetic for commands
+   #  and their arguments or associated word lists after they are expanded and before they are executed. 
+   set -x
+fi
 #-----------------------------------------------------------------------------------------
 
 (( DEBUG > 0 )) && msg "distrodir:$distrodir|bindir:$bindir|OS:$OS|no_proc:$no_proc" DEBUG LBLUE
@@ -904,7 +937,7 @@ then
   msg "  http://eead-csic-compbio.github.io/get_homologues/manual/" ERROR LBLUE
 fi
 
-mkdir "get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}" && cd "get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}" || "ERROR: cannot cd into get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT} ..." ERROR RED
+mkdir "get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}" && cd "get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}" || "ERROR: cannot cd into get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}" ERROR RED
 top_dir=$(pwd)
 
 print_start_time && msg "# processing source fastas in directory get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT} ..." PROGR BLUE
@@ -913,8 +946,8 @@ ln -s ../*.faa .
 ln -s ../*.fna .
 
 # fix fasta file names with two and three dots
-"$distrodir"/rename.pl 's/\.\.\./\./g' *.faa
-"$distrodir"/rename.pl 's/\.\.\./\./g' *.fna
+"$distrodir"/rename.pl 's/\.\.\./\./g' ./*.faa
+"$distrodir"/rename.pl 's/\.\.\./\./g' ./*.fna
 
 # make sure the fasta files do not contain characters that may interfere with the shell
 "$distrodir"/rename.pl "s/\\'//g; s/\)//g; s/\,//g; s/\(//g; s/\[//g; s/\]//g; s#/##g; s/://g; s/\;//g" *.faa
@@ -932,12 +965,12 @@ fi
 # 1.1 fix fastaheaders of the source protein and DNA fasta files
 if [ "$cluster_format" == 'STD' ]; then
     # FASTA header format corresponds to GET_HOMOLOGUES
-    for file in ./*faa; do awk 'BEGIN {FS = "|"}{print $1, $2, $3}' "$file"|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}"ed; done
-    for file in ./*fna; do awk 'BEGIN {FS = "|"}{print $1, $2, $3}' "$file"|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}ed"; done
+    for file in *faa; do awk 'BEGIN {FS = "|"}{print $1, $2, $3}' "$file"|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}"ed; done
+    for file in *fna; do awk 'BEGIN {FS = "|"}{print $1, $2, $3}' "$file"|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}ed"; done
 else
     # FASTA header format corresponds to GET_HOMOLOGUES_EST; keep first and last fields delimited by "|"
-    for file in ./*faa; do awk 'BEGIN {FS = " "}{print $1, $2}' "$file"|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}"ed; done
-    for file in ./*fna; do awk 'BEGIN {FS = " "}{print $1, $2}' "$file"|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}ed"; done
+    for file in *faa; do awk 'BEGIN {FS = " "}{print $1, $2}' "$file"|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}"ed; done
+    for file in *fna; do awk 'BEGIN {FS = " "}{print $1, $2}' "$file"|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}ed"; done
 fi
 
 
@@ -1146,13 +1179,13 @@ tar -czf Phi_test_log_files.tgz ./*Phi.log
 #     Mark dir as non_recomb_cdn_alns
 mkdir non_recomb_cdn_alns
 
-for base in $(awk '$2 > 5e-02 && $3 > 5e-02' Phi_results_"${TIMESTAMP_SHORT}".tsv | awk '{print $1}'|sed 's/_Phi\.log//')
+for base in $(awk '$2 > 5e-02 && $3 > 5e-02{print $1}' Phi_results_"${TIMESTAMP_SHORT}".tsv |sed 's/_Phi\.log//')
 do
    cp "${base}".fasta non_recomb_cdn_alns
 done
 
 mkdir non_recomb_FAA_alns
-for base in $(awk '$2 > 5e-02 && $3 > 5e-02' Phi_results_"${TIMESTAMP_SHORT}".tsv | awk '{print $1}'|sed 's/_cdnAln_Phi\.log//')
+for base in $(awk '$2 > 5e-02 && $3 > 5e-02{print $1}' Phi_results_"${TIMESTAMP_SHORT}".tsv |sed 's/_cdnAln_Phi\.log//')
 do
    cp ../"${base}"*.faaln non_recomb_FAA_alns
 done
@@ -1182,7 +1215,7 @@ rm ./*cdnAln.fasta
 #:::::::::::::::::::::::::::#
 if [ "$mol_type" == "DNA" ]
 then
-    cd non_recomb_cdn_alns || "ERROR: cannot cd into non_recomb_cdn_alns ..." ERROR RED
+    cd non_recomb_cdn_alns || "ERROR: cannot cd into non_recomb_cdn_alns" ERROR RED
     non_recomb_cdn_alns_dir=$(pwd)
 
     print_start_time && msg "# working in dir non_recomb_cdn_alns ..." PROGR LBLUE
@@ -1199,7 +1232,7 @@ then
         gene_tree_ext="ph"
 	lmsg=" > running estimate_FT_gene_trees $mol_type $search_thoroughness ..."
         (( DEBUG > 0 )) && msg "$lmsg" DEBUG NC
-	estimate_FT_gene_trees "$mol_type" "$search_thoroughness"
+	estimate_FT_gene_trees "$mol_type" "$search_thoroughness" "$n_cores" "$spr" "$spr_length"
 
 	# 4.1.1 check that FT computed the expected gene trees
         no_gene_trees=$(find . -name "*.ph" | wc -l)
@@ -1207,7 +1240,7 @@ then
 
 	# 4.1.2 generate computation-time and lnL stats
 	(( DEBUG > 0 )) && msg "compute_FT_gene_tree_stats $mol_type $search_thoroughness" DEBUG NC
-	compute_FT_gene_tree_stats "$mol_type" "$search_thoroughness"
+	compute_FT_gene_tree_stats "$mol_type" "$search_thoroughness" "$parent_PID"
 	
 	print_start_time && msg "# running compute_MJRC_tree ph $search_algorithm ..." PROGR BLUE
 	compute_MJRC_tree ph "$search_algorithm" 
@@ -1243,7 +1276,7 @@ then
      (( DEBUG > 0 )) && msg " >  removing trees with < 5 external branches (leaves)" DEBUG NC
      
     no_tree_counter=0
-    for phy in $(grep -v '^#Tree' no_tree_branches.list | awk -v min_no_ext_branches="$min_no_ext_branches" 'BEGIN{FS="\t"; OFS="\t"}$7 < min_no_ext_branches' |cut -f1)
+    for phy in $(grep -v '^#Tree' no_tree_branches.list | awk -v min_no_ext_branches="$min_no_ext_branches" 'BEGIN{FS="\t"; OFS="\t"}$7 < min_no_ext_branches{print $1}')
     do
          [ "$search_algorithm" == "F" ] && base=${phy//_FTGTR\.ph/}
 	 [ "$search_algorithm" == "I" ] && base=${phy//\.treefile/}
@@ -1306,17 +1339,18 @@ then
     if (( no_kde_outliers > 0 ))
     then
         print_start_time && msg "# making dir kde_outliers/ and moving $no_kde_outliers outlier files into it ..." PROGR BLUE
-        mkdir kde_outliers
+        mkdir kde_outliers || { msg "ERROR: could not run mkdir kde_outliers" ERROR RED && exit 1 ; }
         if [ "$search_algorithm" == "F" ]; then
-	  for f in $(grep outlier kde_dfr_file_all_gene_trees.tre.tab|cut -f1|sed 's/\.ph//'); do 
-	     mv "${f}"* kde_outliers
-	  done
-	fi  
-	if [ "$search_algorithm" == "I" ]; then
-	   for f in $(grep outlier kde_dfr_file_all_gene_trees.tre.tab|cut -f1|sed 's/\.treefile//'); do 
-	      mv "${f}"* kde_outliers
-	   done
-	fi   
+	       for f in $(grep outlier kde_dfr_file_all_gene_trees.tre.tab|cut -f1|sed 's/\.ph//'); do 
+	           mv "${f}"* kde_outliers
+	       done
+        
+	    fi  
+	    if [ "$search_algorithm" == "I" ]; then
+	       for f in $(grep outlier kde_dfr_file_all_gene_trees.tre.tab|cut -f1|sed 's/\.treefile//'); do 
+	           mv "${f}"* kde_outliers
+	       done
+	    fi   
     else
         print_start_time && msg " >>> there are no kde-test outliers ..." PROGR GREEN
     fi
@@ -1324,8 +1358,8 @@ then
     if (( no_kde_ok > 0 ))
     then
         print_start_time && msg "# making dir kde_ok/ and linking $no_kde_ok selected files into it ..." PROGR BLUE
-        mkdir kde_ok
-        cd kde_ok || "ERROR: cannot cd into kde_ok ..." ERROR RED
+        mkdir kde_ok || { msg "ERROR: mkdir kde_ok failed" ERROR RED && exit 1 ; }
+        cd kde_ok || { msg "ERROR: cannot cd into kde_ok" ERROR RED && exit 1 ; }
         ln -s ../*.${gene_tree_ext} .
 
         print_start_time && msg "# labeling $no_kde_ok gene trees in dir kde_ok/ ..." PROGR BLUE
@@ -1379,7 +1413,7 @@ then
 
         # >>> 5.2 move top-ranking markers to $top_markers_dir
 	print_start_time && msg "# making dir $top_markers_dir and moving $no_top_markers top markers into it ..." PROGR LBLUE
-        mkdir "$top_markers_dir" && cd "$top_markers_dir" || "ERROR: cannot cd into $top_markers_dir ..." ERROR RED
+        mkdir "$top_markers_dir" && cd "$top_markers_dir" || "ERROR: cannot cd into $top_markers_dir" ERROR RED
         top_markers_dir=$(pwd)
         ln -s ../"$top_markers_tab" .
         for base in $(awk '{print $1}' "$top_markers_tab" | grep -v loci|sed 's/"//g'); do ln -s ../"${base}"* .; done
@@ -1518,14 +1552,14 @@ then
 	  
 	  print_start_time && msg "# running ModelFinder on the concatenated alignment with $IQT_models. This will take a while ..." PROGR BLUE
 
-          iqtree -s concat_cdnAlns.fnainf -st DNA -mset "$IQT_models" -m MF -T AUTO --fast &> /dev/null
+          iqtree -s concat_cdnAlns.fnainf -st DNA -mset "$IQT_models" -m MF -T "$IQT_threads" -n 0 &> /dev/null
 
 	  check_output concat_cdnAlns.fnainf.log "$parent_PID"
 
 	  best_model=$(grep '^Best-fit model' concat_cdnAlns.fnainf.log | cut -d' ' -f 3)
 	  msg " >>> Best-fit model: ${best_model} ..." PROGR GREEN
 
-	  mkdir iqtree_abayes && cd iqtree_abayes || "ERROR: cannot cd into iqtree_abayes ..." ERROR RED
+	  mkdir iqtree_abayes && cd iqtree_abayes || "ERROR: cannot cd into iqtree_abayes" ERROR RED
 	  ln -s ../concat_cdnAlns.fnainf .
 
 	  if [[ "$search_thoroughness" == "high" ]]
@@ -1537,9 +1571,9 @@ then
 	     # run nrep_IQT_searches IQ-TREE searches under the best-fit model found
 	     for ((rep=1;rep<=nrep_IQT_searches;rep++))
 	     do
-	         print_start_time && msg " > iqtree -s concat_cdnAlns.fnainf -st DNA -m $best_model -abayes -B 1000 -T AUTO -pre abayes_run${rep} &> /dev/null" PROGR LBLUE
+	         print_start_time && msg " > iqtree -s concat_cdnAlns.fnainf -st DNA -m $best_model -abayes -B 1000 -T AUTO --prefix abayes_run${rep} &> /dev/null" PROGR LBLUE
 
-		 iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -B 1000 -T AUTO -pre abayes_run"${rep}" &> /dev/null
+		 iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -B 1000 -T AUTO --prefix abayes_run"${rep}" &> /dev/null
 	     done
 
 	     grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_IQ-TREE_searches.out
@@ -1556,11 +1590,11 @@ then
 	     # 2. making a cleanup in iqtree_abayes/
 	     # 3. moves to top_markers_dir to compute RF-dist of gene-trees to species-tree
 	     # 4. removes the double extension name *.fasta.treefile and changes treefile for ph to make it paup-compatible for clock-test
-             process_IQT_species_trees_for_molClock "$best_search_base_name" "$best_tree_file"
+             process_IQT_species_trees_for_molClock "$best_search_base_name" "$best_tree_file" "$top_markers_dir" "$no_top_markers"
 	  else
 	     print_start_time && msg "# running IQ-tree on the concatenated alignment with best model ${best_model} -abayes -B 1000. This will take a while ..." PROGR BLUE
 
-	     iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -B 1000 -T AUTO -pre iqtree_abayes &> /dev/null
+	     iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -B 1000 -T AUTO --prefix iqtree_abayes &> /dev/null
 
 	     grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_IQ-TREE_searches.out
 
@@ -1570,7 +1604,7 @@ then
 
 	     msg "# >>> Best IQ-TREE run was: $best_search ..." PROGR GREEN
 	     best_tree_file="${tree_prefix}_nonRecomb_KdeFilt_iqtree_${best_model}.treefile"
-             process_IQT_species_trees_for_molClock iqtree_abayes "$best_tree_file"
+             process_IQT_species_trees_for_molClock iqtree_abayes "$best_tree_file" "$top_markers_dir" "$no_top_markers"
 	  fi
 
 	   msg "" PROGR NC
@@ -1737,7 +1771,7 @@ then
         msg " >>>>>>>>>>>>>>> run descriptive DNA polymorphism statistics and neutrality tests <<<<<<<<<<<<<<< " PROGR YELLOW
         msg "" PROGR NC
 
-        mkdir popGen && cd popGen || "ERROR: cannot cd into popGen ..." ERROR RED
+        mkdir popGen && cd popGen || "ERROR: cannot cd into popGen" ERROR RED
 	popGen_dir=$(pwd)
 
         print_start_time && msg "# Moved into dir popGen ..." PROGR LBLUE
@@ -1822,7 +1856,7 @@ fi # if [ "$mol_type" == "DNA"
 
 if [[ "$mol_type" == "PROT" ]]
 then
-    cd non_recomb_FAA_alns || "ERROR: cannot cd into non_recomb_FAA_alns ..." ERROR RED
+    cd non_recomb_FAA_alns || "ERROR: cannot cd into non_recomb_FAA_alns" ERROR RED
     non_recomb_FAA_alns_dir=$(pwd)
 
     print_start_time && msg "# working in dir $non_recomb_FAA_alns_dir ..." PROGR LBLUE
@@ -1839,14 +1873,14 @@ then
         gene_tree_ext="ph"
 	lmsg=" > running estimate_FT_gene_trees $mol_type $search_thoroughness ..."
         (( DEBUG > 0 )) && msg "$lmsg" DEBUG NC
-	estimate_FT_gene_trees "$mol_type" "$search_thoroughness"
+	estimate_FT_gene_trees "$mol_type" "$search_thoroughness" "$n_cores" "$spr" "$spr_length"
 
 	# 4.1.1 check that FT computed the expected gene trees
         no_gene_trees=$(find . -name "*.ph" | wc -l)
         (( no_gene_trees < 1 )) && print_start_time && msg " >>> ERROR: There are no gene tree to work on in non_recomb_cdn_alns/. will exit now!" ERROR RED && exit 3
 
 	# 4.1.2 generate computation-time and lnL stats
-	compute_FT_gene_tree_stats "$mol_type" "$search_thoroughness"
+	compute_FT_gene_tree_stats "$mol_type" "$search_thoroughness" "$parent_PID"
 	
 	print_start_time && msg "# running compute_MJRC_tree $gene_tree_ext $search_algorithm ..." PROGR BLUE
 	compute_MJRC_tree "$gene_tree_ext" "$search_algorithm" 
@@ -1883,7 +1917,7 @@ then
      (( DEBUG > 0 )) && msg " >  removing trees with < 5 external branches (leaves)" DEBUG NC
 
     no_tree_counter=0
-    for phy in $(grep -v '^#Tree' no_tree_branches.list | awk -v min_no_ext_branches="$min_no_ext_branches" 'BEGIN{FS="\t"; OFS="\t"}$7 < min_no_ext_branches' |cut -f1)
+    for phy in $(grep -v '^#Tree' no_tree_branches.list | awk -v min_no_ext_branches="$min_no_ext_branches" 'BEGIN{FS="\t"; OFS="\t"}$7 < min_no_ext_branches{print $1}')
     do
          [ "$search_algorithm" == "F" ] && base="${phy//_allFT\.ph/}"
 	 [ "$search_algorithm" == "I" ] && base="${phy//\.treefile/}"
@@ -2003,7 +2037,7 @@ then
 
     # >>> 5.2 move top-ranking markers to $top_markers_dir
     print_start_time && msg "# making dir $top_markers_dir and moving $no_top_markers top markers into it ..." PROGR LBLUE
-    mkdir "$top_markers_dir" && cd "$top_markers_dir" || "ERROR: cannot cd into $top_markers_dir ..." ERROR RED
+    mkdir "$top_markers_dir" && cd "$top_markers_dir" || "ERROR: cannot cd into $top_markers_dir" ERROR RED
     top_markers_dir=$(pwd)
     ln -s ../"$top_markers_tab" .
     for base in $(awk '{print $1}' "$top_markers_tab" |grep -v loci|sed 's/"//g'); do ln -s ../"${base}"* .; done
@@ -2129,14 +2163,14 @@ then
               
        print_start_time && msg "# running ModelFinder on the $no_top_markers concatenated $mol_type alignments with $IQT_models. This will take a while ..." PROGR BLUE
 
-       iqtree -s concat_protAlns.faainf -st PROT -mset "$IQT_models" -m MF -T AUTO --fast &> /dev/null
+       iqtree -s concat_protAlns.faainf -st PROT -mset "$IQT_models" -m MF -T "$IQT_threads" -n 0 &> /dev/null
 
        check_output concat_protAlns.faainf.log "$parent_PID"
 
        best_model=$(grep '^Best-fit model' concat_protAlns.faainf.log | cut -d' ' -f 3)
        msg " >>> Best-fit model: ${best_model} ..." PROGR GREEN
 
-       mkdir iqtree_abayes && cd iqtree_abayes || "ERROR: cannot cd into iqtree_abayes ..." ERROR RED
+       mkdir iqtree_abayes && cd iqtree_abayes || "ERROR: cannot cd into iqtree_abayes" ERROR RED
        ln -s ../concat_protAlns.faainf .
 
        if [ "$search_thoroughness" == "high" ]
@@ -2148,10 +2182,10 @@ then
     	  # run nrep_IQT_searches IQ-TREE searches under the best-fit model found
     	  for ((rep=1;rep<=nrep_IQT_searches;rep++))
     	  do
-    	     lmsg=" > iqtree -s concat_protAlns.faainf -st PROT -m $best_model -abayes -B 1000 -T AUTO -pre abayes_run${rep} &> /dev/null"
+    	     lmsg=" > iqtree -s concat_protAlns.faainf -st PROT -m $best_model -abayes -B 1000 -T AUTO --prefix abayes_run${rep} &> /dev/null"
     	     print_start_time && msg "$lmsg" PROGR LBLUE
 
-    	      iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" -abayes -bb 1000 -nt AUTO -pre abayes_run"${rep}" &> /dev/null
+    	      iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" -abayes -B 1000 -T AUTO --prefix abayes_run"${rep}" &> /dev/null
     	  done
 
     	  grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_IQ-TREE_searches.out
@@ -2175,13 +2209,13 @@ then
 
     	  check_output "$sp_tree" "$parent_PID"
     	  cp "$sp_tree" "$numbered_nwk" "$top_markers_dir"
-    	  cd "$top_markers_dir" || "ERROR: cannot cd into $top_markers_dir ..." ERROR RED
+    	  cd "$top_markers_dir" || "ERROR: cannot cd into $top_markers_dir" ERROR RED
     	  rm -rf iqtree_abayes concat_protAlns.faainf.treefile concat_protAlns.faainf.uniqueseq.phy ./*ckp.gz
        else
     	  print_start_time && msg "# running IQ-tree on the concatenated alignment with best model ${best_model} -abayes -B 1000. This will take a while ..." PROGR BLUE
 
-    	  print_start_time && msg "# running: iqtree -s concat_protAlns.faainf -st PROT -m $best_model -abayes -B 1000 -T AUTO -pre iqtree_abayes &> /dev/null  ..." PROGR BLUE
-    	  iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" -abayes -B 1000 -T AUTO -pre iqtree_abayes &> /dev/null
+    	  print_start_time && msg "# running: iqtree -s concat_protAlns.faainf -st PROT -m $best_model -abayes -B 1000 -T AUTO --prefix iqtree_abayes &> /dev/null  ..." PROGR BLUE
+    	  iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" -abayes -B 1000 -T AUTO --prefix iqtree_abayes &> /dev/null
 
     	  best_tree_file="${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}concat_protAlns_iqtree_${best_model}.spTree"
 	  numbered_nwk="${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}concat_protAlns_iqtree_${best_model}_numbered.nwk"
@@ -2196,7 +2230,7 @@ then
 
     	  check_output "$sp_tree" "$parent_PID"
     	  cp "$sp_tree" "$numbered_nwk" "$top_markers_dir"
-    	  cd "$top_markers_dir" || "ERROR: cannot cd into $top_markers_dir ..." ERROR RED
+    	  cd "$top_markers_dir" || "ERROR: cannot cd into $top_markers_dir" ERROR RED
     	  rm -rf iqtree_abayes concat_protAlns.faainf.treefile concat_protAlns.faainf.uniqueseq.phy ./*ckp.gz
 	  
 #	  print_start_time && msg "# computing the mean support values and RF-distances of each gene tree to the concatenated tree ..." PROGR BLUE
