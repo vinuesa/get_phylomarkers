@@ -41,8 +41,17 @@
 #: TODO
 #-------------------------------------------------------------------------------------------------------
 
+# Set Bash strict mode
+# http://redsymbol.net/articles/unofficial-bash-strict-mode/
+#set -euo pipefail
+#set -e   # NOTE: fails in first call to "run_parallel_cmmds.pl faaed 'add_nos2fasta_header.pl $file"; L973 
+set -u
+set -o pipefail
+
 progname=${0##*/}
-VERSION='v1.2.2_15Nov22' # v1.2.2_15Nov22 updated iqtree calls to match current IQTreee2 syntax
+VERSION='v1.2.3_18Nov22' # mostly shellcheck compliant; enabled bash strict mode; major syntax revision and update to modern Bash; 
+                         #  added IQT_threads=4 && updated iqtree2 calls with -T $IQT_threads instead of -T AUTO, which slows down searches
+       # v1.2.2_15Nov22 updated iqtree calls to match current IQTreee2 syntax
        #'v1.2.1_04Oct21' #v1.2.1_04Oct21; preppended missing "${bindir}" to first pars call
        # v1.2_16Sep21 added function check_libnw() for lib /usr/local/lib/libnw.so.0.0.0; -R 3 only warns if could not write full_pars_tree_rooted_withBoot.ph
        # v.1.2_10Jan20; added option -S <abayes|UFBoot|both> default: $IQT_support
@@ -69,14 +78,15 @@ topdir=$(pwd)
 declare -A pids
 
 # initialize variables
-runmode=
+runmode=''
 criterion=ML
 discrete_model=BIN
-input_fasta=
+input_fasta=''
 num_IQT_runs=1
 IQT_support=both #<abayes|UFBoot|both>
+IQT_threads=4
 
-input_phylip=
+input_phylip=''
 n_cores=50
 boot=2
 n_jumbles=20
@@ -85,8 +95,8 @@ DEBUG=0
 sequential=1
 rnd_no=33
 outgroup=1
-phylo=
-pars_tree=
+phylo=''
+pars_tree=''
 
 check_version=0
 
@@ -95,7 +105,7 @@ check_version=0
 #---------------------------------------------------------------------------------#
 function msg()
 {
-    #[ "$DEBUG" -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
+    #[ "$DEBUG" -eq 1 ] && msg " => working in ${FUNCNAME[0]} ..." DEBUG NC
     msg=$1
     mtype=$2
     col=$3
@@ -121,13 +131,13 @@ function msg()
        DEBUG)  printf "${col}%s${NC}\n" "$msg" ;;
        VERBOSE)  printf "${col}%s${NC}\n" "$msg" ;;
     esac
-   #[ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
+   #[ "$DEBUG" -eq 1 ] && msg " <= exiting ${FUNCNAME[0]} ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 
 function set_bindirs()
 {
-    [ "$DEBUG" -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
+    [ "$DEBUG" -eq 1 ] && msg " => working in ${FUNCNAME[0]} ..." DEBUG NC
     # receives: $bindir $homebinpathflag
     bindir=$1
 
@@ -135,18 +145,16 @@ function set_bindirs()
     export PATH="${bindir}:${PATH}"
 
    #echo $setbindir_flag
-   [ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
+   [ "$DEBUG" -eq 1 ] && msg " <= exiting ${FUNCNAME[0]} ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 
 function set_pipeline_environment()
 {
-   distrodir=
-   bindir=
-   OS=
-   no_cores=
+   local scriptdir distrodir bindir OS no_cores 
+
    if [[ "$OSTYPE" == "linux-gnu" ]]
-  then
+   then
     scriptdir=$(readlink -f "${BASH_SOURCE[0]}")
     distrodir=$(dirname "$scriptdir") #echo "scriptdir: $scriptdir|basedir:$distrodir|OSTYPE:$OSTYPE"
     bindir="$distrodir/bin/linux"
@@ -154,7 +162,7 @@ function set_pipeline_environment()
     no_cores=$(awk '/^processor/{n+=1}END{print n}' /proc/cpuinfo)
   elif [[ "$OSTYPE" == "darwin"* ]]
   then
-    distrodir=$(cd "$scriptdir")
+    distrodir=$(cd "$scriptdir" || { msg "ERROR: cannot cd into $scriptdir" ERROR RED && exit 1 ; })
     bindir="$distrodir/bin/macosx-intel"
     OS='darwin'
     no_cores=$(sysctl -n hw.ncpu)
@@ -165,28 +173,31 @@ function set_pipeline_environment()
 
 function get_script_PID()
 {
-    [ "$DEBUG" -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
+    local prog proc_ID
+    #(( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]} ..." DEBUG NC
     # returns the PID of the script, run by USER
     prog=${0%.*} # remove the script's .extension_name
     #proc_ID=$(ps -eaf|grep "$prog"|grep -v grep|grep '-'|grep $USER|awk '{print $2}')
     #proc_ID=$(ps aux|grep "$prog"|grep -v grep|grep '-'|grep "$USER" |awk '{print $2}')
     proc_ID=$(pgrep -u "$USER" "$prog")
     echo "$proc_ID"
-    [ "$DEBUG" -eq 1 ] && msg "$progname PID is: $proc_ID" DEBUG NC
-    [ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
+    (( DEBUG > 0 )) && msg "$progname PID is: $proc_ID" DEBUG NC
+    #(( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]} ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 
 function print_start_time()
 {
-   echo -n "[$(date +%T)] "
+   #echo -n "[$(date +%T)] "
+   printf '%(%T )T' '-1' # requires Bash >= 4.3
 }
 
 #----------------------------------------------------------------------------------
 function wait_for_PIDs_to_finish
 {
-   [ "$DEBUG" -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
-   pids=$1
+   (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]} ..." DEBUG NC
+   local flag PID sleeptime
+   declare -A pids=$1
    flag=0
 
    while [ "$flag" -eq 0 ] 
@@ -201,24 +212,26 @@ function wait_for_PIDs_to_finish
        if [ ${r} -eq 0 ]
        then 
          flag=0
-         sleep $sleeptime
+         sleep "$sleeptime"
        fi
      done
    done
 
-   [ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]} ..." DEBUG NC
 }
 #--------------------------------------------- #
 
 function check_scripts_in_path()
 {
-    [ "$DEBUG" -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
+    (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]} ..." DEBUG NC
+    local perl_scripts prog distrodir not_in_path prog bin
+
     distrodir=$1
     not_in_path=0
     homebinflag=0
     homebinpathflag=0
     
-    [ "$DEBUG" -eq 1 ] && msg "check_scripts_in_path() distrodir:$distrodir" DEBUG NC
+    (( DEBUG > 0 )) && msg "check_scripts_in_path() distrodir:$distrodir" DEBUG NC
 
     perl_scripts=( run_parallel_cmmds.pl rename.pl add_labels2tree.pl )
 
@@ -242,7 +255,7 @@ function check_scripts_in_path()
     done
 
     # if flag $not_in_path -eq 1, then either generate symlinks into $HOME/bin (if in $PATH) or export $distrodir to PATH
-    if [ $not_in_path -eq 1 ]
+    if (( not_in_path == 1 ))
     then
        if [ "$USER" == "root" ]
        then
@@ -256,8 +269,8 @@ function check_scripts_in_path()
        	   fi
 
        	   # check if $HOME/bin is in $PATH
-       	   echo "$PATH" | sed 's/:/\n/g' | grep "/usr/local/bin$" &> /dev/null
-       	   if [ $? -eq 0 ]
+       	   if echo "$PATH" | sed 's/:/\n/g' | grep "/usr/local/bin$" &> /dev/null
+       	   #if [ $? -eq 0 ]
        	   then
           	   homebinpathflag=1
 
@@ -282,8 +295,8 @@ function check_scripts_in_path()
        	   fi
 
        	   # check if $HOME/bin is in $PATH
-       	   echo "$PATH" | sed 's/:/\n/g'| grep "$HOME/bin$" &> /dev/null
-       	   if [ $? -eq 0 ]
+       	   if echo "$PATH" | sed 's/:/\n/g'| grep "$HOME/bin$" &> /dev/null
+       	   #if [ $? -eq 0 ]
        	   then
           	   homebinpathflag=1
 
@@ -300,8 +313,8 @@ function check_scripts_in_path()
        	   fi
        fi
     fi
-    [ "$DEBUG" -eq 1 ] && echo "$homebinflag $homebinpathflag"
-    [ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
+    (( DEBUG > 0 )) && echo "$homebinflag $homebinpathflag"
+    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]} ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 
@@ -329,12 +342,13 @@ NWUTIL
 
 function check_dependencies
 {
-    local VERBOSITY=$1
-    local GREEN='\033[0;32m'
-    local NC='\033[0m'
+     # check if scripts are in path; if not, set flag
+    (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]} ..." DEBUG NC
+    local programname bin 
 
-    # check if scripts are in path; if not, set flag
-    [ "$DEBUG" -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
+    #local VERBOSITY=$1
+    #local GREEN='\033[0;32m'
+    local NC='\033[0m'
 
     # check that the following PHYLIP binaries and nw_* tools are in $PATH; die if not
     for programname in iqtree seqboot pars consense nw_reroot nw_support add_labels2tree.pl
@@ -346,21 +360,23 @@ function check_dependencies
           echo "# ... you will need to install \"$programname\" first or include it in \$PATH"
           echo "# ... exiting"
           exit 1
-       else
-          [ "$VERBOSITY" -eq 1 ] && printf "${GREEN}%s${NC}\n"  "# $programname OK!"
+       #else
+       #   [ "$VERBOSITY" -eq 1 ] && printf "${GREEN}%s${NC}\n"  "# $programname OK!"
        fi
     done
 
     echo
     echo '# Run check_dependencies() ... looks good;) all required binaries and scripts are in place.'
     echo
-   [ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
+    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]} ..." DEBUG NC
 }
 #---------------------------------------------------------------------------------#
 
 function check_output()
 {
-    [ "$DEBUG" -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
+    (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]} ..." DEBUG NC
+    local outfile pPID
+    
     outfile=$1
     pPID=$2
 
@@ -376,30 +392,32 @@ function check_output()
 	[ "$DEBUG" -eq 1 ] && msg "check_output running: kill -9 $pPID" DEBUG NC
 	kill -9 "$pPID"
     fi
-   [ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]} ..." DEBUG NC
 }
 #----------------------------------------------------------------------------------
 
 function run_IQT_discrete
 {
-    [ "$DEBUG" -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
-    local input_fasta=$1
-    local discrete_model=$2
-    local nrep_IQT_searches=$3
-    local IQT_support=$4
+    (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]} ..." DEBUG NC
+    local input_fasta discrete_model nrep_IQT_searches IQT_support wkdir lmsg
     
-    local wkdir=
-    local lmsg=
+    input_fasta=$1
+    discrete_model=$2
+    nrep_IQT_searches=$3
+    IQT_support=$4
+    
+    wkdir=''
+    lmsg=''
     
     if [ "$nrep_IQT_searches" -eq 1 ]; then
         wkdir=$(pwd)
-	[ "$DEBUG" -eq 1 ] && msg "working in $wkdir" DEBUG NC	
+	(( DEBUG > 0 )) && msg "working in $wkdir" DEBUG NC	
 	
 	if [ "$IQT_support" == "both" ]
 	then
-	    lmsg=" # running iqtree -s $input_fasta -st $discrete_model -m MFP -T AUTO -abayes -B 1000 &> /dev/null"
+	    lmsg=" # running iqtree -s $input_fasta -st $discrete_model -m MFP -T $IQT_threads -abayes -B 1000 &> /dev/null"
 	    print_start_time && msg "$lmsg" PROGR BLUE
-            "${bindir}"/iqtree -s "$input_fasta" -st "$discrete_model" -m MFP -T AUTO -abayes -B 1000 &> /dev/null 
+            "${bindir}"/iqtree -s "$input_fasta" -st "$discrete_model" -m MFP -T "$IQT_threads" -abayes -B 1000 &> /dev/null 
 	
 	    best_model=$(grep '^Best-fit model' "${input_fasta}".log | cut -d' ' -f 3)
 	    msg " >>> Best-fit model: ${best_model} ..." PROGR GREEN
@@ -413,9 +431,9 @@ function run_IQT_discrete
 	    rm ./*.ckp.gz
        elif [ "$IQT_support" == "abayes" ]
        then
-	    lmsg=" # running iqtree -s $input_fasta -st $discrete_model -m MFP -T AUTO -abayes &> /dev/null"
+	    lmsg=" # running iqtree -s $input_fasta -st $discrete_model -m MFP -T $IQT_threads -abayes &> /dev/null"
 	    print_start_time && msg "$lmsg" PROGR BLUE
-            "${bindir}"/iqtree -s "$input_fasta" -st "$discrete_model" -m MFP -T AUTO -abayes &> /dev/null 
+            "${bindir}"/iqtree -s "$input_fasta" -st "$discrete_model" -m MFP -T "$IQT_threads" -abayes &> /dev/null 
 	
 	    best_model=$(grep '^Best-fit model' "${input_fasta}".log | cut -d' ' -f 3)
 	    msg " >>> Best-fit model: ${best_model} ..." PROGR GREEN
@@ -428,9 +446,9 @@ function run_IQT_discrete
             # cleanup
 	    rm ./*.ckp.gz       
        else
-	    lmsg=" # running iqtree -s $input_fasta -st $discrete_model -m MFP -T AUTO -B 1000 &> /dev/null"
+	    lmsg=" # running iqtree -s $input_fasta -st $discrete_model -m MFP -T $IQT_threads -B 1000 &> /dev/null"
 	    print_start_time && msg "$lmsg" PROGR BLUE
-            "${bindir}"/iqtree -s "$input_fasta" -st "$discrete_model" -m MFP -T AUTO -B 1000 &> /dev/null 
+            "${bindir}"/iqtree -s "$input_fasta" -st "$discrete_model" -m MFP -T "$IQT_threads" -B 1000 &> /dev/null 
 	
 	    best_model=$(grep '^Best-fit model' "${input_fasta}".log | cut -d' ' -f 3)
 	    msg " >>> Best-fit model: ${best_model} ..." PROGR GREEN
@@ -448,7 +466,7 @@ function run_IQT_discrete
 	[ "$DEBUG" -eq 1 ] && msg "working in $wkdir" DEBUG NC
 	# 1. first run without testing branch supports, to find the best-fitting model
 	print_start_time && msg " >>> running iqtree -s $input_fasta -st $discrete_model to find best model" PROGR GREEN
-        "${bindir}"/iqtree -s "$input_fasta" -st "$discrete_model" -m MF -T AUTO &> /dev/null
+        "${bindir}"/iqtree -s "$input_fasta" -st "$discrete_model" -m MF -T $IQT_threads &> /dev/null
 	
 	best_model=$(grep '^Best-fit model' "${input_fasta}".log | cut -d' ' -f 3)
 	msg " >>> Best-fit model: ${best_model} ..." PROGR GREEN
@@ -469,10 +487,10 @@ function run_IQT_discrete
 	    # run nrep_IQT_searches IQ-TREE searches under the best-fit model found
 	    for ((rep=1;rep<=nrep_IQT_searches;rep++))
 	    do
-	        lmsg="> iqtree -s $input_fasta -st $discrete_model -m $best_model -abayes -B 1000 -T AUTO -pre abayes_UFBboot_run${rep} &> /dev/null"
+	        lmsg="> iqtree -s $input_fasta -st $discrete_model -m $best_model -abayes -B 1000 -T $IQT_threads -pre abayes_UFBboot_run${rep} &> /dev/null"
 	        print_start_time && msg "$lmsg" PROGR LBLUE
 
-	        iqtree -s "$input_fasta" -st "$discrete_model" -m "$best_model" -abayes -B 1000 -T AUTO -pre "abayes_UFBboot_run${rep}" &> /dev/null
+	        iqtree -s "$input_fasta" -st "$discrete_model" -m "$best_model" -abayes -B 1000 -T "$IQT_threads" -pre "abayes_UFBboot_run${rep}" &> /dev/null
 	    done
 
 	    grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_lnL_scores_IQ-TREE_searches.out
@@ -500,10 +518,10 @@ function run_IQT_discrete
 	    # run nrep_IQT_searches IQ-TREE searches under the best-fit model found
 	    for ((rep=1;rep<=nrep_IQT_searches;rep++))
 	    do
-	        lmsg="> iqtree -s $input_fasta -st $discrete_model -m $best_model -abayes -T AUTO -pre abayes_run${rep} &> /dev/null"
+	        lmsg="> iqtree -s $input_fasta -st $discrete_model -m $best_model -abayes -T $IQT_threads -pre abayes_run${rep} &> /dev/null"
 	        print_start_time && msg "$lmsg" PROGR LBLUE
 
-	        iqtree -s "$input_fasta" -st "$discrete_model" -m "$best_model" -abayes -T AUTO -pre "abayes_run${rep}" &> /dev/null
+	        iqtree -s "$input_fasta" -st "$discrete_model" -m "$best_model" -abayes -T "$IQT_threads" -pre "abayes_run${rep}" &> /dev/null
 	    done
 
 	    grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_lnL_scores_IQ-TREE_searches.out
@@ -530,10 +548,10 @@ function run_IQT_discrete
 	    # run nrep_IQT_searches IQ-TREE searches under the best-fit model found
 	    for ((rep=1;rep<=nrep_IQT_searches;rep++))
 	    do
-	        lmsg="> iqtree -s $input_fasta -st $discrete_model -m $best_model -B 1000 -T AUTO -pre UFBoot_run${rep} &> /dev/null"
+	        lmsg="> iqtree -s $input_fasta -st $discrete_model -m $best_model -B 1000 -T $IQT_threads -pre UFBoot_run${rep} &> /dev/null"
 	        print_start_time && msg "$lmsg" PROGR LBLUE
 
-	        iqtree -s "$input_fasta" -st "$discrete_model" -m "$best_model" -B 1000 -T AUTO -pre "UFBoot_run${rep}" &> /dev/null
+	        iqtree -s "$input_fasta" -st "$discrete_model" -m "$best_model" -B 1000 -T "$IQT_threads" -pre "UFBoot_run${rep}" &> /dev/null
 	    done
 
 	    grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_lnL_scores_IQ-TREE_searches.out
@@ -556,7 +574,7 @@ function run_IQT_discrete
 	fi
 	    
     fi	
-   [ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]} ..." DEBUG NC
 }
 
 
@@ -566,7 +584,9 @@ function run_IQT_discrete
 
 function write_pars_full_search_cmd
 {
-    [ "$DEBUG" -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
+    (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]} ..." DEBUG NC
+    local n_jumbles sequential i rseed
+    
     n_jumbles=$1
     sequential=$2
     i=$3
@@ -577,7 +597,7 @@ function write_pars_full_search_cmd
     else
        # compute a new rdm number for each new iteration of the loop
        # to maximize randomness in bootstrapping.
-       local rseed=$((8*i+1))
+       rseed=$((8*i+1))
     fi
 
     # need to remove previous param file, since we are concatenating to it
@@ -588,14 +608,16 @@ function write_pars_full_search_cmd
    [ "$sequential" -eq 0 ] &&  echo -ne "J\n$rseed\n$n_jumbles\nY\n" > pars.params
    [ "$sequential" -gt 0 ] &&  echo -ne "J\n$rseed\n$n_jumbles\nI\nY\n" > pars.params
 
-   [ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]} ..." DEBUG NC
 }
 
 #----------------------------------------------------------------------------------
 function write_boot_pars_params
 {
-    [ "$DEBUG" -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
+    (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]} ..." DEBUG NC
     #get the input runmodes, models, bootstrap no. ...
+    local boot sequential n_jumbles i rdm
+    
     boot=$1
     sequential=$2
     n_jumbles=$3
@@ -603,7 +625,7 @@ function write_boot_pars_params
 
     # compute a new rdm number for each new iteration of the loop
     # to maximize randomness in bootstrapping.
-    local rdm=$((4*i+1))
+    rdm=$((4*i+1))
 
     # need to remove previous param file, since we are concatenating to it
     [ -s pars.params ] && rm pars.params
@@ -613,20 +635,21 @@ function write_boot_pars_params
     [ "$sequential" -eq 0 ] && echo -ne "M\nD\n$boot\n$rdm\n$t_jumbles\nY\n" > pars.params
     [ "$sequential" -gt 0 ] && echo -ne "M\nD\n$boot\n$rdm\n$t_jumbles\nI\nY\n" > pars.params
   
-    [ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
+    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]} ..." DEBUG NC
 }
 
 #----------------------------------------------------------------------------------
 function write_seqboot_params
 {
-    [ "$DEBUG" -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
+    (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]} ..." DEBUG NC
     #get the input runmodes, models and bootstrap no.
+    local boot i rdm
     boot=$1
     i=$2
     
     # compute a new rdm number for each new iteration of the loop
     # to maximize randomness in bootstrapping.
-    local rdm=$((4*i+1))
+    rdm=$((4*i+1))
     
     # need to remove previous param file, since we are concatenating to it
     [ -s seqboot.params ] && rm seqboot.params
@@ -634,25 +657,30 @@ function write_seqboot_params
     touch seqboot.params
 
     # Write Seqboot params
-    [ "$boot" -gt 0 ] && echo -ne "D\nR\n$boot\nY\n$rdm\n" > seqboot.params
+    (( boot > 0 )) && echo -ne "D\nR\n$boot\nY\n$rdm\n" > seqboot.params
 
-   [ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
+    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]} ..." DEBUG NC
 }
 #----------------------------------------------------------------------------------
 function write_consense_params
 {
-    [ "$DEBUG" -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
+    (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]} ..." DEBUG NC
     # very difficult ;)
     [ -s consense.params ] && rm consense.params
-    [ $outgroup -gt 1 ] && echo -ne "O\n$outgroup\n"  >> consense.params 
-    echo -ne "Y\n"                                    >> consense.params
+    
+    local outgroup
+    outgroup=$1
+    
+    (( outgroup > 1 )) && echo -ne "O\n$outgroup\n"  >> consense.params 
+    echo -ne "Y\n"                                   >> consense.params
  
-    [ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
+    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]} ..." DEBUG NC
 }
 
 #----------------------------------------------------------------------------------
 function print_warning
 {
+    local msg
     msg=$1
     echo "WARNING: $msg"
 }
@@ -660,7 +688,7 @@ function print_warning
 # don't leave litter behind ... remove intermediate input/output files
 function cleanup_dir 
 {
-   [ "$DEBUG" -eq 1 ] && msg " => working in $FUNCNAME ..." DEBUG NC
+   (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]} ..." DEBUG NC
    [ -s infile ] && rm infile
    [ -s outfile ] && rm outfile
    
@@ -669,7 +697,7 @@ function cleanup_dir
        [ -s "$file" ] && rm "$file"
    done    
 
-   [ "$DEBUG" -eq 1 ] && msg " <= exiting $FUNCNAME ..." DEBUG NC
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]} ..." DEBUG NC
 }
 
 #----------------------------------------------------------------------------------
@@ -768,11 +796,13 @@ exit 1
 #-------------------------------------------------------------------------------------------------#
 
 # GETOPTS
-while getopts ':b:c:j:m:n:f:i:r:R:S:t:T:hsDv' OPTIONS; do
+while getopts ':b:c:j:m:n:f:i:I:r:R:S:t:T:hsDv' OPTIONS; do
    case $OPTIONS in
    f)   input_fasta=$OPTARG
         ;;
    i)   input_phylip=$OPTARG
+        ;;
+   I)   IQT_threads=$OPTARG
         ;;
    b)   boot=$OPTARG
         ;;
@@ -840,25 +870,23 @@ check_scripts_in_path "$distrodir"
 set_bindirs "$bindir"
 
 # 0.3 append the $distrodir/lib/R to R_LIBS and export
-export R_LIBS="$R_LIBS:${distrodir}/lib/R"
+export R_LIBS="${distrodir}/lib/R"
 
 # 0.4 append the $distrodir/lib/perl to PERL5LIB and export
-export PERL5LIB="${PERL5LIB}:${distrodir}/lib/perl:${distrodir}/lib/perl/bioperl-1.5.2_102"
+export PERL5LIB="${distrodir}/lib/perl:${distrodir}/lib/perl/bioperl-1.5.2_102"
 
 
 #--------------------------------------#
 # >>> BLOCK 0.2 CHECK USER OPTIONS <<< #
 #--------------------------------------#
 
-
 [ "$check_version" -eq 1 ] && exit 0
-
 
 if [ "$criterion" == "ML" ]; then
     [ -z "$input_fasta" ] && msg "# ERROR: no input fasta file defined!" ERROR RED && print_help && exit 1
-    [ "$discrete_model" != "BIN" -a "$discrete_model" != "MORPH" ] && msg "# ERROR: discrete model has to be 'BIN|MORPH'" ERROR RED && print_help && exit 1
-    [ "$num_IQT_runs" -lt 1 -o "$num_IQT_runs" -gt 100 ] && msg "# ERROR: the number of IQT runs should be in the 1:100 range" ERROR RED && print_help && exit 1
-    if [ "$IQT_support" != 'abayes' -a "$IQT_support" != 'UFBoot' -a "$IQT_support" != 'both' ] 
+    [ "$discrete_model" != "BIN" ] && [ "$discrete_model" != "MORPH" ] && msg "# ERROR: discrete model has to be 'BIN|MORPH'" ERROR RED && print_help && exit 1
+    [ "$num_IQT_runs" -lt 1 ] || [ "$num_IQT_runs" -gt 100 ] && msg "# ERROR: the number of IQT runs should be in the 1:100 range" ERROR RED && print_help && exit 1
+    if [ "$IQT_support" != 'abayes' ] && [ "$IQT_support" != 'UFBoot' ] && [ "$IQT_support" != 'both' ] 
     then
          msg "# ERROR: provide one of the following branch support value types for IQ-tree searches: abayes|UFBoot|both" ERROR RED && print_help && exit 1
     fi
@@ -866,12 +894,11 @@ fi
 
 
 if [ "$criterion" == "PARS" ]; then
-    if [ -z "$input_phylip" -a "$runmode" -ne 4 ] # runmode 4 does not require the input phylip file
+    if [ -z "$input_phylip" ] && [ "$runmode" -ne 4 ] # runmode 4 does not require the input phylip file
     then
        echo
        msg "# ERROR: no input phylip file defined!" ERROR RED
        print_help
-       exit 1    
     fi
 
     if [ -z "$runmode" ]
@@ -879,7 +906,6 @@ if [ "$criterion" == "PARS" ]; then
        echo
        msg "# ERROR: no runmode defined for parsimony-based analyses!" ERROR RED
        print_help
-       exit 1	 
     fi
 
     # First check that bootstrap value is an integer
@@ -890,8 +916,6 @@ if [ "$criterion" == "PARS" ]; then
        msg "# ERROR: $boot is not an integer; provide a value between 100 and 1000" ERROR RED
        echo
        print_help
-       echo
-       exit 3
     fi
 
     echo
@@ -956,10 +980,9 @@ fi
 #             1. automatically mv boot_pars to boot_parsback${TIMESTAMP_SHORT} if -R 1 
 #             2. automatically cd into boot_pars if -R 2 -o -R 3
 
-
 if [ "$criterion" == "PARS" ]; then
 
-if [ -d boot_pars -a "$runmode" -ne 4 ]
+if [ -d boot_pars ] && [ "$runmode" -ne 4 ]
 then
    msg "found dir boot_pars" WARNING LRED
    read -p "should dir boot_pars be removed y|n? " answer
@@ -974,21 +997,24 @@ then
    if [ "$choice" == "y" ]
    then
        rm -rf boot_pars
-       mkdir boot_pars && cd boot_pars && wkdir=$(pwd)
+       mkdir boot_pars || { msg "ERROR: cannot make dir boot_pars" ERROR RED && exit 1 ; }
+       cd boot_pars || { msg "ERROR: cannot cd into boot_pars" ERROR RED && exit 1 ; }
+       wkdir=$(pwd)
    else    
-       cd boot_pars
+       cd boot_pars || { msg "ERROR: cannot make dir boot_pars" ERROR RED && exit 1 ; }
        wkdir=$(pwd)
    fi
 else
-   [ "$runmode" -ne 4 ] && mkdir boot_pars && cd boot_pars && wkdir=$(pwd)
+   (( runmode != 4 )) && mkdir boot_pars && cd boot_pars && wkdir=$(pwd)
 fi
 
 
-if [ "$runmode" -eq 1 -o "$runmode" -eq 3 ]
+if (( runmode == 1 )) || (( runmode == 3 ))
 then
   #pids=()
   # compute the full parsimony tree
-  mkdir full_pars && cd full_pars
+  mkdir full_pars || { msg "ERROR: cannot mkdir full_pars" ERROR RED && exit 1 ; }
+  cd full_pars || { msg "ERROR: cannot cd into full_pars" ERROR RED && exit 1 ; }
   msg " ... working in dir full_pars" PROGR LBLUE
   ln -s "$topdir/$input_phylip" infile
 
@@ -996,7 +1022,7 @@ then
   then    
      write_pars_full_search_cmd "$n_jumbles" "$sequential"
      "${bindir}"/pars < pars.params &> /dev/null & 
-     cd "$wkdir"
+     cd "$wkdir" || { msg "ERROR: cannot cd into $wkdir" ERROR RED && exit 1 ; }
   else
      echo
      msg "# FATAL ERROR: input phylip file $input_phylip does not exist or is empty" ERROR RED
@@ -1009,10 +1035,10 @@ then
 fi
 
 #>>> 2. Runmode -eq 2: launch multiple pars searches
-if [ "$runmode" -eq 2 ]
+if (( runmode == 2 ))
 then
   # now run the individual pars searches from individual directories
-  cd "$wkdir"
+  cd "$wkdir" || { msg "ERROR: cannot cd into $wkdir" ERROR RED && exit 1 ; }
   msg " ... working in dir $wkdir" PROGR LBLUE
 
   start=1
@@ -1024,8 +1050,9 @@ then
   do
       dirname="pars${i}" # <CHECK
     
-      mkdir "$dirname" && cd "$dirname"
-      [ "$DEBUG" -eq 1 ] && msg "moved into dir $dirname" DEBUG NC
+      mkdir "$dirname" || { msg "ERROR: cannot make dir $dirname" ERROR RED && exit 1 ; }
+      cd "$dirname" || { msg "ERROR: cannot cd into $dirname" ERROR RED && exit 1 ; }
+      (( DEBUG > 1 )) && msg "moved into dir $dirname" DEBUG NC
     
       ln -s "$topdir/$input_phylip" infile
       [ ! -s infile ] && msg "ERROR no $input_phylip in $dirname" ERROR RED && exit
@@ -1043,7 +1070,7 @@ then
          msg "# running pars < pars.params &> /dev/null in $dirname" PROGR BLUE
          pars < pars.params &> /dev/null & 
          pids[$i]=${!}
-         cd "$wkdir"
+         cd "$wkdir" || { msg "ERROR: cannot cd into $wkdir" ERROR RED && exit 1 ; }
       else
          echo
          msg "# FATAL ERROR: input phylip file $input_phylip does not exist or is empty" ERROR RED
@@ -1058,10 +1085,10 @@ then
 fi
 
 #>>> Runmode -eq 3: now run the bootstrap replicates from individual directories
-if [ "$runmode" -eq 3 ]
+if (( runmode == 3 ))
 then
   check_libnw
-  cd "$wkdir"
+  cd "$wkdir" || { msg "ERROR: cannot cd into $wkdir" ERROR RED && exit 1 ; }
   start=1
   end="$n_cores"
  
@@ -1071,8 +1098,9 @@ then
   do
      dirname="run${i}" # <CHECK
     
-     mkdir "$dirname" && cd "$dirname"
-     [ "$DEBUG" -eq 1 ] && echo "moved into dir $dirname"
+     mkdir "$dirname" || { msg "ERROR: cannot mkdir $dirname" ERROR RED && exit 1 ; }
+     cd "$dirname" || { msg "ERROR: cannot cd into $dirname" ERROR RED && exit 1 ; }
+     (( DEBUG == 1 )) && echo "moved into dir $dirname"
     
      ln -s "$topdir/$input_phylip" infile
      [ ! -s infile ] && msg "ERROR no $input_phylip in $dirname" ERROR RED && exit
@@ -1097,7 +1125,7 @@ then
        msg "# running pars < pars.params &> /dev/null in $dirname" PROGR BLUE
        "${bindir}"/pars < pars.params &> /dev/null & 
        pids[$i]=${!}
-       cd "$wkdir"
+       cd "$wkdir" || { msg "ERROR: cannot cd into $wkdir" ERROR RED && exit 1 ; }
      else
          echo
          msg "# FATAL ERROR: input phylip file $input_phylip does not exist or is empty" ERROR RED
@@ -1119,11 +1147,11 @@ fi
 
 
 #>>> 4. parse the parsimony search results
-if [ "$runmode" -eq 2 ]
+if (( runmode == 2 ))
 then
     sleep 10 # make sure all writing to dirs has finished
     
-    cd "${top_dir}"/boot_pars
+    cd "${top_dir}"/boot_pars || { msg "ERROR: cannot cd into ${top_dir}/boot_pars" ERROR RED && exit 1 ; }
     msg "# will parse multisearch results in dir ${top_dir}/boot_pars" PROGR LBLUE
     start=1
     end=$n_cores
@@ -1137,7 +1165,7 @@ then
     
     check_output pars_search_scores.tsv
     
-    grep '^pars' pars_search_scores.tsv | sort -nk2 > ed && mv ed pars_search_scores.tsv
+    grep '^pars' pars_search_scores.tsv | sort -nk2 > t && mv t pars_search_scores.tsv
     cut -f2 pars_search_scores.tsv | uniq -c > pars_search_profile_stats.tsv
 
     best_pars_run_dir=$(head -1 pars_search_scores.tsv | cut -f1)
@@ -1159,11 +1187,11 @@ fi
 #    to remap boostrap proportions on the original pars tree
 if [ "$runmode" -eq 3 ]
 then
-  cd "${top_dir}"/boot_pars
+  cd "${top_dir}"/boot_pars || { msg "ERROR cannot cd into ${top_dir}/boot_pars" ERROR RED; exit 1 ; }
   sleep 10 # make sure all I/O has finished
   msg "# working in $wkdir ..." PROGR LBLUE
   start=1
-  end=$n_cores
+  end="$n_cores"
 
   # 3.1 concatenate all src bootstrap trees (outtree) in the working directories
   for ((i=start; i<=end; i++))
@@ -1177,9 +1205,9 @@ then
   mv outtree all_boottrees.ph
 
   # 3.2 run consense; just a double check
-  [ "$DEBUG" -eq 1 ] && msg "# running write_consense_params" DEBUG NC
-  write_consense_params
-  [ "$DEBUG" -eq 1 ] && msg "# running consense < consense.params &> /dev/null" DEBUG NC
+  (( DEBUG > 1 )) && msg "# running write_consense_params" DEBUG NC
+  write_consense_params "$outgroup"
+  (( DEBUG > 1 )) && msg "# running consense < consense.params &> /dev/null" DEBUG NC
   "${bindir}"/consense < consense.params &> /dev/null 
   mv outtree consense.outtree
   mv outfile consense.outfile
@@ -1188,11 +1216,11 @@ then
   cp full_pars/outtree full_pars_tree.ph
 
   # 3.4 arbitrarily root trees at first taxon labeled 0000000000 with nw_reroot
-  [ "$DEBUG" -eq 1 ] && msg "# running nw_reroot full_pars_tree.ph 0000000000 > full_pars_tree_rooted.ph" DEBUG NC
+  (( DEBUG > 1 )) && msg "# running nw_reroot full_pars_tree.ph 0000000000 > full_pars_tree_rooted.ph" DEBUG NC
   "${bindir}"/nw_reroot full_pars_tree.ph 0000000000 > full_pars_tree_rooted.ph
-  perl -pe 's/\n//; s/;/;\n/' full_pars_tree.ph > ed && mv ed full_parsimony_tree.ph 
+  perl -pe 's/\n//; s/;/;\n/' full_pars_tree.ph > t && mv t full_parsimony_tree.ph 
 
-  [ "$DEBUG" -eq 1 ] && msg "# running nw_reroot all_boottrees.ph 0000000000 > all_boottrees_rooted.ph" DEBUG NC
+  (( DEBUG > 1 )) && msg "# running nw_reroot all_boottrees.ph 0000000000 > all_boottrees_rooted.ph" DEBUG NC
   "${bindir}"/nw_reroot all_boottrees.ph 0000000000 > all_boottrees_rooted.ph
 
   # 3.5 add bootstrap values to full_pars_tree_rooted.ph with nw_support
@@ -1201,7 +1229,7 @@ then
   # http://treethinkers.blogspot.mx/2008/10/labeling-trees-posterior-probability.html
   # http://treethinkers.blogspot.mx/2008/07/r-tip-indicating-tree-support.html
   # 
-  [ "$DEBUG" -eq 1 ] && msg "# running nw_support -p full_pars_tree_rooted.ph all_boottrees_rooted.ph > full_pars_tree_rooted_withBoot.ph" DEBUG NC
+  (( DEBUG > 1 )) && msg "# running nw_support -p full_pars_tree_rooted.ph all_boottrees_rooted.ph > full_pars_tree_rooted_withBoot.ph" DEBUG NC
   "${bindir}"/nw_support -p full_pars_tree_rooted.ph all_boottrees_rooted.ph > full_pars_tree_rooted_withBoot.ph
 
   # 4. add proper lebels to full_pars_tree_rooted_withBoot.ph
@@ -1212,8 +1240,8 @@ then
   awk '{print $1}' pangenome_matrix_t0.phylip > pang_strainIDs.list
 
   # remove the first no_of_tax line
-  tail -n +2 pang_strains.list > ed && mv ed pang_strains.list
-  tail -n +2 pang_strainIDs.list > ed && mv ed pang_strainIDs.list
+  tail -n +2 pang_strains.list > t && mv t pang_strains.list
+  tail -n +2 pang_strainIDs.list > t && mv t pang_strainIDs.list
 
   paste pang_strainIDs.list pang_strains.list > pang_ID-Strain_corresp.tsv
 
@@ -1229,7 +1257,7 @@ then
 fi
 
 #>>> 6. transfer bootstrap values to best -T tree
-if [ "$runmode" -eq 4 ]
+if (( runmode == 4 ))
 then
 
   # 1. get the real parsimony tree and rename it
@@ -1237,7 +1265,7 @@ then
   
   # 2. arbitrarily root trees at first taxon labeled 0000000000 with nw_reroot
   "${bindir}"/nw_reroot full_pars_tree.ph 0000000000 > full_pars_tree_rooted.ph
-  perl -pe 's/\n//; s/;/;\n/' full_pars_tree.ph > ed && mv ed full_parsimony_tree.ph 
+  perl -pe 's/\n//; s/;/;\n/' full_pars_tree.ph > t && mv t full_parsimony_tree.ph 
 
   # we may already have the file all_boottrees_rooted.ph in wkdir from a previous -R 3 run
   [ ! -s all_boottrees_rooted.ph ] && "${bindir}"/nw_reroot all_boottrees.ph 0000000000 > all_boottrees_rooted.ph
@@ -1258,8 +1286,8 @@ then
   awk '{print $1}' pangenome_matrix_t0.phylip > pang_strainIDs.list
 
   # remove the first no_of_tax line
-  tail -n +2 pang_strains.list > ed && mv ed pang_strains.list
-  tail -n +2 pang_strainIDs.list > ed && mv ed pang_strainIDs.list
+  tail -n +2 pang_strains.list > t && mv t pang_strains.list
+  tail -n +2 pang_strainIDs.list > t && mv t pang_strainIDs.list
 
   paste pang_strainIDs.list pang_strains.list > pang_ID-Strain_corresp.tsv
 
