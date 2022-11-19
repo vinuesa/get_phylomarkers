@@ -136,7 +136,7 @@ function check_dependencies()
     # check if scripts are in path; if not, set flag
     (( DEBUG > 0 )) && msg " => working in $FUNCNAME ..." DEBUG NC
     
-    local prog
+    local prog bin
     system_binaries=(bash R perl awk bc cut grep sed sort uniq Rscript find)
 
     for prog in "${system_binaries[@]}" 
@@ -153,18 +153,21 @@ function check_dependencies()
 	  # printf "${GREEN}%s${NC}\n"  "# $prog OK!" PROGR GREEN
        fi
     done
+    (( DEBUG > 0 )) && msg " <= exiting $FUNCNAME ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
 
 function check_scripts_in_path()
 {
     (( DEBUG > 0 )) && msg " => working in $FUNCNAME ..." DEBUG NC
+
+    local bash_scripts perl_scripts R_scripts prog bin distrodir not_in_path
+
     distrodir=$1
     not_in_path=0
 
    (( DEBUG > 0 )) && msg "check_scripts_in_path() distrodir: $distrodir" DEBUG NC
     
-    local bash_scripts perl_scripts R_scripts prog
     
     bash_scripts=(run_parallel_molecClock_test_with_paup.sh)
     perl_scripts=(run_parallel_cmmds.pl add_nos2fasta_header.pl pal2nal.pl rename.pl concat_alignments.pl \
