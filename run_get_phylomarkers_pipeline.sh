@@ -43,7 +43,7 @@ set -u
 set -o pipefail
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.4.5_17nov2022' # implements DEBUG <0|1|2|3>
+VERSION='2.4.6_18nov2022' #
                          		   
 # Set GLOBALS
 # in Strict mode, need to explicitly set undefined variables to an empty string var=''
@@ -689,17 +689,17 @@ do
         ;;
    T)   search_thoroughness=$OPTARG
         ;;
-   v)   echo "$progname v$VERSION" && check_dependencies 1 && exit 0
+   v)   echo "$progname v$VERSION" && exit 0
         ;;
    V)   software_versions=1
         ;;
 #----------- add support for parsing long argument names-----------------------
    - ) 
        case $OPTARG in
-          IQT* ) IQT_threads=$OPTARG ;;
-          h*   ) print_help ;;
-	  v*   ) echo "$progname v$VERSION" && check_dependencies 1 && exit 0 ;;
-	  V*   ) software_versions=1 ;;
+          I* ) IQT_threads=$OPTARG ;;
+          h* ) print_help ;;
+	  v* ) { echo "$progname v$VERSION" && exit 0 ; } ;;
+	  V* ) software_versions=1 ;;
           *    ) echo "# ERROR: invalid long options --$OPTARG" && print_help ;;
        esac >&2   # print the ERROR MESSAGES to STDERR
   ;;  
@@ -826,13 +826,16 @@ then
      check_IQT_PROT_models "$IQT_models"
 fi
 
-if [ "$search_thoroughness" != "high" ] && [ "$search_thoroughness" != "medium" ] && [ "$search_thoroughness" != "low" ] && [ "$search_thoroughness" != "lowest" ]
+if [ "$search_thoroughness" != "high" ] && [ "$search_thoroughness" != "medium" ] \
+                                        && [ "$search_thoroughness" != "low" ] \
+					&& [ "$search_thoroughness" != "lowest" ]
 then
      msg "ERROR: -T must be lowest|low|medium|high" HELP RED
      print_help
 fi
 
-if [ "$base_mod" != "GTR" ] && [ "$base_mod" != "TrN" ] && [ "$base_mod" != "HKY" ] && [ "$base_mod" != "K2P" ] && [ "$base_mod" != "F81" ]
+if [ "$base_mod" != "GTR" ] && [ "$base_mod" != "TrN" ] && [ "$base_mod" != "HKY" ] \
+                            && [ "$base_mod" != "K2P" ] && [ "$base_mod" != "F81" ]
 then
      msg "ERROR: -M must be one of: GTR|TrN|HKY|K2P|F81" HELP RED
      print_help
@@ -854,7 +857,7 @@ fi
 # >>>> MAIN CODE <<<< #
 #---------------------#
 
-(( DEBUG > 0 )) && msg "running on $OSTYPE" DEBUG LBLUE && echo "path contains: "  && echo "$PATH" |sed 's/:/\n/g'
+(( DEBUG > 0 )) && msg "running on $OSTYPE" DEBUG LBLUE && echo "path contains: " && echo "$PATH" |sed 's/:/\n/g'
 
 start_time=$(date +%s)
 
@@ -890,7 +893,8 @@ lmsg="Run started on $TIMESTAMP_SHORT_HMS under $OSTYPE on $HOSTNAME with $n_cor
  > FastTree parameters:
      spr:$spr|spr_length:$spr_length|search_thoroughness:$search_thoroughness
  > IQ-TREE parameters:
-     IQT_models:$IQT_models|search_thoroughness:$search_thoroughness|nrep_IQT_searches:$nrep_IQT_searches
+     IQT_models:$IQT_models|search_thoroughness:$search_thoroughness
+     nrep_IQT_searches:$nrep_IQT_searches|IQT_threads:$IQT_threads
  > Molecular Clock parmeters:
      eval_clock:$eval_clock|root_method:$root_method|base_model:$base_mod|ChiSq_quantile:$q   
  
@@ -970,12 +974,24 @@ fi
 # 1.1 fix fastaheaders of the source protein and DNA fasta files
 if [ "$cluster_format" == 'STD' ]; then
     # FASTA header format corresponds to GET_HOMOLOGUES
-    for file in *faa; do awk 'BEGIN {FS = "|"}{print $1, $2, $3}' "$file"|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}"ed; done
-    for file in *fna; do awk 'BEGIN {FS = "|"}{print $1, $2, $3}' "$file"|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}ed"; done
+    for file in *faa; do 
+        awk 'BEGIN {FS = "|"}{print $1, $2, $3}' "$file" \
+	 | perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}"ed
+    done
+    for file in *fna; do 
+        awk 'BEGIN {FS = "|"}{print $1, $2, $3}' "$file" \
+	 | perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}ed"
+    done
 else
     # FASTA header format corresponds to GET_HOMOLOGUES_EST; keep first and last fields delimited by "|"
-    for file in *faa; do awk 'BEGIN {FS = " "}{print $1, $2}' "$file"|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}"ed; done
-    for file in *fna; do awk 'BEGIN {FS = " "}{print $1, $2}' "$file"|perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}ed"; done
+    for file in *faa; do 
+        awk 'BEGIN {FS = " "}{print $1, $2}' "$file" \
+	 | perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}"ed
+    done
+    for file in *fna; do
+        awk 'BEGIN {FS = " "}{print $1, $2}' "$file" \
+	 | perl -pe 'if(/^>/){s/>\S+/>/; s/>\h+/>/; s/\h+/_/g; s/,//g; s/;//g; s/://g; s/\(//g; s/\)//g}' > "${file}ed"
+    done
 fi
 
 
@@ -1042,7 +1058,8 @@ msg "" PROGR NC
 
 
 print_start_time &&  msg "# generating $no_alns protein alignments ..." PROGR BLUE
-(( DEBUG > 0 )) && msg " > '\${distrodir}/run_parallel_cmmds.pl faaedno clustalo -i \$file -o \${file%.*}_cluo.faaln --output-order input-order' \$n_cores &> /dev/null" DEBUG NC
+(( DEBUG > 0 )) \
+  && msg " > '\${distrodir}/run_parallel_cmmds.pl faaedno clustalo -i \$file -o \${file%.*}_cluo.faaln --output-order input-order' \$n_cores &> /dev/null" DEBUG NC
 "${distrodir}"/run_parallel_cmmds.pl faaedno 'clustalo -i $file -o ${file%.*}_cluo.faaln --output-order input-order' "$n_cores" &> clustalo.log
 
 if grep -q "Thread creation failed" clustalo.log; then
@@ -1113,7 +1130,7 @@ msg "" PROGR NC
 print_start_time && msg "# running Phi recombination test in PhiPack dir ..." PROGR LBLUE
 (( DEBUG > 0 )) && msg " > ${distrodir}/run_parallel_cmmds.pl fasta 'Phi -f $file -p 1000 > ${file%.*}_Phi.log' $n_cores &> /dev/null" DEBUG NC || msg "WARNING in $LINENO" WARNING LRED
 
-# NOTE: here Phi can exit with ERROR: Too few informative sites to test significance.  Try decreasing windowsize or increasing alignment length
+# NOTE: here Phi can exit with ERROR: Too few informative sites to test significance. Try decreasing windowsize or increasing alignment length
 #   which breaks set -e
 "${distrodir}"/run_parallel_cmmds.pl fasta 'Phi -f $file -p 1000 > ${file%.*}_Phi.log' "$n_cores" &> /dev/null 
 
@@ -1491,7 +1508,8 @@ then
 	  if [[ -s "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log" ]] && [[ -s "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph" ]]
 	  then
 	    #lnL=$(grep ML_Lengths2 "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log" | grep TreeLogLk | sed 's/TreeLogLk[[:space:]]ML_Lengths2[[:space:]]//')
-	    lnL=$(grep '^Gamma20LogLk' "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log" |awk '{print $2}')
+	    #lnL=$(grep '^Gamma20LogLk' "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log" |awk '{print $2}')
+	    lnL=$(awk '/^Gamma20LogLk/{print $2}' "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log")
 	    msg " >>> lnL for ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph = $lnL" PROGR GREEN
 	  else
 	    msg " >>> ERROR: ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log could not be produced, will stop here" ERROR LRED
@@ -1535,7 +1553,6 @@ then
           else
              msg " >>> WARNING: file alltrees.nwk was not found; cannot run ASTRAL ..." WARNING LRED
           fi
-
 	  
 	  # top100_median_support_values4loci.tab should probably not be written in the first instance
 	  [[ -s top100_median_support_values4loci.tab ]] && (( no_top_markers < 101 )) && rm top100_median_support_values4loci.tab
@@ -1700,15 +1717,19 @@ then
 	then
 	    if (( eval_clock == 1 ))
 	    then
-	        tar -czf molClock_PAUP_files.tgz ./*_paup.block ./*.nex  ./*_clockTest.log ./*tre ./*clock.scores ./*critical_X2_val.R \
-	        "$mol_clock_tab" "${mol_clock_tab}"sorted mol_clock_*_ClockTest.*
-                (( DEBUG == 0 )) && [ -s molClock_PAUP_files.tgz ] && rm ./*_paup.block ./*.nex  ./*_clockTest.log ./*tre ./*clock.scores ./*critical_X2_val.R
+	        tar -czf molClock_PAUP_files.tgz ./*_paup.block ./*.nex  ./*_clockTest.log \
+		    ./*tre ./*clock.scores ./*critical_X2_val.R \
+	            "$mol_clock_tab" "${mol_clock_tab}"sorted mol_clock_*_ClockTest.*
+                (( DEBUG == 0 )) \
+		  && [ -s molClock_PAUP_files.tgz ] \
+		  && rm ./*_paup.block ./*.nex  ./*_clockTest.log ./*tre ./*clock.scores ./*critical_X2_val.R
                 (( DEBUG == 0 )) && rm list2concat Rplots.pdf header.tmp list2grep.tmp concat_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
 	    fi
 	    
 	    tar -czf concatenated_alignment_files.tgz concat_cdnAlns.fna concat_cdnAlns.fnainf
             [[ -s concatenated_alignment_files.tgz ]] && rm concat_cdnAlns.fna concat_cdnAlns.fnainf
-	    (( DEBUG == 0 )) && rm gene_trees2_concat_tree_RF_distances.tab ./*cdnAln_FTGTR.ph ./*cdnAln.fasta ./*cdnAln.log ./sorted_aggregated_*tab
+	    (( DEBUG == 0 )) \
+	      && rm gene_trees2_concat_tree_RF_distances.tab ./*cdnAln_FTGTR.ph ./*cdnAln.fasta ./*cdnAln.log ./sorted_aggregated_*tab
 	    concat_logfile=$(find . -name 'concat*log')
 	    [[ -s "$concat_logfile" ]] && gzip "$concat_logfile"
 
@@ -1732,8 +1753,11 @@ then
 	else
 	    if (( eval_clock == 1 ))
 	    then
-	        tar -czf IQT_molClock_PAUP_files.tgz ./*_paup.block ./*.nex  ./*_clockTest.log ./*tre ./*clock.scores ./*critical_X2_val.R "$mol_clock_tab" "${mol_clock_tab}"sorted ./mol_clock_*_ClockTest.ta*
-                [ -s IQT_molClock_PAUP_files.tgz ] && rm ./*_paup.block ./*.nex ./*_clockTest.log ./*tre ./*clock.scores ./*critical_X2_val.R ./mol_clock_*_ClockTest.ta*
+	        tar -czf IQT_molClock_PAUP_files.tgz ./*_paup.block ./*.nex  \
+		    ./*_clockTest.log ./*tre ./*clock.scores ./*critical_X2_val.R "$mol_clock_tab" \
+		    "${mol_clock_tab}"sorted ./mol_clock_*_ClockTest.ta*
+                [ -s IQT_molClock_PAUP_files.tgz ] \
+		  && rm ./*_paup.block ./*.nex ./*_clockTest.log ./*tre ./*clock.scores ./*critical_X2_val.R ./mol_clock_*_ClockTest.ta*
 		(( DEBUG == 0 )) && rm header.tmp list2grep.tmp
             fi
 	    
@@ -1798,7 +1822,8 @@ then
 	FuLi_l=$(echo "$FuLi_crit_vals"|awk '{print $1}')
 	FuLi_u=$(echo "$FuLi_crit_vals"|awk '{print $2}')
 
-	(( DEBUG > 0 )) && msg "TajD_crit_vals:$TajD_crit_vals|TajD_l:$TajD_l|TajD_u:$TajD_u|FuLi_crit_vals:$FuLi_crit_vals|FuLi_l:$FuLi_l|FuLi_u:$FuLi_u" DEBUG NC
+	(( DEBUG > 0 )) \
+	  && msg "TajD_crit_vals:$TajD_crit_vals|TajD_l:$TajD_l|TajD_u:$TajD_u|FuLi_crit_vals:$FuLi_crit_vals|FuLi_l:$FuLi_l|FuLi_u:$FuLi_u" DEBUG NC
 
         print_start_time && msg "# converting $no_top_markers fasta files to nexus format ..." PROGR BLUE
         (( DEBUG > 0 )) && msg " > convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null" DEBUG NC
@@ -1982,8 +2007,10 @@ then
     then
         print_start_time && msg "# making dir kde_outliers/ and moving $no_kde_outliers outlier files into it ..." PROGR BLUE
         mkdir kde_outliers
-        [ "$search_algorithm" == "F" ] && for f in $(grep outlier kde_dfr_file_all_gene_trees.tre.tab|cut -f1|sed 's/_allFTlgG\.ph//'); do mv "${f}"* kde_outliers; done
-	[ "$search_algorithm" == "I" ] && for f in $(grep outlier kde_dfr_file_all_gene_trees.tre.tab|cut -f1|sed 's/\.treefile//'); do mv "${f}"* kde_outliers; done
+        [ "$search_algorithm" == "F" ] \
+	  && for f in $(grep outlier kde_dfr_file_all_gene_trees.tre.tab|cut -f1|sed 's/_allFTlgG\.ph//'); do mv "${f}"* kde_outliers; done
+	[ "$search_algorithm" == "I" ] \
+	  && for f in $(grep outlier kde_dfr_file_all_gene_trees.tre.tab|cut -f1|sed 's/\.treefile//'); do mv "${f}"* kde_outliers; done
     else
         print_start_time && msg " >>> there are no kde-test outliers ..." PROGR GREEN
     fi
@@ -1996,7 +2023,8 @@ then
         ln -s ../*."${gene_tree_ext}" .
 
         print_start_time && msg "# labeling $no_kde_ok gene trees in dir kde_ok/ ..." PROGR BLUE
-        (( DEBUG > 0 )) && msg " > ${distrodir}/run_parallel_cmmds.pl ${gene_tree_ext} 'add_labels2tree.pl ../../../tree_labels.list $file' $n_cores &> /dev/null" DEBUG NC
+        (( DEBUG > 0 )) \
+	  && msg " > ${distrodir}/run_parallel_cmmds.pl ${gene_tree_ext} 'add_labels2tree.pl ../../../tree_labels.list $file' $n_cores &> /dev/null" DEBUG NC
         "${distrodir}"/run_parallel_cmmds.pl "${gene_tree_ext}" 'add_labels2tree.pl ../../../tree_labels.list $file' "$n_cores" &> /dev/null
 
 	# remove symbolic links to cleanup kde_ok/
@@ -2046,9 +2074,16 @@ then
     mkdir "$top_markers_dir" && cd "$top_markers_dir" || { msg "ERROR: cannot cd into $top_markers_dir" ERROR RED && exit 1 ; }
     top_markers_dir=$(pwd)
     ln -s ../"$top_markers_tab" .
-    for base in $(awk '{print $1}' "$top_markers_tab" |grep -v loci|sed 's/"//g'); do ln -s ../"${base}"* .; done
+    #for base in $(awk '{print $1}' "$top_markers_tab" |grep -v loci|sed 's/"//g'); do ln -s ../"${base}"* .; done
+    # https://www.shellcheck.net/wiki/SC2013
+    while IFS= read -r base
+    do
+        ln -s ../"${base}"* .
+    done < <(awk '{print $1}' < "$top_markers_tab" | grep -v loci| sed 's/"//g')
 
-    (( no_top_markers < 2 )) && print_start_time && msg " >>> Warning: There are less than 2 top markers. Relax your filtering thresholds. will exit now!" ERROR LRED && exit 3
+    (( no_top_markers < 2 )) \
+      && print_start_time \
+      && msg " >>> Warning: There are less than 2 top markers. Relax your filtering thresholds. will exit now!" ERROR LRED && exit 3
 
     msg "" PROGR NC
     msg " >>>>>>>>>>>>>>> generate supermatrix from $no_top_markers concatenated, top-ranking alignments <<<<<<<<<<<<<<< " PROGR YELLOW
@@ -2110,7 +2145,8 @@ then
        if [[ -s "${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.log" ]] && [[ -s "${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph" ]]
        then
          # lnL=$(grep ML_Lengths2 "${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.log" | grep TreeLogLk | sed 's/TreeLogLk[[:space:]]ML_Lengths2[[:space:]]//')
-           lnL=$(grep '^Gamma20LogLk' "${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.log" |awk '{print $2}')
+         # lnL=$(grep '^Gamma20LogLk' "${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.log" |awk '{print $2}')
+	   lnL=$(awk '/^Gamma20LogLk/{print $2}' "${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.log")
            msg " >>> lnL for ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph = $lnL" PROGR GREEN
        else
            msg " >>> WARNING: ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.log could not be produced!" WARNING LRED
@@ -2364,8 +2400,8 @@ Docker images at:
    http://www.ccg.unam.mx/~vinuesa/
    https://digital.csic.es/cris/rp/rp02661/
 
-   Please run the script with the -D flag added at the end of the
-   command line and send us the output, so that we can better diagnose
+   Please run the script with the -D 1 or -D 2 added at the end of the
+   command line, and send us the output, to better diagnose
    the problem.
 
    Thanks!
