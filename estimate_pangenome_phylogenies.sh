@@ -49,20 +49,21 @@ set -u
 set -o pipefail
 
 progname=${0##*/}
-VERSION='v1.2.3_18Nov22' # mostly shellcheck compliant; enabled bash strict mode; major syntax revision and update to modern Bash; 
-                         #  added IQT_threads=4 && updated iqtree2 calls with -T $IQT_threads instead of -T AUTO, which slows down searches
-       # v1.2.2_15Nov22 updated iqtree calls to match current IQTreee2 syntax
-       #'v1.2.1_04Oct21' #v1.2.1_04Oct21; preppended missing "${bindir}" to first pars call
-       # v1.2_16Sep21 added function check_libnw() for lib /usr/local/lib/libnw.so.0.0.0; -R 3 only warns if could not write full_pars_tree_rooted_withBoot.ph
-       # v.1.2_10Jan20; added option -S <abayes|UFBoot|both> default: $IQT_support
-       #'1.0.5_28Mar18' # check_scripts_in_path() checks wether USER is regular or root
-       #'1.0.4_17Feb18' # prepended $bindir/ to a nw_reroot call that was missing it
-       # 1.0.3_8Feb18 added -v; check_scripts_in_path(); check_dependencies with verbosity; activated set_pipeline_environment; Thanks Felipe Lira!
-        # fix in set_pipeline_environment: changed to readlink -n when "$OSTYPE" == "darwin" 
-       # v1.0_23Jan18 added code to run IQ-TREE on PGM, including alrt/UFBoot and model selection
-       # v0.2_2Nov17; added runmodes and code to run parallel pars searches with different 
-                   #            random seeds; Selects best tree; improved/fixed basic documentation
-       #'0.1_27Oct17'; first fully working version
+VERSION='v1.2.4_20Nov22' # added check_bash_version >= 4.3
+  # v1.2.4_18Nov22 mostly shellcheck compliant; enabled bash strict mode; major syntax revision and update to modern Bash; 
+  #       added IQT_threads=4 && updated iqtree2 calls with -T $IQT_threads instead of -T AUTO, which slows down searches
+  # v1.2.2_15Nov22 updated iqtree calls to match current IQTreee2 syntax
+  #'v1.2.1_04Oct21' #v1.2.1_04Oct21; preppended missing "${bindir}" to first pars call
+  # v1.2_16Sep21 added function check_libnw() for lib /usr/local/lib/libnw.so.0.0.0; -R 3 only warns if could not write full_pars_tree_rooted_withBoot.ph
+  # v.1.2_10Jan20; added option -S <abayes|UFBoot|both> default: $IQT_support
+  #'1.0.5_28Mar18' # check_scripts_in_path() checks wether USER is regular or root
+  #'1.0.4_17Feb18' # prepended $bindir/ to a nw_reroot call that was missing it
+  # 1.0.3_8Feb18 added -v; check_scripts_in_path(); check_dependencies with verbosity; activated set_pipeline_environment; Thanks Felipe Lira!
+   # fix in set_pipeline_environment: changed to readlink -n when "$OSTYPE" == "darwin" 
+  # v1.0_23Jan18 added code to run IQ-TREE on PGM, including alrt/UFBoot and model selection
+  # v0.2_2Nov17; added runmodes and code to run parallel pars searches with different 
+  	      # 	   random seeds; Selects best tree; improved/fixed basic documentation
+  #'0.1_27Oct17'; first fully working version
 
 # GLOBALS
 #DATEFORMAT_SHORT="%d%b%y" # 16Oct13
@@ -76,6 +77,13 @@ start_time="$date_F$date_T"
 sleeptime=1
 topdir=$(pwd)
 declare -A pids
+
+min_bash_vers=4.3 # required for:
+                  # 1.  printf '%(%F)T' '-1' in print_start_time; and 
+                  # 2. passing an array or hash by name reference to a bash function (since version 4.3+), 
+		  #    by setting the -n attribute
+		  #    see https://stackoverflow.com/questions/16461656/how-to-pass-array-as-an-argument-to-a-function-in-bash
+
 
 # initialize variables
 runmode=''
@@ -103,6 +111,13 @@ check_version=0
 #---------------------------------------------------------------------------------#
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>> FUNCTION DEFINITIONS <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<#
 #---------------------------------------------------------------------------------#
+function check_bash_version()
+{
+   bash_vers=$(bash --version | head -1 | awk '{print $4}' | sed 's/(.*//' | cut -d. -f1,2)
+   awk -v bv="$bash_vers" -v mb="$min_bash_vers" 'BEGIN { if (bv < mb) print "FATAL: you are running acient bash v"bv, "and version >=", mb, "is required"; exit 1}'
+}
+#-----------------------------------------------------------------------------------------
+
 function msg()
 {
     #[ "$DEBUG" -eq 1 ] && msg " => working in ${FUNCNAME[0]} ..." DEBUG NC
@@ -866,8 +881,6 @@ pPID=$(get_script_PID)
 
 #-----------------------------------------------------------------------------------------
 
-[ "$DEBUG" -eq 1 ] && echo "distrodir:$distrodir|bindir:$bindir|OS:$OS|no_proc:$no_proc"
-
 # 0.1 Determine if pipeline scripts are in $PATH;
 # if not, add symlinks from ~/bin, if available
 check_scripts_in_path "$distrodir"
@@ -880,6 +893,12 @@ export R_LIBS="${distrodir}/lib/R"
 
 # 0.4 append the $distrodir/lib/perl to PERL5LIB and export
 export PERL5LIB="${distrodir}/lib/perl:${distrodir}/lib/perl/bioperl-1.5.2_102"
+
+
+[ "$DEBUG" -eq 1 ] && echo "distrodir:$distrodir|bindir:$bindir|OS:$OS|no_proc:$no_proc"
+
+# make sure we're runnig a recently modern bash version >= min_bash_version
+check_bash_version
 
 
 #--------------------------------------#
@@ -897,7 +916,6 @@ if [ "$criterion" == "ML" ]; then
          msg "# ERROR: provide one of the following branch support value types for IQ-tree searches: abayes|UFBoot|both" ERROR RED && print_help && exit 1
     fi
 fi
-
 
 if [ "$criterion" == "PARS" ]; then
     if [ -z "$input_phylip" ] && [ "$runmode" -ne 4 ] # runmode 4 does not require the input phylip file
@@ -929,7 +947,6 @@ if [ "$criterion" == "PARS" ]; then
     msg "# topdir = $topdir | criterion:$criterion" PROGR YELLOW
 fi
 
-
 if [ "$criterion" == "ML" ]; then
     msg "input_fasta: $input_fasta" PROGR YELLOW
     msg "discrete_model: $discrete_model" PROGR YELLOW
@@ -942,7 +959,6 @@ if [ "$criterion" == "PARS" ]; then
     msg "# DEBUG=$DEBUG" PROGR YELLOW
     echo
 fi
-
 
 #-------------------------------------------------------------------------------------------------#
 #------------------------------------------ MAIN CODE --------------------------------------------#
@@ -967,7 +983,6 @@ if [ "$criterion" == "ML" ]; then
     [ "$DEBUG" -eq 1 ] && msg "calling: run_IQT_discrete ${input_fasta}ed $discrete_model $num_IQT_runs $IQT_support in dir: $wkdir" DEBUG NC
     run_IQT_discrete "${input_fasta}ed" "$discrete_model" "$num_IQT_runs" "$IQT_support"
 fi
-
 
 # NOTE: THE PARS TREE SEARCHES ARE VERY SLOW!
       
