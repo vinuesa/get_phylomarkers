@@ -43,7 +43,7 @@ set -u
 set -o pipefail
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.4.6_18nov2022' #
+VERSION='2.4.6_20nov2022' #
                          		   
 # Set GLOBALS
 # in Strict mode, need to explicitly set undefined variables to an empty string var=''
@@ -53,6 +53,13 @@ PRINT_KDE_ERR_MESSAGE=0
 dir_suffix=''
 gene_tree_ext=''
 #sp_tree_ext=''
+
+min_bash_vers=4.3 # required for:
+                  # 1.  printf '%(%F)T' '-1' in print_start_time; and 
+                  # 2. passing an array or hash by name reference to a bash function (since version 4.3+), 
+		  #    by setting the -n attribute
+		  #    see https://stackoverflow.com/questions/16461656/how-to-pass-array-as-an-argument-to-a-function-in-bash
+
 
 DATEFORMAT_SHORT="%d%b%y"
 TIMESTAMP_SHORT=$(date +${DATEFORMAT_SHORT})
@@ -87,6 +94,13 @@ NC='\033[0m' # No Color => end color
 #---------------------------------------------------------------------------------#
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>> FUNCTION DEFINITIONS <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<#
 #---------------------------------------------------------------------------------#
+
+function check_bash_version()
+{
+   bash_vers=$(bash --version | head -1 | awk '{print $4}' | sed 's/(.*//' | cut -d. -f1,2)
+   awk -v bv="$bash_vers" -v mb="$min_bash_vers" 'BEGIN { if (bv < mb) print "FATAL: you are running acient bash v"bv, "and version >=", mb, "is required"; exit 1}'
+}
+#-----------------------------------------------------------------------------------------
 
 function print_start_time()
 {
@@ -289,6 +303,17 @@ function print_software_versions()
    echo 
    msg ">>> Software versions run by $progname version $VERSION" PROGR LBLUE
     
+   bash --version | grep bash
+   check_bash_version
+   echo '-------------------------'
+   perl -v | grep version
+   echo '-------------------------'
+   R --version | grep version | grep R
+   echo '-------------------------'
+   parallel --version | grep 'GNU parallel' | grep -v warranty
+   echo '-------------------------'
+   bc --version | grep bc
+   echo '-------------------------'
    "${bindir}"/paup --version
    echo '-------------------------'
    "${bindir}"/FastTree &> FT.tmp && FT_vers=$(head -1 FT.tmp | sed 's/Usage for FastTree //; s/://') && rm FT.tmp
@@ -300,16 +325,6 @@ function print_software_versions()
    echo '-------------------------'
    clustalo_version=$("${bindir}"/clustalo --version)
    echo "clustalo v.${clustalo_version}"
-   echo '-------------------------'
-   bash --version | grep bash
-   echo '-------------------------'
-   perl -v | grep version
-   echo '-------------------------'
-   R --version | grep version | grep R
-   echo '-------------------------'
-   parallel --version | grep 'GNU parallel' | grep -v warranty
-   echo '-------------------------'
-   bc --version | grep bc
    echo '-------------------------'
    echo
    
@@ -746,6 +761,10 @@ elif (( DEBUG == 3 )); then # hysteric DEBUG level
    #  and their arguments or associated word lists after they are expanded and before they are executed. 
    set -x
 fi
+
+# check check_bash_version >= min_bash_version
+check_bash_version
+
 #-----------------------------------------------------------------------------------------
 
 (( DEBUG > 0 )) && msg "distrodir:$distrodir|bindir:$bindir|OS:$OS|no_proc:$no_proc" DEBUG LBLUE
