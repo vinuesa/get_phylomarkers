@@ -1,13 +1,14 @@
-## Dockerfile version 2022-06-13
-# - build images using as context the freshly pulled get_phylomarkers GitHub repositor (or from git/get_phylomarkers)
-# - now runs 22 tests during the final image's build stage & sets ENV R_LIBS_SITE
+## Dockerfile version 2022-11-19
+# - build images using as context the cloned get_phylomarkers GitHub repository
+#     based on latest ubuntu (jammy) and r-base (4.2.2)
+# - runs 22 tests during the final image's build stage & sets ENV R_LIBS_SITE
 FROM ubuntu:latest
-FROM rstudio/r-base:4.0.3-focal
+FROM rstudio/r-base:4.2.2-jammy
 
 LABEL authors="Pablo Vinuesa <https://www.ccg.unam.mx/~vinuesa/> and Bruno Contreras Moreira <https://www.eead.csic.es/compbio/>"
 LABEL keywods="bioinformatics, genomics, phylogenetics, phylogenomics, species tree, core-genome, pan-genome, maximum likelihood, parsimony, population genetics, molecular clock, Docker image"
-LABEL version="20220613"
-LABEL description="Ubuntu 20.04 + Rstudio/r-base 4.0.3-focal based image of GET_PHYLOMARKERS"
+LABEL version="20221119"
+LABEL description="Ubuntu 22.04 + Rstudio/r-base 4.2.2 based image of GET_PHYLOMARKERS"
 LABEL summary="This image runs GET_PHYLOMARKERS for advanced and versatile phylogenomic analysis of microbial pan-genomes"
 LABEL home="<https://hub.docker.com/r/vinuesa/get_phylomarkers>"
 LABEL get_phylomarkers.github.home="<https://github.com/vinuesa/get_phylomarkers>"
@@ -33,9 +34,13 @@ wget \
 && apt clean && apt purge && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && cpanm Term::ReadLine
 
 ## mkdir get_phylomarkes in /, copy all contents into it; make it the working directory & install required R packages
+# update indices
+RUN apt update -qq 
+RUN apt install --no-install-recommends software-properties-common dirmngr
 RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | sudo tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
 RUN add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
-RUN add-apt-repository ppa:c2d4u.team/c2d4u4.0+
+RUN apt install --no-install-recommends -y r-base
+#RUN add-apt-repository ppa:c2d4u.team/c2d4u4.0+
 RUN apt install --no-install-recommends -y \
 r-cran-ape \
 r-cran-phangorn \
@@ -54,7 +59,6 @@ r-cran-seqinr \
 r-cran-dendextend \
 && apt clean && apt purge && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-
 RUN git clone https://github.com/vinuesa/get_phylomarkers.git
 WORKDIR /get_phylomarkers 
 
@@ -62,7 +66,7 @@ WORKDIR /get_phylomarkers
 RUN Rscript install_kdetrees_from_github.R
 
 # set R paths; run R -q -e '.libPaths()' on Linux (Ubuntu) host, and docker container;
-ENV R_LIBS_SITE=/usr/local/lib/R/site-library:/usr/lib/R/site-library/:/usr/lib/R/library:/opt/R/3.6.3/lib/R/library:/get_phylomarkers/lib/R
+ENV R_LIBS_SITE=/usr/local/lib/R/site-library:/usr/lib/R/site-library/:/usr/lib/R/library:/opt/R/4.2.2/lib/R/library:/get_phylomarkers/lib/R
 
 ## python2.7 required by paup; python2.7-dev to get libpython2.7.so.1.0
 #   add python2.7 at this stage, as rstudio/r-base:3.6.3-bionic seems to overwrite�python2.7 in the first RUN apt above
