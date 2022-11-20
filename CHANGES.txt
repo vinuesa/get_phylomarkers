@@ -1,4 +1,6 @@
-14nov22  *  run_get_phylomarkers v2.4.3_2022-11-14; updated iqtree calls to iqtree2 syntax; print_start_time now uses printf builtin instead of calling date
+19nov22  * run_get_phylomarkers v2.4.5_2022-11-14; fixed --version call and improved code layout and shellcheck compliance; updated Dockerfile .gitignore .dockerignore for new Docker image
+19nov22  * run_get_phylomarkers v2.4.4_2022-11-14; optimization of IQT calls results in ~20x faster execution time of the test suite; added IQT_threads; removed -T AUTO
+14nov22  * run_get_phylomarkers v2.4.3_2022-11-14; updated iqtree calls to iqtree2 syntax; print_start_time now uses printf builtin instead of calling date
 13nov22  * get_phylomarkers_funlib v2022-11-13; minor modifications for greater shellcheck compliance; fixed PERL5LIB: unbound variable error in export PERL5LIB call
 13nov22  * v2.4.2_2022-11-13 run_get_phylomarkers implements strict mode; simplified if checks for command output status; consistent bash arithmetic syntax; shellcheck and other corrections
 23oct22  * added Publication DOI, GPLv3 and DockerHub badges
