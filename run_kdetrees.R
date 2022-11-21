@@ -1,8 +1,9 @@
-#!/usr/bin/env Rscript
+#!/usr/bin/env -S Rscript --slave
 
 # run_kdetrees.R
 
-VERSION <- 'Version: 0.2 - 16May2017' # runs kdetrees(all.trees.raw, distance = "dissimilarity", topo.only = TRUE &  topo.only = FALSE)
+VERSION <- 'Version: 0.3 - 20Oct202'  #v0.3 with portable shebang line
+                                      # runs kdetrees(all.trees.raw, distance = "dissimilarity", topo.only = TRUE &  topo.only = FALSE)
 AUTHOR <- "Authors: Pablo Vinuesa [CCG-UNAM], Bruno Contreras Moreira [EEAD-CSIC]; "
 REPOS <- "https://cloud.r-project.org"
 
@@ -361,92 +362,3 @@ checkFileCreated(violin_plot_file)
 
 # exit without saving workspace
 q(save = "no")
-
-
-
-
-##### THIS SNIPPET WORKS, USING ONLY ROOTED TREES
-# however, many trees are skipped; need to revise;
-# for the moment, use the code/script above
-
-
-
-# remove previous ones
-system("rm rooted_*ph all_trees_rooted.tre")
-
-# 1 get the no of tips of each src tree 
-#   and construct a dfr with the file_name and no.tips
-files <- list.files(pattern="\\.ph$")
-for ( i in 1:length(files) ){ 
-   tr <- read.tree(files[i])
-   no.tips <- length(tr$tip.label)
-   no.tips.vec <- c(no.tips.vec, no.tips)
-   
-   #message(files[i], "\t", no.tips)
-   # construct a dataframe with "file", "no_tips"
-   no.tips.dfr <- rbind( no.tips.dfr, data.frame(files[i], no.tips))
-}
-names(no.tips.dfr) <- c("file", "no_tips")
-
-# hist the (no.tips.vec and get the max.no.tips
-str(no.tips.dfr)
-hist(no.tips.vec)
-
-max.no.tips <- max(no.tips.dfr$no_tips)
-
-# subset the dfr no.tips.dfr, to get the files with no_tips == max.no.tips
-good.files.dfr <- no.tips.dfr[no.tips.dfr$no_tips == max.no.tips, ]
-#good.files <- good.files.dfr$file
-good.files <- as.character(good.files.dfr$file)
-
-
-# read those trees
-for (i in 1:length(good.files) ){ 
-      tr <- read.tree(good.files[i])
-      no.tips <- length(tr$tip.label)
-      
-     # if ( i == 1 & no.tips == max.no.tips) { t.labs <- tr$tip.label }
-     #kdetrees requires that all src trees to be compared have the same no. of leaves 
-     # ant that the tree labels are equal
-     #if (no.tips == max(no.tips.vec) & tr$tip.label == t.labs ){
-     #out.check <- grep(outgr, tr) 
-     #if(out.check == outgr){
-          rtr <-  root(tr, "Cronobacter_sakazakii_ATCC_BAA-894", resolve.root = TRUE)
-          rtr.file <- paste("rooted_", good.files[i], sep ="")
-          if( is.rooted(rtr)){
-             message("writing file", rtr.file, " ...")
-              write.tree(rtr, file=rtr.file)
-          }
-          else{ warning("could not root tree", rtr.file)}
-          #else { next }
-       #}
-       #else { next }
-   #}
-}
-
-
-
-# files <- list.files(pattern="rooted_*\\.ph$")
-# for (i in 1:length(files) ){ 
-#   tr <- read.tree(files[i])
-#   no.tips <- length(tr$tip.label)
-#   no.tips.vec <- c(no.tips.vec, no.tips)
-# }
-# hist(no.tips.vec)
-
-system("cat rooted_*ph > all_trees_rooted.tre")
-
-#Error in dist.multiPhylo(trees, ...) : Not all trees have the same tips.
-# they all have 28 tips, but no all are equal!?
-
-
-
-good.rooted.trees <- read.tree("all_trees_rooted.tre")
-#kdetrees.complete("all_trees_rooted.tre")
-kdetrees(good.rooted.trees, distance = "dissimilarity", topo.only = TRUE )
-kdeobj <- kdetrees(good.rooted.trees, distance = "dissimilarity", topo.only = TRUE )
-topo.outlier.tree.idx <- print(kdeobj$i)
-plot(kdeobj$density)
-boxplot(kdeobj$density)
-
-
