@@ -752,7 +752,9 @@ function print_help
    -m <BIN|MORPH> discrete model category 
    -r <integer> number of independent iqtree runs    [default: $num_IQT_runs]           
                 in the range 1:100
+   -I <integer> number of threads for iqtree2 run    [default: $IQT_threads]
    -S <string> [<abayes|UFBoot|both>]                [default: $IQT_support]
+
  OPTIONAL to control parsimony searches when -c PARS:
    -n <number of compute cores to use to launch independent 
        pars runs, each with a different seed         [default: $n_cores]
@@ -771,7 +773,7 @@ function print_help
         
  EXAMPLES:
  1) Search for the best maximum likelihood tree using 10 independent IQ-TREE runs
-    $progname -f pangenome_matrix_t0.fasta -r 10 -S UFBoot
+    $progname -f pangenome_matrix_t0.fasta -r 10 -S UFBoot -I 4
 
  2) PARSIMONY searches with pars; NOTE: VERY SLOW!
     nohup $progname -c PARS -R 1 -i pangenome_matrix_t0.phylip -j 50 &> /dev/null &
