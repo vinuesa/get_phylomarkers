@@ -1,3 +1,5 @@
+#v2022-11-21
+#-----------------#
 # Compiled source #
 ###################
 *.com
@@ -15,7 +17,7 @@
 *.dmg
 *.gz
 *.iso
-*.jar
+#*.jar  # < astra.jar is required 
 *.rar
 *.tar
 *.zip
@@ -40,6 +42,10 @@ Thumbs.db
 ##################
 *.html
 
+# DEV, back & HOWTO files
+*DEV*
+*HOWTO*
+
 # other project-specific files
 .Rhistory
 .gitignore.swp
@@ -49,5 +55,12 @@ config
 description
 hooks/
 info/
+bin/FastTree_v2*
+bin/FastTree_PhiPack
+bin/clustal-omega*
+bin/parallel-*
+bin/phylip-*
 development_history_and_notes.txt
-
+test_bats_unit_testing_HOTOs.txt
+test.bats
+test_bats
