@@ -60,7 +60,6 @@ min_bash_vers=4.3 # required for:
 		  #    by setting the -n attribute
 		  #    see https://stackoverflow.com/questions/16461656/how-to-pass-array-as-an-argument-to-a-function-in-bash
 
-
 DATEFORMAT_SHORT="%d%b%y"
 TIMESTAMP_SHORT=$(date +${DATEFORMAT_SHORT})
 
@@ -569,7 +568,7 @@ function print_help()
              verbosity, respectively. Please use -D <1|2> if you encounter problems                [default: $DEBUG]
      -e <integer> select gene trees with at least (min. = $min_no_ext_branches) external branches  [default: $min_no_ext_branches]
      -f <string> GET_HOMOLOGUES cluster format <STD|EST>                                           [default: $cluster_format]
-     -I|--IQT_threads <integer> threads/cores for IQTree2 searching                                [default: $IQT_threads]
+     -I|--IQT-threads <integer> threads/cores for IQTree2 searching                                [default: $IQT_threads]
      -k <real> kde stringency (0.7-1.6 are reasonable values; less is more stringent)              [default: $kde_stringency]
      -K flag to run molecular clock test on codon alignments                                       [default: $eval_clock]
      -l <integer> max. spr length (7-12 are reasonable values)                                     [default: $spr_length]
@@ -594,13 +593,13 @@ function print_help()
 
    INVOCATION EXAMPLES:
      1. default on DNA sequences (uses IQ-TREE evaluating a subset of models specified in the detailed help)
-          $progname -R 1 -t DNA
+          $progname -R 1 -t DNA -I 4
      2. thorough FastTree searching and molecular clock analysis on DNA sequences using 10 cores:
           $progname -R 1 -t DNA -A F -k 1.2 -m 0.7 -s 20 -l 12 -T high -K -M HKY -q 0.95 -n 10
      3. FastTree searching on a huge protein dataset for fast inspection
           $progname -R 1 -A F -t PROT -m 0.6 -k 1.0 -T lowest
      4. To run the pipeline on a remote server, we recommend using the nohup command upfront, as shown below:
-        nohup $progname -R 1 -t DNA -S 'TNe,TVM,TVMe,GTR' -k 1.0 -m 0.75 -T high -N 5 &> /dev/null &
+        nohup $progname -R 1 -t DNA -S 'TNe,TVM,TVMe,GTR' -k 1.0 -m 0.75 -T high -N 5 --IQT-threads 8 &> /dev/null &
      5. Run in population-genetics mode (generates a table with descritive statistics for DNA-polymorphisms 
           and the results of diverse neutrality test)
 	  $progname -R 2 -t DNA
