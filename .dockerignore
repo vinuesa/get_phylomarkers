@@ -1,3 +1,6 @@
+# .dockerignore for get_phylomarkers v2022-11-20
+# https://shisho.dev/blog/posts/how-to-use-dockerignore/
+# https://devopscell.com/docker/dockerignore/2018/04/25/using-dockerignore.html
 .git
 .cache
 .dockerignore
@@ -5,34 +8,33 @@
 .Rhistory
 .gitignore.swp
 .travis.yml
-bin/FastTree_v2.1.10
-bin/FastTree_v2.1.11
-bin/PhiPack
-bin/clustal-omega-1.2.4
-bin/macosx-intel
-bin/parallel-20171022
-bin/phylip-3.695
-bin/README_manual_compilation.txt
+*/FastTree_v2*
+*/PhiPack
+*/clustal-omega-*
+*/macosx-*
+*/parallel-*
+*/phylip-*
+*/README_manual_compilation*
 BackDockerfile
 cpanfile
 docker_build.cmd
 DockerfileV*
-Dockerfile1
+Dockerfile?
 Dockerfile
-CHANGES.txt
 HEAD
-TODO.txt
 config
 description
-docs
-lib/get_phylomarkers_fun_lib_DEV.sh
+docs/
+*/get_phylomarkers_fun_lib_*
+*/get_phylomarkers_fun_libB*
 hooks
 info
 development_history_and_notes.txt
 kdetrees_0.1.5.tar.gz
+*_DEV*
 test_model_args.sh
-test_sequences/core_genome.tgz
-test_sequences/pan_genome.tgz
+*/core_genome.tgz
+*/pan_genome.tgz
 test_bats
 test.bats
 test_bats_unit_testing_HOWTOs.txt
@@ -42,7 +44,7 @@ test_bats_unit_testing_HOWTOs.txt
 .Spotlight-V100
 .Trashes
 ehthumbs.db
-pics
+pics/
 Thumbs.db
 *.log
 *.sql
