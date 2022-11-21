@@ -1,6 +1,6 @@
 # GET_PHYLOMARKERS
 
-[![Build Status](https://travis-ci.com/vinuesa/get_phylomarkers.svg?branch=master)](https://travis-ci.com/vinuesa/get_phylomarkers)
+[![Build Status](https://app.travis-ci.com/vinuesa/get_phylomarkers.svg?branch=master)](https://travis-ci.com/vinuesa/get_phylomarkers)
 [![Publication](https://img.shields.io/badge/DOI-10.3389/fmicb.2018.00771-blue)](https://doi.org/10.3389/fmicb.2018.00771)
 [![GPLv3 license](https://img.shields.io/badge/License-GPLv3-blue.svg)](http://perso.crans.org/besson/LICENSE.html)
 [![DockerHub](https://badgen.net/badge/icon/docker?icon=docker&label)](https://hub.docker.com/r/vinuesa/get_phylomarkers)
