@@ -568,7 +568,7 @@ function print_help()
              verbosity, respectively. Please use -D <1|2> if you encounter problems                [default: $DEBUG]
      -e <integer> select gene trees with at least (min. = $min_no_ext_branches) external branches  [default: $min_no_ext_branches]
      -f <string> GET_HOMOLOGUES cluster format <STD|EST>                                           [default: $cluster_format]
-     -I|--IQT-threads <integer> threads/cores for IQTree2 searching                                [default: $IQT_threads]
+     -I|--IQT_threads <integer> threads/cores for IQTree2 searching                                [default: $IQT_threads]
      -k <real> kde stringency (0.7-1.6 are reasonable values; less is more stringent)              [default: $kde_stringency]
      -K flag to run molecular clock test on codon alignments                                       [default: $eval_clock]
      -l <integer> max. spr length (7-12 are reasonable values)                                     [default: $spr_length]
@@ -599,7 +599,7 @@ function print_help()
      3. FastTree searching on a huge protein dataset for fast inspection
           $progname -R 1 -A F -t PROT -m 0.6 -k 1.0 -T lowest
      4. To run the pipeline on a remote server, we recommend using the nohup command upfront, as shown below:
-        nohup $progname -R 1 -t DNA -S 'TNe,TVM,TVMe,GTR' -k 1.0 -m 0.75 -T high -N 5 --IQT-threads 8 &> /dev/null &
+        nohup $progname -R 1 -t DNA -S 'TNe,TVM,TVMe,GTR' -k 1.0 -m 0.75 -T high -N 5 -I 8 &> /dev/null &
      5. Run in population-genetics mode (generates a table with descritive statistics for DNA-polymorphisms 
           and the results of diverse neutrality test)
 	  $progname -R 2 -t DNA
@@ -710,7 +710,6 @@ do
 #----------- add support for parsing long argument names-----------------------
    - ) 
        case $OPTARG in
-          I* ) IQT_threads=$OPTARG ;;
           h* ) print_help ;;
 	  v* ) { echo "$progname v$VERSION" && exit 0 ; } ;;
 	  V* ) software_versions=1 ;;
