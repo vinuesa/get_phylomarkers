@@ -247,9 +247,11 @@ function wait_for_PIDs_to_finish
 function check_scripts_in_path()
 {
     (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]} ..." DEBUG NC
-    local perl_scripts prog distrodir not_in_path prog bin
+    local perl_scripts prog distrodir not_in_path prog bin user
 
     distrodir=$1
+    user=$2
+    
     not_in_path=0
     homebinflag=0
     homebinpathflag=0
@@ -264,7 +266,7 @@ function check_scripts_in_path()
        bin=$(type -P "$prog")
        if [ -z "$bin" ]; then
           echo
-          if [ "$USER" == "root" ]
+          if [ "$user" == "root" ]
 	  then
 	      msg "# WARNING: script $prog is not in \$PATH!" WARNING LRED
 	      msg " >>>  Will generate a symlink from /usr/local/bin or add it to \$PATH" WARNING CYAN
@@ -280,11 +282,11 @@ function check_scripts_in_path()
     # if flag $not_in_path -eq 1, then either generate symlinks into $HOME/bin (if in $PATH) or export $distrodir to PATH
     if (( not_in_path == 1 ))
     then
-       if [ "$USER" == "root" ]
+       if [ "$user" == "root" ]
        then
        	   if [ ! -d /usr/local/bin ]
        	   then
-          	   msg "Could not find a /usr/local/bin directory for $USER ..."  WARNING CYAN
+          	   msg "Could not find a /usr/local/bin directory for $user ..."  WARNING CYAN
 	  	   msg " ... will update PATH=$distrodir:$PATH"  WARNING CYAN
 	  	   export PATH="${distrodir}:${PATH}" # prepend $ditrodir to $PATH
        	   else
@@ -297,20 +299,20 @@ function check_scripts_in_path()
        	   then
           	   homebinpathflag=1
 
-          	   msg "Found dir /usr/local/bin for $USER in \$PATH ..." WARNING CYAN
+          	   msg "Found dir /usr/local/bin for $user in \$PATH ..." WARNING CYAN
           	   msg " ... will generate symlinks in /usr/local/bin to all scripts in $distrodir ..." WARNING CYAN
           	   ln -s "$distrodir"/*.sh /usr/local/bin &> /dev/null
           	   ln -s "$distrodir"/*.R /usr/local/bin &> /dev/null
           	   ln -s "$distrodir"/*.pl /usr/local/bin &> /dev/null
        	   else
-          	   msg " Found dir /usr/local/bin for $USER, but it is NOT in \$PATH ..." WARNING CYAN
+          	   msg " Found dir /usr/local/bin for $user, but it is NOT in \$PATH ..." WARNING CYAN
           	   msg " ... updating PATH=$PATH:$distrodir" WARNING CYAN
 	  	   export PATH="${distrodir}:${PATH}" # prepend $distrodir to $PATH
        	   fi
        else       
        	   if [ ! -d "$HOME"/bin ]
        	   then
-          	   msg "Could not find a $HOME/bin directory for $USER ..."  WARNING CYAN
+          	   msg "Could not find a $HOME/bin directory for $user ..."  WARNING CYAN
 	  	   msg " ... will update PATH=$distrodir:$PATH"  WARNING CYAN
 	  	   export PATH="${distrodir}:${PATH}" # prepend $ditrodir to $PATH
        	   else
@@ -323,14 +325,14 @@ function check_scripts_in_path()
        	   then
           	   homebinpathflag=1
 
-          	   msg "Found dir $HOME/bin for $USER in \$PATH ..." WARNING CYAN
+          	   msg "Found dir $HOME/bin for $user in \$PATH ..." WARNING CYAN
           	   msg " ... will generate symlinks in $HOME/bin to all scripts in $distrodir ..." WARNING CYAN
           	   ln -s "$distrodir"/*.sh "$HOME"/bin &> /dev/null
           	   ln -s "$distrodir"/*.R "$HOME"/bin &> /dev/null
           	   ln -s "$distrodir"/*.pl "$HOME"/bin &> /dev/null
           	   #ln -s $distrodir/rename.pl $HOME/bin &> /dev/null
        	   else
-          	   msg " Found dir $HOME/bin for $USER, but it is NOT in \$PATH ..." WARNING CYAN
+          	   msg " Found dir $HOME/bin for $user, but it is NOT in \$PATH ..." WARNING CYAN
           	   msg " ... updating PATH=$PATH:$distrodir" WARNING CYAN
 	  	   export PATH="${distrodir}:${PATH}" # prepend $distrodir to $PATH
        	   fi
@@ -882,13 +884,13 @@ distrodir=$(echo "$env_vars" | awk '{print $1}')
 bindir=$(echo "$env_vars" | awk '{print $2}')
 OS=$(echo "$env_vars" | awk '{print $3}')
 no_proc=$(echo "$env_vars" | awk '{print $4}')
-pPID=$(get_script_PID $USER "$progname")
+pPID=$(get_script_PID "$USER" "$progname")
 
 #-----------------------------------------------------------------------------------------
 
 # 0.1 Determine if pipeline scripts are in $PATH;
 # if not, add symlinks from ~/bin, if available
-check_scripts_in_path "$distrodir"
+check_scripts_in_path "$distrodir" "$USER"
 
 # 0.2  Determine the bindir and add prepend it to PATH and export
 set_bindirs "$bindir"
