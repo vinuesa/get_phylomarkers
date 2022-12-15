@@ -49,7 +49,9 @@ set -u
 set -o pipefail
 
 progname=${0##*/}
-VERSION='v1.2.4_20Nov22' # added check_bash_version >= 4.3
+VERSION='v1.2.5_2022-12-14' # pass USER as 1st argument to get_script_PID, and progname as 2cnd arg 
+                            # localize user and prog in get_script_PID to avoid unbound variable USER/user in function call
+  # v1.2.4_2022-11-20 added check_bash_version >= 4.3
   # v1.2.4_18Nov22 mostly shellcheck compliant; enabled bash strict mode; major syntax revision and update to modern Bash; 
   #       added IQT_threads=4 && updated iqtree2 calls with -T $IQT_threads instead of -T AUTO, which slows down searches
   # v1.2.2_15Nov22 updated iqtree calls to match current IQTreee2 syntax
@@ -188,13 +190,14 @@ function set_pipeline_environment()
 
 function get_script_PID()
 {
-    local prog proc_ID
+    local prog proc_ID user
     #(( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]} ..." DEBUG NC
     # returns the PID of the script, run by USER
-    prog=${0%.*} # remove the script's .extension_name
+    user=$1
+    prog=${2%.*} # remove the script's .extension_name
     #proc_ID=$(ps -eaf|grep "$prog"|grep -v grep|grep '-'|grep $USER|awk '{print $2}')
     #proc_ID=$(ps aux|grep "$prog"|grep -v grep|grep '-'|grep "$USER" |awk '{print $2}')
-    proc_ID=$(pgrep -u "$USER" "$prog")
+    proc_ID=$(pgrep -u "$user" "$prog")
     echo "$proc_ID"
     (( DEBUG > 0 )) && msg "$progname PID is: $proc_ID" DEBUG NC
     #(( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]} ..." DEBUG NC
@@ -879,7 +882,7 @@ distrodir=$(echo "$env_vars" | awk '{print $1}')
 bindir=$(echo "$env_vars" | awk '{print $2}')
 OS=$(echo "$env_vars" | awk '{print $3}')
 no_proc=$(echo "$env_vars" | awk '{print $4}')
-pPID=$(get_script_PID)
+pPID=$(get_script_PID $USER "$progname")
 
 #-----------------------------------------------------------------------------------------
 

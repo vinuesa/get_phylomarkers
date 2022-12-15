@@ -43,7 +43,7 @@ set -u
 set -o pipefail
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.4.6_20nov2022' #
+VERSION='2.4.6_2022-12-14' #
                          		   
 # Set GLOBALS
 # in Strict mode, need to explicitly set undefined variables to an empty string var=''
@@ -878,7 +878,7 @@ fi
 
 start_time=$(date +%s)
 
-parent_PID=$(get_script_PID "$progname")
+parent_PID=$(get_script_PID $USER "$progname")
 (( DEBUG > 0 )) && msg "parent_PID:$parent_PID" DEBUG LBLUE
 
 if (( eval_clock == 1 )) && [[ "$search_algorithm" == "F" ]]

@@ -1,4 +1,4 @@
-#: VERSION: 2022-11-17
+#: VERSION: 2022-12-14
 #: LIBRARY: get_phylomarkers_fun_lib
 #     * functions called by run_get_phylomarkers_pipeline.sh
 #     * part of the GET_PHYLOMARKERS software package
@@ -25,6 +25,7 @@
 #  Front. Microbiol. 9:771 | doi: 10.3389/fmicb.2018.00771. | PubMed PMID: 29765358 
 #  Software code freely available on GitHub: https://github.com/vinuesa/get_phylomarkers
 
+
 #---------------------------------------------------------------------------------#
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>> FUNCTION DEFINITIONS <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<#
 #---------------------------------------------------------------------------------#
@@ -33,10 +34,12 @@ function get_script_PID()
 {
     #(( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
     # returns the PID of the script, run by USER
-    prog=${0%.*} # remove the script's .extension_name
+    local prog user
+    user=$1
+    prog=${2%.*} # remove the script's .extension_name
     #proc_ID=$(ps -eaf|grep "$prog"|grep -v grep|grep '-'|grep $USER|awk '{print $2}')
     #proc_ID=$(ps aux|grep "$prog"|grep -v grep|grep '-'|grep $USER|awk '{print $2}')
-    proc_ID=$(pgrep -u "$USER" "$prog")
+    proc_ID=$(pgrep -u "$user" "$prog")
     echo "$proc_ID"
     #(( DEBUG > 0 )) && msg "$progname PID is: $proc_ID" DEBUG NC
     
