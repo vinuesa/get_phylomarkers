@@ -824,7 +824,7 @@ fi
 
 # make sure that the user (or default value) does not request more cores than those available on host
 ((n_cores > no_proc)) && n_cores="$no_proc"
-(IQT_threads > no_proc)) && IQT_threads="$no_proc"
+((IQT_threads > no_proc)) && IQT_threads="$no_proc"
 
 if [ "$mol_type" != "DNA" ] && [ "$mol_type" != "PROT" ] # "$mol_type" == "BOTH" not implemented yet
 then
