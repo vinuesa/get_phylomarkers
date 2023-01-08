@@ -27,7 +27,7 @@ my $VERSION = 1.7; # v1.7 2022-01-08; fixed regex for ASTRAL
           # 9 Feb 2010 ahora lee también elsif(/^>?(\d+)\s+(.*)/)
           # v 1.0 ahora lee if(/^>(\d+)\s+\[(.*?)\]/) y  elsif(/^(\d+)\s+\[(.*?)\]/) ... es decir >ID [blah] y ID [blah]
 
-die "# $progname v. $VERSION requires two argyments: 
+die "# $progname v. $VERSION requires two arguments: 
      1) the name of the 2-column, tab-separated ID\tfull_name conversion table or an alignment file with full names
      2) the tree file name to edit, or an extension name of tree files on which to edit the taxon tags
      for example:
