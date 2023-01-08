@@ -43,7 +43,7 @@ set -u
 set -o pipefail
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.4.6_2022-12-14' #
+VERSION='2.4.7_2023-01-08' #
                          		   
 # Set GLOBALS
 # in Strict mode, need to explicitly set undefined variables to an empty string var=''
@@ -630,7 +630,7 @@ mol_type=''
 # Optional, with defaults
 cluster_format=STD
 search_thoroughness='medium'
-IQT_threads=2
+IQT_threads=12 # used only with concatenated supermatrix
 kde_stringency=1.5
 min_supp_val=0.7
 min_no_ext_branches=4
@@ -821,6 +821,10 @@ if [ -z "$n_cores" ]
 then
      n_cores="$no_proc"
 fi
+
+# make sure that the user (or default value) does not request more cores than those available on host
+((n_cores > no_proc)) && n_cores="$no_proc"
+(IQT_threads > no_proc)) && IQT_threads="$no_proc"
 
 if [ "$mol_type" != "DNA" ] && [ "$mol_type" != "PROT" ] # "$mol_type" == "BOTH" not implemented yet
 then
@@ -1605,16 +1609,16 @@ then
 
 	  if [[ "$search_thoroughness" == "high" ]]
 	  then
-	     lmsg="# Will launch $nrep_IQT_searches IQ-TREE searches on the supermatrix with best model ${best_model} -abayes -bb 1000!.
+	     lmsg="# Will launch $nrep_IQT_searches IQ-TREE searches on the supermatrix with best model ${best_model} --abayes -B 1000!.
 	                This will take a while ..."
 	     print_start_time && msg "$lmsg" PROGR BLUE
 
 	     # run nrep_IQT_searches IQ-TREE searches under the best-fit model found
 	     for ((rep=1;rep<=nrep_IQT_searches;rep++))
 	     do
-	         print_start_time && msg " > iqtree -s concat_cdnAlns.fnainf -st DNA -m $best_model -abayes -B 1000 -T $IQT_threads --prefix abayes_run${rep} &> /dev/null" PROGR LBLUE
+	         print_start_time && msg " > iqtree -s concat_cdnAlns.fnainf -st DNA -m $best_model --abayes -B 1000 -T $IQT_threads --prefix abayes_run${rep} &> /dev/null" PROGR LBLUE
 
-		 iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -B 1000 -T "$IQT_threads" --prefix abayes_run"${rep}" &> /dev/null
+		 iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" --abayes -B 1000 -T "$IQT_threads" --prefix abayes_run"${rep}" &> /dev/null
 	     done
 
 	     grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_IQ-TREE_searches.out
@@ -1633,9 +1637,9 @@ then
 	     # 4. removes the double extension name *.fasta.treefile and changes treefile for ph to make it paup-compatible for clock-test
              process_IQT_species_trees_for_molClock "$best_search_base_name" "$best_tree_file" "$top_markers_dir" "$no_top_markers"
 	  else
-	     print_start_time && msg "# running IQ-tree on the concatenated alignment with best model ${best_model} -abayes -B 1000. This will take a while ..." PROGR BLUE
+	     print_start_time && msg "# running IQ-tree on the concatenated alignment with best model ${best_model} --abayes -B 1000. This will take a while ..." PROGR BLUE
 
-	     iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" -abayes -B 1000 -T "$IQT_threads" --prefix iqtree_abayes &> /dev/null
+	     iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" --abayes -B 1000 -T "$IQT_threads" --prefix iqtree_abayes &> /dev/null
 
 	     grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_IQ-TREE_searches.out
 
@@ -2235,17 +2239,17 @@ then
 
        if [ "$search_thoroughness" == "high" ]
        then
-    	  lmsg="# will launch $nrep_IQT_searches independent IQ-TREE searches on the supermatrix with best model ${best_model} -abayes -bb 1000! 
+    	  lmsg="# will launch $nrep_IQT_searches independent IQ-TREE searches on the supermatrix with best model ${best_model} --abayes -B 1000! 
 	            This will take a while ..."
     	  print_start_time && msg "$lmsg" PROGR BLUE
 
     	  # run nrep_IQT_searches IQ-TREE searches under the best-fit model found
     	  for ((rep=1;rep<=nrep_IQT_searches;rep++))
     	  do
-    	     lmsg=" > iqtree -s concat_protAlns.faainf -st PROT -m $best_model -abayes -B 1000 -T $IQT_threads --prefix abayes_run${rep} &> /dev/null"
+    	     lmsg=" > iqtree -s concat_protAlns.faainf -st PROT -m $best_model --abayes -B 1000 -T $IQT_threads --prefix abayes_run${rep} &> /dev/null"
     	     print_start_time && msg "$lmsg" PROGR LBLUE
 
-    	      iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" -abayes -B 1000 "$IQT_threads" --prefix abayes_run"${rep}" &> /dev/null
+    	      iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" --abayes -B 1000 "$IQT_threads" --prefix abayes_run"${rep}" &> /dev/null
     	  done
 
     	  grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_IQ-TREE_searches.out
@@ -2272,10 +2276,10 @@ then
     	  cd "$top_markers_dir" || { msg "ERROR: cannot cd into $top_markers_dir" ERROR RED && exit 1 ; }
     	  rm -rf iqtree_abayes concat_protAlns.faainf.treefile concat_protAlns.faainf.uniqueseq.phy ./*ckp.gz
        else
-    	  print_start_time && msg "# running IQ-tree on the concatenated alignment with best model ${best_model} -abayes -B 1000. This will take a while ..." PROGR BLUE
+    	  print_start_time && msg "# running IQ-tree on the concatenated alignment with best model ${best_model} --abayes -B 1000. This will take a while ..." PROGR BLUE
 
-    	  print_start_time && msg "# running: iqtree -s concat_protAlns.faainf -st PROT -m $best_model -abayes -B 1000 -T $IQT_threads --prefix iqtree_abayes &> /dev/null  ..." PROGR BLUE
-    	  iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" -abayes -B 1000 -T "$IQT_threads" --prefix iqtree_abayes &> /dev/null
+    	  print_start_time && msg "# running: iqtree -s concat_protAlns.faainf -st PROT -m $best_model --abayes -B 1000 -T $IQT_threads --prefix iqtree_abayes &> /dev/null  ..." PROGR BLUE
+    	  iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" --abayes -B 1000 -T "$IQT_threads" --prefix iqtree_abayes &> /dev/null
 
     	  best_tree_file="${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}concat_protAlns_iqtree_${best_model}.spTree"
 	  numbered_nwk="${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}concat_protAlns_iqtree_${best_model}_numbered.nwk"
