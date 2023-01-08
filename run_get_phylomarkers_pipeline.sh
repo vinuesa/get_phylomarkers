@@ -630,7 +630,7 @@ mol_type=''
 # Optional, with defaults
 cluster_format=STD
 search_thoroughness='medium'
-IQT_threads=4 # used only with concatenated supermatrix
+IQT_threads=12 # used only with concatenated supermatrix
 kde_stringency=1.5
 min_supp_val=0.7
 min_no_ext_branches=4
