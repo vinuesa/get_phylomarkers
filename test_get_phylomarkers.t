@@ -9,7 +9,7 @@ use lib "lib/perl/File::Rename";
 
 ### Test Perl scripts
 # test 1
-ok( eval{ `perl ./add_labels2tree.pl 2>&1` } =~ /two args/ , 'add_labels2tree.pl' );
+ok( eval{ `perl ./add_labels2tree.pl 2>&1` } =~ /two arguments/ , 'add_labels2tree.pl' );
 
 # test 2
 ok( eval{ `perl ./add_nos2fasta_header.pl 2>&1` } =~ /fasta file/ , 'add_nos2fasta_header.pl' );
