@@ -1,4 +1,4 @@
-#: VERSION: 2022-12-14
+#: VERSION: 2023-01-09
 #: LIBRARY: get_phylomarkers_fun_lib
 #     * functions called by run_get_phylomarkers_pipeline.sh
 #     * part of the GET_PHYLOMARKERS software package
@@ -17,6 +17,7 @@
 #
 #: AVAILABILITY: freely available from GitHub @ https://github.com/vinuesa/get_phylomarkers
 #                freely available from DockerHub @ https://hub.docker.com/r/vinuesa/get_phylomarkers
+#                                           and  @ https://hub.docker.com/r/csicunam/get_homologues
 #
 #: CITATION:
 #  Pablo Vinuesa*, Luz Edith Ochoa-Sánchez and Bruno Contreras-Moreira (2018). 
@@ -501,7 +502,8 @@ function process_IQT_species_trees_for_molClock()
 
     rm ./*.ckp.gz concat_cdnAlns.fnainf
     mkdir iqtree_output_files || { msg "ERROR: mkdir iqtree_output_files failed!" ERROR RED && exit ; }
-    mv ./*.iqtree ./*.bionj ./*.mldist ./*.uniqueseq.phy "${best_tree_file}" iqtree_output_files
+    mv ./*.iqtree ./*.bionj ./*.mldist "${best_tree_file}" iqtree_output_files   
+    if ls ./*.uniqueseq.phy &> /dev/null; then mv ./*.uniqueseq.phy iqtree_output_files; fi
  
     "$distrodir"/rename.pl 's/_ed\.treefile/_ed\.sptree/' ./*_ed.treefile
     [ -d iqtree_output_files ] && cp iqtree_output_files/"${best_tree_file}" .
