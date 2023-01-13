@@ -43,7 +43,7 @@ set -u
 set -o pipefail
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.4.7_2023-01-08' #
+VERSION='2.4.8_2023-01-10' #
                          		   
 # Set GLOBALS
 # in Strict mode, need to explicitly set undefined variables to an empty string var=''
@@ -629,14 +629,14 @@ mol_type=''
 
 # Optional, with defaults
 cluster_format=STD
-search_thoroughness='medium'
-IQT_threads=12 # used only with concatenated supermatrix
+search_thoroughness='high'
+IQT_threads=AUTO # used only with concatenated supermatrix AUTO|INTEGER
 kde_stringency=1.5
 min_supp_val=0.7
 min_no_ext_branches=4
 n_cores=''
 #VERBOSITY=0
-spr_length=10
+spr_length=8
 spr=4
 codontable=11 # bacterial by default, sorry for the bias ;)
 base_mod=GTR
@@ -822,9 +822,9 @@ then
      n_cores="$no_proc"
 fi
 
-# make sure that the user (or default value) does not request more cores than those available on host
+# make sure that the user does not request more cores than those available on host (default: AUTO)
 ((n_cores > no_proc)) && n_cores="$no_proc"
-((IQT_threads > no_proc)) && IQT_threads="$no_proc"
+[[ "$IQT_threads" != 'AUTO' ]] && ((IQT_threads > no_proc)) && IQT_threads="$no_proc"
 
 if [ "$mol_type" != "DNA" ] && [ "$mol_type" != "PROT" ] # "$mol_type" == "BOTH" not implemented yet
 then
@@ -883,7 +883,7 @@ fi
 
 start_time=$(date +%s)
 
-parent_PID=$(get_script_PID $USER "$progname")
+parent_PID=$(get_script_PID "$USER" "$progname")
 (( DEBUG > 0 )) && msg "parent_PID:$parent_PID" DEBUG LBLUE
 
 if (( eval_clock == 1 )) && [[ "$search_algorithm" == "F" ]]
