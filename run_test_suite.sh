@@ -8,7 +8,7 @@
 #: - hcluster_pangenome_matrix.sh # <<< is officially distributed through the get_homologues GitHub repo
 
 progname="${0##*/}"
-version="2022-06-12"
+version="2023-01-14"
 
 function usage()
 {
@@ -63,27 +63,27 @@ if ls -d get_phylomarkers_run* &> /dev/null; then rm -rf get_phylomarkers_run*; 
 
 # 1. default on DNA sequences (uses IQ-TREE evaluating a subset of models specified in the detailed help)
 echo ">>> Test #1: default run on DNA sequence ..."
-run_get_phylomarkers_pipeline.sh -R 1 -t DNA
+run_get_phylomarkers_pipeline.sh -R 1 -t DNA -I 4
 echo
 
 # 2. thorough FastTree searching and molecular clock analysis on DNA sequences using 10 cores and increasing k stringency 
 echo ">>> Test #2 thorough FastTree searching and molecular clock analysis on DNA sequences using 10 cores and increasing k stringency ..."
-run_get_phylomarkers_pipeline.sh -R 1 -t DNA -A F -k 1.2 -m 0.7 -s 20 -l 12 -T high -K -M HKY -q 0.95 -n 10
+run_get_phylomarkers_pipeline.sh -R 1 -t DNA -A F -k 1.2 -m 0.7 -s 20 -l 12 -T high -K -M HKY -q 0.95 
 echo
 
 # 3. test multiple models with high kdetree stringency (k=1.0) and thorogh IQT searches, using 2 seed trees
 echo ">>> Test #3: multiple models with high kdetree stringency (k=1.0) and thorogh IQT searches, using 2 seed trees"
-run_get_phylomarkers_pipeline.sh -R 1 -t DNA -S 'TrN,TVMe,GTR' -k 1.0 -m 0.75 -T high -N 2
+run_get_phylomarkers_pipeline.sh -R 1 -t DNA -S 'TrN,TVMe,GTR' -k 1.0 -m 0.75 -T high -N 2 -I 4
 echo
 
 # 4. IQT with proteins and moderate average bipartition support
 echo ">>> Test #4: IQT with proteins and moderate average bipartition support"
-run_get_phylomarkers_pipeline.sh -R 1 -t PROT -m 0.6
+run_get_phylomarkers_pipeline.sh -R 1 -t PROT -m 0.2 -I 4
 echo
 
 # 5. FastTree thorough searching on a protein dataset with thorough search
 echo ">>> Test # 5. FastTree thorough searching on a protein dataset with thorough search"
-run_get_phylomarkers_pipeline.sh -R 1 -t PROT -A F -T high -m 0.6
+run_get_phylomarkers_pipeline.sh -R 1 -t PROT -A F -T high -m 0.2
 echo
 
 # 6. Run in population-genetics mode (generates a table with descritive statistics for DNA-polymorphisms) with K2P model
@@ -95,7 +95,7 @@ echo
 echo ">>> Test # 7. estimate a ML pan-genome tree from the pan-genome matrix, using 2 independent IQT runs and UFBoot"
 cd "${base_dir}"/pan_genome  || { echo "ERROR could not cd into $base_dir/pan_genome"; exit 1 ; }
 [ -d iqtree_PGM_2_runs ] && rm -rf iqtree_PGM_2_runs
-estimate_pangenome_phylogenies.sh -f pangenome_matrix_t0.fasta -r 2 -S UFBoot
+estimate_pangenome_phylogenies.sh -f pangenome_matrix_t0.fasta -r 2 -S UFBoot -I 4
 echo
 
 # 8. estimate a PARS  pan-genome tree with bootstrapping; 100 bootstrap replicates divided on 10 core (10 reps / core)
