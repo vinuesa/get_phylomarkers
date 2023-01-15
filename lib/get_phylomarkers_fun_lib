@@ -1,10 +1,10 @@
-#: VERSION: 2023-01-09
+#: VERSION: 2023-01-15
 #: LIBRARY: get_phylomarkers_fun_lib
 #     * functions called by run_get_phylomarkers_pipeline.sh
 #     * part of the GET_PHYLOMARKERS software package
 #
 #: AUTHORS: Pablo Vinuesa, Center for Genomic Sciences, UNAM, Mexico
-#           http://www.ccg.unam.mx/~vinuesa/
+#           http://www.ccg.unam.mx/~vinuesa/ @pvinmex
 #           Bruno Contreras Moreira, EEAD-CSIC, Zaragoza, Spain
 #           https://digital.csic.es/cris/rp/rp02661/
 #
@@ -473,9 +473,84 @@ function run_ASTRAL()
    (( DEBUG > 0 )) && msg " > java -jar $distrodir/ASTRAL/astral.jar -i $gene_trees -o astral_species_tree.tre 2> astral.log" DEBUG NC
    java -jar "$distrodir"/ASTRAL/astral.jar -i "$gene_trees" -o astral_top"${num_markers}"geneTrees.sptree 2> astral.log
    check_output "astral_top${num_markers}geneTrees.sptree" "$parent_PID"
+
    "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list "astral_top${num_markers}geneTrees.sptree" &> /dev/null
    check_output "astral_top${num_markers}geneTrees_ed.sptree" "$parent_PID"
-   [ -s "astral_top${num_markers}geneTrees.sptree" ] && rm "astral_top${num_markers}geneTrees.sptree"
+   
+   # compute the gene concordance factor (gCF) for each branch of the species tree 
+   # as the fraction of decisive gene trees concordant with this branch
+   # NOTE: the IQTree_constrained_by_ASTRALspTree_concord.cf.tree produced by IQT may not be visualizable with FigTree!!!
+   iqtree -t astral_top"${num_markers}"geneTrees.sptree --gcf alltrees.nwk --prefix astral_concord &> /dev/null
+   check_output astral_concord.cf.tree "$parent_PID"
+
+   # add labels to tree
+   "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list astral_concord.cf.tree &> /dev/null
+   if [[ -s astral_concord_ed.cf ]] 
+   then
+       mv astral_concord_ed.cf astral_concord_ed_cf.treefile
+       check_output astral_concord_ed_cf.treefile "$parent_PID"
+   else
+       msg "WARNING: astral_concord_ed.cf was not produced ..." WARNING LRED
+   fi
+   
+   # compute mean gCF
+   awk 'BEGIN{FS=OFS="\t"; print "num_branches\tcum_gCF\tmean_branch_gCF"}NR > 1{branches++; gCFcum+=$2;} 
+      END{print branches, gCFcum, gCFcum/branches}' astral_concord.cf.stat > astral_concord_mean_gCF.tsv
+   
+   # [ -s "astral_top${num_markers}geneTrees.sptree" ] && rm "astral_top${num_markers}geneTrees.sptree"
+   
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
+}
+#-----------------------------------------------------------------------------------------
+
+function compute_ASTRALspTree_branch_lenghts()
+{
+   # uses iqtree to compute an ASTRAL species tree with branch lenghts 
+   # and the corresponding gene concordance factor (gCF) for each branch of the species tree
+   #  - needs the concatenated alignment, the model and the ASTRAL species tree topology, 
+   #    which will be used by iqtree as a constrain
+   #  iqtree -s concat_cdnAlns.fnainf -m GTR+F+ASC+R6 -g astral_top92geneTrees.sptree --prefix IQTree_constrained_by_ASTRALspTree -T 12
+   (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
+   (( DEBUG > 0 )) && caller 0
+   
+   local concat_aln model astral_spTree threads long_msg
+   concat_aln=$1
+   model=$2
+   astral_spTree=$3
+   threads=$4
+   
+   # compute ML branch lenghts of astral_spTree with IQT using the best model found for concat_aln
+   long_msg=" > iqtree -s $concat_aln -m $model -g $astral_spTree --prefix IQTree_constrained_by_ASTRALspTree -T $threads &> /dev/null"
+   (( DEBUG > 0 )) && msg "$long_msg" DEBUG NC
+   iqtree -s "$concat_aln" -m "$model" -g "$astral_spTree" --prefix IQTree_constrained_by_ASTRALspTree -T "$threads" &> /dev/null
+   check_output IQTree_constrained_by_ASTRALspTree.treefile "$parent_PID"
+    
+   # add labels to IQTree_constrained_by_ASTRALspTree.treefile
+   "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list IQTree_constrained_by_ASTRALspTree.treefile &> /dev/null
+    check_output IQTree_constrained_by_ASTRALspTree_ed.treefile "$parent_PID"
+
+   # compute the gene concordance factor (gCF) for each branch of the species tree 
+   # as the fraction of decisive gene trees concordant with this branch
+   # NOTE: the IQTree_constrained_by_ASTRALspTree_concord.cf.tree produced by IQT may not be visualizable with FigTree!!!
+   iqtree -t IQTree_constrained_by_ASTRALspTree.treefile --gcf alltrees.nwk --prefix IQTree_constrained_by_ASTRALspTree_concord &> /dev/null
+   check_output IQTree_constrained_by_ASTRALspTree_concord.cf.tree "$parent_PID"
+   
+   # add labels to IQTree_constrained_by_ASTRALspTree_concord.cf.tree
+   "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list IQTree_constrained_by_ASTRALspTree_concord.cf.tree &> /dev/null
+   
+   if [[ -s IQTree_constrained_by_ASTRALspTree_concord_ed.cf ]] 
+   then
+       mv IQTree_constrained_by_ASTRALspTree_concord_ed.cf IQTree_constrained_by_ASTRALspTree_concord_ed_cf.treefile
+       check_output IQTree_constrained_by_ASTRALspTree_concord_ed_cf.treefile "$parent_PID"
+   else
+       msg "WARNING: IQTree_constrained_by_ASTRALspTree_concord_ed.cf was not produced ..." WARNING LRED
+   fi
+   
+   # compute mean gCF
+   awk 'BEGIN{FS=OFS="\t"; print "num_branches\tcum_gCF\tmean_branch_gCF"}NR > 1{branches++; gCFcum+=$2;} 
+      END{print branches, gCFcum, gCFcum/branches}' IQTree_constrained_by_ASTRALspTree_concord.cf.stat > \
+        IQTree_constrained_by_ASTRALspTree_concord_mean_gCF.tsv
+
    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
@@ -666,7 +741,7 @@ function check_IQT_DNA_models
 	    fi
 	done
 
-        if [ "$modelOK" -ne "1" ]
+        if ((modelOK != 1))
         then
            msg "ERROR: model $u is not available in IQ-TREE" ERROR RED
 	   print_help
@@ -709,7 +784,7 @@ function check_IQT_PROT_models
 	    fi
 	done
 
-        if [ "$modelOK" -ne "1" ]
+        if ((modelOK != 1))
         then
            msg "ERROR: model $u is not available in IQ-TREE" ERROR RED
 	   print_help
