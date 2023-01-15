@@ -61,9 +61,10 @@ cd "${base_dir}"/core_genome || { echo "ERROR could not cd into $base_dir/core_g
 
 if ls -d get_phylomarkers_run* &> /dev/null; then rm -rf get_phylomarkers_run*; fi
 
+## NOTE: use -I 2 (but not higher, or a core may be dumped in some occasions by iqtree -T IQT_threads) instead of AUTO to speed-up tests
 # 1. default on DNA sequences (uses IQ-TREE evaluating a subset of models specified in the detailed help)
 echo ">>> Test #1: default run on DNA sequence ..."
-run_get_phylomarkers_pipeline.sh -R 1 -t DNA -I 4
+run_get_phylomarkers_pipeline.sh -R 1 -t DNA -I 2 
 echo
 
 # 2. thorough FastTree searching and molecular clock analysis on DNA sequences using 10 cores and increasing k stringency 
@@ -73,12 +74,12 @@ echo
 
 # 3. test multiple models with high kdetree stringency (k=1.0) and thorogh IQT searches, using 2 seed trees
 echo ">>> Test #3: multiple models with high kdetree stringency (k=1.0) and thorogh IQT searches, using 2 seed trees"
-run_get_phylomarkers_pipeline.sh -R 1 -t DNA -S 'TrN,TVMe,GTR' -k 1.0 -m 0.75 -T high -N 2 -I 4
+run_get_phylomarkers_pipeline.sh -R 1 -t DNA -S 'TrN,TVMe,GTR' -k 1.0 -m 0.75 -T high -N 2 -I 2
 echo
 
 # 4. IQT with proteins and moderate average bipartition support
 echo ">>> Test #4: IQT with proteins and moderate average bipartition support"
-run_get_phylomarkers_pipeline.sh -R 1 -t PROT -m 0.2 -I 4
+run_get_phylomarkers_pipeline.sh -R 1 -t PROT -m 0.2 -I 2
 echo
 
 # 5. FastTree thorough searching on a protein dataset with thorough search
@@ -95,7 +96,7 @@ echo
 echo ">>> Test # 7. estimate a ML pan-genome tree from the pan-genome matrix, using 2 independent IQT runs and UFBoot"
 cd "${base_dir}"/pan_genome  || { echo "ERROR could not cd into $base_dir/pan_genome"; exit 1 ; }
 [ -d iqtree_PGM_2_runs ] && rm -rf iqtree_PGM_2_runs
-estimate_pangenome_phylogenies.sh -f pangenome_matrix_t0.fasta -r 2 -S UFBoot -I 4
+estimate_pangenome_phylogenies.sh -f pangenome_matrix_t0.fasta -r 2 -S UFBoot -I 2
 echo
 
 # 8. estimate a PARS  pan-genome tree with bootstrapping; 100 bootstrap replicates divided on 10 core (10 reps / core)
