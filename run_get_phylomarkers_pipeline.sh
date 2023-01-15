@@ -43,7 +43,7 @@ set -u
 set -o pipefail
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.4.8_2023-01-10' #
+VERSION='2.5.0_2023-01-14'
                          		   
 # Set GLOBALS
 # in Strict mode, need to explicitly set undefined variables to an empty string var=''
@@ -1561,7 +1561,12 @@ then
 	  print_start_time && msg "# running compute_MJRC_tree ph $search_algorithm ..." PROGR BLUE
 	  compute_MJRC_tree ph "$search_algorithm" 
 
+	  
+	  # top100_median_support_values4loci.tab should probably not be written in the first instance
+	  [[ -s top100_median_support_values4loci.tab ]] && (( no_top_markers < 101 )) && rm top100_median_support_values4loci.tab
 
+	  
+	  # ASTRAL
 	  msg "" PROGR NC
 	  msg " >>>>>>>>>>>>>>> Computing ASTRAL species tree on ${no_top_markers} top marker gene trees <<<<<<<<<<<<<<< " PROGR YELLOW
 	  msg "" PROGR NC
@@ -1575,12 +1580,14 @@ then
           else
              msg " >>> WARNING: file alltrees.nwk was not found; cannot run ASTRAL ..." WARNING LRED
           fi
-	  
-	  # top100_median_support_values4loci.tab should probably not be written in the first instance
-	  [[ -s top100_median_support_values4loci.tab ]] && (( no_top_markers < 101 )) && rm top100_median_support_values4loci.tab
 
+	  # compute_ASTRALspTree_branch_lenghts
+	  if [[ -s astral_top"${no_top_markers}"geneTrees.sptree ]]
+	  then
+	     # returns IQTree_constrained_by_ASTRALspTree.treefile
+	     compute_ASTRALspTree_branch_lenghts concat_cdnAlns.fnainf GTR+G astral_top"${no_top_markers}"geneTrees.sptree "$IQT_threads"
+	  fi
        fi # [ "$search_algorithm" == "F" ]
-
 
        #::::::::::::::::::::::::::::::#
        # >>> IQ-TREE species tree <<< #
@@ -1667,6 +1674,11 @@ then
              msg " >>> WARNING: file alltrees.nwk was not found; cannot run ASTRAL ..." WARNING LRED
            fi
 
+	   # compute_ASTRALspTree_branch_lenghts
+	   if [[ -s astral_top"${no_top_markers}"geneTrees.sptree ]]
+	   then
+	      compute_ASTRALspTree_branch_lenghts concat_cdnAlns.fnainf "$best_model" astral_top"${no_top_markers}"geneTrees.sptree "$IQT_threads"
+	   fi
        fi # if [ "$search_algorithm" == "I" ]
 
 
@@ -2189,7 +2201,8 @@ then
 	
         print_start_time && msg "# running compute_MJRC_tree ph $search_algorithm ..." PROGR BLUE
 	compute_MJRC_tree ph "$search_algorithm" 
-	
+
+	# ASTRAL
 	msg "" PROGR NC
 	msg " >>>>>>>>>>>>>>> Computing ASTRAL species tree on ${no_top_markers} top marker gene trees <<<<<<<<<<<<<<< " PROGR YELLOW
 	msg "" PROGR NC
@@ -2204,9 +2217,14 @@ then
            msg " >>> WARNING: file alltrees.nwk was not found; cannot run ASTRAL ..." WARNING LRED
         fi
 
+	# compute_ASTRALspTree_branch_lenghts
+	if [[ -s astral_top"${no_top_markers}"geneTrees.sptree ]]
+	then
+	   compute_ASTRALspTree_branch_lenghts concat_protAlns.faainf LG+G astral_top"${no_top_markers}"geneTrees.sptree "$IQT_threads"
+	fi
+
         (( DEBUG > 0 )) && msg " > compute_suppValStas_and_RF-dist.R $top_markers_dir 2 faaln ph 1 &> /dev/null" DEBUG NC
         "${distrodir}"/compute_suppValStas_and_RF-dist.R "$top_markers_dir" 2 faaln ph 1 &> /dev/null
-
    fi # [ "$search_algorithm" == "F" ]
 
 
@@ -2249,7 +2267,7 @@ then
     	     lmsg=" > iqtree -s concat_protAlns.faainf -st PROT -m $best_model --abayes -B 1000 -T $IQT_threads --prefix abayes_run${rep} &> /dev/null"
     	     print_start_time && msg "$lmsg" PROGR LBLUE
 
-    	      iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" --abayes -B 1000 "$IQT_threads" --prefix abayes_run"${rep}" &> /dev/null
+    	      iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" --abayes -B 1000 -T "$IQT_threads" --prefix abayes_run"${rep}" &> /dev/null
     	  done
 
     	  grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_IQ-TREE_searches.out
@@ -2297,9 +2315,9 @@ then
     	  cd "$top_markers_dir" || { msg "ERROR: cannot cd into $top_markers_dir" ERROR RED && exit 1 ; }
     	  rm -rf iqtree_abayes concat_protAlns.faainf.treefile concat_protAlns.faainf.uniqueseq.phy ./*ckp.gz
 	  
-#	  print_start_time && msg "# computing the mean support values and RF-distances of each gene tree to the concatenated tree ..." PROGR BLUE
-#	  (( DEBUG > 0 )) && msg " > compute_suppValStas_and_RF-dist.R $top_markers_dir 2 fasta treefile 1 &> /dev/null" DEBUG NC
-#          $distrodir/compute_suppValStas_and_RF-dist.R $top_markers_dir 2 fasta ph 1 &> /dev/null
+	  print_start_time && msg "# computing the mean support values and RF-distances of each gene tree to the concatenated tree ..." PROGR BLUE
+	  (( DEBUG > 0 )) && msg " > compute_suppValStas_and_RF-dist.R $top_markers_dir 2 fasta treefile 1 &> /dev/null" DEBUG NC
+          $distrodir/compute_suppValStas_and_RF-dist.R $top_markers_dir 2 fasta ph 1 &> /dev/null
        fi
 
        msg "" PROGR NC
@@ -2316,6 +2334,11 @@ then
           msg " >>> WARNING: file alltrees.nwk was not found; cannot run ASTRAL ..." WARNING LRED
        fi
 
+       # compute_ASTRALspTree_branch_lenghts
+       if [[ -s astral_top"${no_top_markers}"geneTrees.sptree ]]
+       then
+          compute_ASTRALspTree_branch_lenghts concat_protAlns.faainf "$best_model" astral_top"${no_top_markers}"geneTrees.sptree "$IQT_threads"
+       fi
     fi # if [ "$search_algorithm" == "I" ]
 
     # >>> 5.9 CLEANUP <<< #
