@@ -1,4 +1,4 @@
-#v2022-11-21
+#v2023-01-15
 #-----------------#
 # Compiled source #
 ###################
@@ -35,6 +35,7 @@
 ._*
 .Spotlight-V100
 .Trashes
+.travis.yml
 ehthumbs.db
 Thumbs.db
 
@@ -48,7 +49,10 @@ Thumbs.db
 
 # other project-specific files
 .Rhistory
+.gitignore
 .gitignore.swp
+.gitmodules
+*bats*
 HEAD
 TODO.txt
 config
