@@ -1,4 +1,4 @@
-#: VERSION: 2023-01-15
+#: VERSION: 2023-01-16
 #: LIBRARY: get_phylomarkers_fun_lib
 #     * functions called by run_get_phylomarkers_pipeline.sh
 #     * part of the GET_PHYLOMARKERS software package
@@ -480,10 +480,13 @@ function run_ASTRAL()
    # compute the gene concordance factor (gCF) for each branch of the species tree 
    # as the fraction of decisive gene trees concordant with this branch
    # NOTE: the IQTree_constrained_by_ASTRALspTree_concord.cf.tree produced by IQT may not be visualizable with FigTree!!!
+   msg "# computing  the gene concordance factor (gCF) for each branch of the species tree ..." PROGR LBLUE
+   long_msg=" > iqtree -t astral_top${num_markers}geneTrees.sptree --gcf alltrees.nwk --prefix astral_concord &> /dev/null"
+   (( DEBUG > 0 )) && msg "$long_msg" DEBUG NC
    iqtree -t astral_top"${num_markers}"geneTrees.sptree --gcf alltrees.nwk --prefix astral_concord &> /dev/null
    check_output astral_concord.cf.tree "$parent_PID"
 
-   # add labels to tree
+   # add labels to astral_concord.cf.tree
    "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list astral_concord.cf.tree &> /dev/null
    if [[ -s astral_concord_ed.cf ]] 
    then
@@ -506,7 +509,6 @@ function run_ASTRAL()
 function compute_ASTRALspTree_branch_lenghts()
 {
    # uses iqtree to compute an ASTRAL species tree with branch lenghts 
-   # and the corresponding gene concordance factor (gCF) for each branch of the species tree
    #  - needs the concatenated alignment, the model and the ASTRAL species tree topology, 
    #    which will be used by iqtree as a constrain
    #  iqtree -s concat_cdnAlns.fnainf -m GTR+F+ASC+R6 -g astral_top92geneTrees.sptree --prefix IQTree_constrained_by_ASTRALspTree -T 12
@@ -517,9 +519,40 @@ function compute_ASTRALspTree_branch_lenghts()
    concat_aln=$1
    model=$2
    astral_spTree=$3
-   threads=$4
+   threads=$4 
+
+# ======================================================================================================================================
+# >>> NOTE ON BUG: IQ-Tree v2.2.0 seems to have a bug, as it dups a core (see below) when threads=AUTO in the following line:
+# iqtree -s $concat_aln -m $model -g $astral_spTree --prefix IQTree_constrained_by_ASTRALspTree -T $threads
+
+#132  132    0.00%    passed	14.07%
+#****  TOTAL    0.00%  73 sequences failed composition chi2 test (p-value<5%; df=3)
+#Reading constraint tree astral_top112geneTrees.sptree...
+#WARNING: Rooted constraint tree will be treated as unrooted tree
+#NOTE: 95 is identical to 94 but kept for subsequent analysis
+#Checking for duplicate sequences: done in 0.0302344 secs using 474.9% CPU
+
+#CHECKPOINT: Initial tree restored
+
+#NOTE: 1319 MB RAM (1 GB) is required!
+#Measuring multi-threading efficiency up to 56 CPU cores
+#Increase to 10 rounds for branch lengths
+#ERROR: phylotree.cpp:909: virtual void PhyloTree::initializeAllPartialLh(): Assertion `indexlh == nodeNum-leafNum' failed.
+#ERROR: STACK TRACE FOR DEBUGGING:
+#ERROR: 
+#ERROR: *** IQ-TREE CRASHES WITH SIGNAL ABORTED
+#ERROR: *** For bug report please send to developers:
+#ERROR: ***    Log file: IQTree_constrained_by_ASTRALspTree.log
+#ERROR: ***    Alignment files (if possible)
+#Aborted (core dumped)
+   
+# changinng threads=12 runs smoothly!!   
+#----------------------------------------------------------------------------------------------------------------------------------------   
+
+   [[ "$threads" == 'AUTO' ]] && threads=12 # see note above on but in IQ-Tree 2.2.0 <<< !!!!
    
    # compute ML branch lenghts of astral_spTree with IQT using the best model found for concat_aln
+   msg "# computing ML branch lenghts of astral_spTree with IQT using the best model found for concat_aln ..." PROGR LBLUE
    long_msg=" > iqtree -s $concat_aln -m $model -g $astral_spTree --prefix IQTree_constrained_by_ASTRALspTree -T $threads &> /dev/null"
    (( DEBUG > 0 )) && msg "$long_msg" DEBUG NC
    iqtree -s "$concat_aln" -m "$model" -g "$astral_spTree" --prefix IQTree_constrained_by_ASTRALspTree -T "$threads" &> /dev/null
@@ -529,27 +562,15 @@ function compute_ASTRALspTree_branch_lenghts()
    "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list IQTree_constrained_by_ASTRALspTree.treefile &> /dev/null
     check_output IQTree_constrained_by_ASTRALspTree_ed.treefile "$parent_PID"
 
-   # compute the gene concordance factor (gCF) for each branch of the species tree 
-   # as the fraction of decisive gene trees concordant with this branch
-   # NOTE: the IQTree_constrained_by_ASTRALspTree_concord.cf.tree produced by IQT may not be visualizable with FigTree!!!
-   iqtree -t IQTree_constrained_by_ASTRALspTree.treefile --gcf alltrees.nwk --prefix IQTree_constrained_by_ASTRALspTree_concord &> /dev/null
-   check_output IQTree_constrained_by_ASTRALspTree_concord.cf.tree "$parent_PID"
+   # compute ML branch lenghts for astral_concord.cf.tree  
+   msg "#  compute ML branch lenghts for astral_concord.cf.tree ..." PROGR LBLUE
+   long_msg=" > iqtree -s $concat_aln -m $model -g astral_concord.cf.tree --prefix IQTree_constrained_by_ASTRAL_concord_spTree -T $threads &> /dev/null"
+   (( DEBUG > 0 )) && msg "$long_msg" DEBUG NC
+   iqtree -s "$concat_aln" -m "$model" -g astral_concord.cf.tree --prefix IQTree_constrained_by_ASTRAL_concord_spTree -T "$threads" &> /dev/null
+    check_output IQTree_constrained_by_ASTRAL_concord_spTree.treefile "$parent_PID"
    
-   # add labels to IQTree_constrained_by_ASTRALspTree_concord.cf.tree
-   "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list IQTree_constrained_by_ASTRALspTree_concord.cf.tree &> /dev/null
-   
-   if [[ -s IQTree_constrained_by_ASTRALspTree_concord_ed.cf ]] 
-   then
-       mv IQTree_constrained_by_ASTRALspTree_concord_ed.cf IQTree_constrained_by_ASTRALspTree_concord_ed_cf.treefile
-       check_output IQTree_constrained_by_ASTRALspTree_concord_ed_cf.treefile "$parent_PID"
-   else
-       msg "WARNING: IQTree_constrained_by_ASTRALspTree_concord_ed.cf was not produced ..." WARNING LRED
-   fi
-   
-   # compute mean gCF
-   awk 'BEGIN{FS=OFS="\t"; print "num_branches\tcum_gCF\tmean_branch_gCF"}NR > 1{branches++; gCFcum+=$2;} 
-      END{print branches, gCFcum, gCFcum/branches}' IQTree_constrained_by_ASTRALspTree_concord.cf.stat > \
-        IQTree_constrained_by_ASTRALspTree_concord_mean_gCF.tsv
+   # add labels to IQTree_constrained_by_ASTRAL_concord_spTree.treefile
+   "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list IQTree_constrained_by_ASTRAL_concord_spTree.treefile &> /dev/null
 
    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
 }
