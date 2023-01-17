@@ -549,7 +549,7 @@ function compute_ASTRALspTree_branch_lenghts()
 # changinng threads=12 runs smoothly!!   
 #----------------------------------------------------------------------------------------------------------------------------------------   
 
-   [[ "$threads" == 'AUTO' ]] && threads=12 # see note above on but in IQ-Tree 2.2.0 <<< !!!!
+   [[ "$threads" == 'AUTO' ]] && threads=10 # see note above on but in IQ-Tree 2.2.0 <<< !!!!
    
    # compute ML branch lenghts of astral_spTree with IQT using the best model found for concat_aln
    msg "# computing ML branch lenghts of astral_spTree with IQT using the best model found for concat_aln ..." PROGR LBLUE
