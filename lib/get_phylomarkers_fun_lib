@@ -1,4 +1,4 @@
-#: VERSION: 2023-01-16
+#: VERSION: 2023-01-18
 #: LIBRARY: get_phylomarkers_fun_lib
 #     * functions called by run_get_phylomarkers_pipeline.sh
 #     * part of the GET_PHYLOMARKERS software package
@@ -556,22 +556,28 @@ function compute_ASTRALspTree_branch_lenghts()
    long_msg=" > iqtree -s $concat_aln -m $model -g $astral_spTree --prefix IQTree_constrained_by_ASTRALspTree -T $threads &> /dev/null"
    (( DEBUG > 0 )) && msg "$long_msg" DEBUG NC
    iqtree -s "$concat_aln" -m "$model" -g "$astral_spTree" --prefix IQTree_constrained_by_ASTRALspTree -T "$threads" &> /dev/null
-   check_output IQTree_constrained_by_ASTRALspTree.treefile "$parent_PID"
+   
+   # the IQT implementaion in v2.2.0 seems to be buggy, as for the same data
+   #  the previous call is sometimes not successful (particularly in the Travis environment)
+   #  therefore here we do not use check_output, but rather a simple -s test.
+   if [[ -s IQTree_constrained_by_ASTRALspTree.treefile ]]
+   then
     
-   # add labels to IQTree_constrained_by_ASTRALspTree.treefile
-   "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list IQTree_constrained_by_ASTRALspTree.treefile &> /dev/null
-    check_output IQTree_constrained_by_ASTRALspTree_ed.treefile "$parent_PID"
-
+       # add labels to IQTree_constrained_by_ASTRALspTree.treefile
+       "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list IQTree_constrained_by_ASTRALspTree.treefile &> /dev/null
+        check_output IQTree_constrained_by_ASTRALspTree_ed.treefile "$parent_PID"
+   fi
+   
    # compute ML branch lenghts for astral_concord.cf.tree  
    msg "#  compute ML branch lenghts for astral_concord.cf.tree ..." PROGR LBLUE
    long_msg=" > iqtree -s $concat_aln -m $model -g astral_concord.cf.tree --prefix IQTree_constrained_by_ASTRAL_concord_spTree -T $threads &> /dev/null"
    (( DEBUG > 0 )) && msg "$long_msg" DEBUG NC
    iqtree -s "$concat_aln" -m "$model" -g astral_concord.cf.tree --prefix IQTree_constrained_by_ASTRAL_concord_spTree -T "$threads" &> /dev/null
-    check_output IQTree_constrained_by_ASTRAL_concord_spTree.treefile "$parent_PID"
-   
-   # add labels to IQTree_constrained_by_ASTRAL_concord_spTree.treefile
-   "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list IQTree_constrained_by_ASTRAL_concord_spTree.treefile &> /dev/null
-
+   if [[ IQTree_constrained_by_ASTRAL_concord_spTree.treefile ]]
+   then
+       # add labels to IQTree_constrained_by_ASTRAL_concord_spTree.treefile
+       "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list IQTree_constrained_by_ASTRAL_concord_spTree.treefile &> /dev/null
+   fi
    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
 }
 #-----------------------------------------------------------------------------------------
