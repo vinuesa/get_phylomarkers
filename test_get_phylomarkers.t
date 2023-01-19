@@ -40,7 +40,7 @@ ok( eval{ `perl ./run_parallel_cmmds.pl` } =~ /usage/ , 'run_parallel_cmmds.pl' 
 ok( eval{ `Rscript ./compute_suppValStas_and_RF-dist.R 2>&1` } =~ /Usage/ , 'compute_suppValStas_and_RF-dist.R' ); 
 
 # test 11
-ok( eval{ `Rscript ./run_kdetrees.R 2>&1` } =~ /Execution/ , '/run_kdetrees.R' );
+ok( eval{ `Rscript ./run_kdetrees.R 2>&1` } =~ /Execution/ , 'run_kdetrees.R' );
 
 
 ### Test Bash scripts
@@ -71,13 +71,13 @@ ok( eval{ `bash ./run_test_suite.sh 2>&1` } =~ /LAUNCHING THE CONTAINER/, 'run_t
 ok( eval{ `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh -R 1 -t DNA -I 2 | grep "wrote file gene_trees" && rm -rf get_phylomarkers_run_*` }, 'run_get_phylomarkers_pipeline.sh -R 1 -t DNA' ); 
 
 # test 18 IQT run on proteins sequence ...
-ok( eval{ `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh -R 1 -t PROT -k 1.2 -m 0.6 -I 2 | grep "wrote file" && rm -rf get_phylomarkers_run_*` }, 'run_get_phylomarkers_pipeline.sh -R 1 -t PROT -k 1.2 -m 0.2' ); 
+ok( eval{ `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh -R 1 -t PROT -k 1.5 -m 0.3 -I 2 | grep "wrote file" && rm -rf get_phylomarkers_run_*` }, 'run_get_phylomarkers_pipeline.sh -R 1 -t PROT -k 1.5 -m 0.3' ); 
 
 # test 19 Thorough FastTree searching and molecular clock analysis on DNA sequences using 10 cores and increasing k stringency
 ok( eval{  `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh -R 1 -t DNA -A F -k 1.2 -m 0.7 -s 20 -l 12 -T high -K -M HKY -q 0.95 | grep "wrote file phylogenetic_attributes_of_top"` }, 'run_get_phylomarkers_pipeline.sh -R 1 -t DNA -A F -k 1.2 ...' );
 
 # test 20 FastTree thorough searching on a protein dataset with moderate average bipartition support
-ok( eval{  `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh  -R 1 -t PROT -A F -T high -m 0.2 | grep "wrote file concat_nonRecomb_KdeFilt_protAlns_FTlgG"` }, 'run_get_phylomarkers_pipeline.sh -R 1 -t PROT -A F ...' );
+ok( eval{  `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh -R 1 -t PROT -A F -T high -m 0.2 | grep "wrote file concat_nonRecomb_KdeFilt_protAlns_FTlgG"` }, 'run_get_phylomarkers_pipeline.sh -R 1 -t PROT -A F ...' );
 
 # test 21  Run in population-genetics mode (generates a table with descritive statistics for DNA-polymorphisms) with K2P model
 ok( eval{ `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh -R 2 -t DNA -S K2P  | grep "wrote file polymorphism_descript_stats.tab"` }, 'run_get_phylomarkers_pipeline.sh -R 2 -t DNA -S K2P' );
