@@ -566,6 +566,8 @@ function compute_ASTRALspTree_branch_lenghts()
        # add labels to IQTree_constrained_by_ASTRALspTree.treefile
        "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list IQTree_constrained_by_ASTRALspTree.treefile &> /dev/null
         check_output IQTree_constrained_by_ASTRALspTree_ed.treefile "$parent_PID"
+   else
+       msg "WARNING: IQTree_constrained_by_ASTRALspTree.treefile was not produced!" WARNING LRED
    fi
    
    # compute ML branch lenghts for astral_concord.cf.tree  
@@ -577,6 +579,8 @@ function compute_ASTRALspTree_branch_lenghts()
    then
        # add labels to IQTree_constrained_by_ASTRAL_concord_spTree.treefile
        "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list IQTree_constrained_by_ASTRAL_concord_spTree.treefile &> /dev/null
+   else
+       msg "WARNING: IQTree_constrained_by_ASTRAL_concord_spTree.treefile was not produced!" WARNING LRED
    fi
    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
 }
