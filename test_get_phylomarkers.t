@@ -40,7 +40,7 @@ ok( eval{ `perl ./run_parallel_cmmds.pl` } =~ /usage/ , 'run_parallel_cmmds.pl' 
 ok( eval{ `Rscript ./compute_suppValStas_and_RF-dist.R 2>&1` } =~ /Usage/ , 'compute_suppValStas_and_RF-dist.R' ); 
 
 # test 11
-ok( eval{ `Rscript ./run_kdetrees.R 2>&1` } =~ /Execution/ , 'run_kdetrees.R' );
+ok( eval{ `Rscript ./run_kdetrees.R 2>&1` } =~ /Usage/ , 'run_kdetrees.R' );
 
 
 ### Test Bash scripts

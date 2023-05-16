@@ -2,7 +2,7 @@
 
 # run_kdetrees.R
 
-VERSION <- 'Version: 0.3 - 20Oct202'  #v0.3 with portable shebang line
+VERSION <- 'Version: 0.3 - 20Oct2022'  #v0.3 with portable shebang line
                                       # runs kdetrees(all.trees.raw, distance = "dissimilarity", topo.only = TRUE &  topo.only = FALSE)
 AUTHOR <- "Authors: Pablo Vinuesa [CCG-UNAM], Bruno Contreras Moreira [EEAD-CSIC]; "
 REPOS <- "https://cloud.r-project.org"
