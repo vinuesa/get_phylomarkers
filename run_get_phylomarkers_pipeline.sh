@@ -4,7 +4,7 @@
 #: AUTHORS: Pablo Vinuesa, Center for Genomic Sciences, UNAM, Mexico
 #:          http://www.ccg.unam.mx/~vinuesa/
 #           Bruno Contreras Moreira, EEAD-CSIC, Zaragoza, Spain
-#           https://digital.csic.es/cris/rp/rp02661/
+#           https://www.eead.csic.es/compbio
 #
 #: DISCLAIMER: programs of the GET_PHYLOMARKERS package are distributed in the hope that they will be useful, 
 #              but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -2443,7 +2443,7 @@ Docker images at:
 
    Alternatively, see our contact details at:
    http://www.ccg.unam.mx/~vinuesa/
-   https://digital.csic.es/cris/rp/rp02661/
+   https://www.eead.csic.es/home/staffinfo?Id=71
 
    Please run the script with the -D 1 or -D 2 added at the end of the
    command line, and send us the output, to better diagnose
