@@ -76,7 +76,7 @@ A [**preprint version is available on bioRxiv**](https://www.biorxiv.org/content
 The code is developed and maintained by [Pablo Vinuesa](https://www.ccg.unam.mx/~vinuesa/) 
 at [CCG-UNAM, Mexico](https://www.ccg.unam.mx/) and 
 [Bruno Contreras-Moreira](https://www.eead.csic.es/home/staffinfo?Id=71) 
- at [EEAD-CSIC, Spain](http://www.eead.csic.es/). It is released to the public domain under the GNU GPLv3 [license](./LICENSE).
+ at [EEAD-CSIC, Spain](http://www.eead.csic.es/). It is released to the public domain under the GNU GPLv3 [license](./LICENSE.txt).
 
 ## Acknowledgements
 

@@ -11,7 +11,7 @@
 #              See the GNU General Public License for more details. 
 #
 #: LICENSE: This software is freely available under the GNU GENERAL PUBLIC LICENSE v.3.0 (GPLv3)
-#           see https://github.com/vinuesa/get_phylomarkers/blob/master/LICENSE
+#           see https://github.com/vinuesa/get_phylomarkers/blob/master/LICENSE.txt
 #
 #: AVAILABILITY: freely available from GitHub @ https://github.com/vinuesa/get_phylomarkers
 #                freely available from DockerHub @ https://hub.docker.com/r/vinuesa/get_phylomarkers
