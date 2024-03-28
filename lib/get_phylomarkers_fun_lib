@@ -1,4 +1,4 @@
-#: VERSION: 2023-01-18
+#: VERSION: 2024-03-27
 #: LIBRARY: get_phylomarkers_fun_lib
 #     * functions called by run_get_phylomarkers_pipeline.sh
 #     * part of the GET_PHYLOMARKERS software package
@@ -20,7 +20,7 @@
 #                                           and  @ https://hub.docker.com/r/csicunam/get_homologues
 #
 #: CITATION:
-#  Pablo Vinuesa*, Luz Edith Ochoa-Sánchez and Bruno Contreras-Moreira (2018). 
+#  Pablo Vinuesa*, Luz Edith Ochoa-Sï¿½nchez and Bruno Contreras-Moreira (2018). 
 #  GET_PHYLOMARKERS, a software package to select optimal orthologous clusters for phylogenomics 
 #  and inferring pan-genome phylogenies, used for a critical geno-taxonomic revision of the genus Stenotrophomonas. 
 #  Front. Microbiol. 9:771 | doi: 10.3389/fmicb.2018.00771. | PubMed PMID: 29765358 
@@ -43,7 +43,6 @@ function get_script_PID()
     proc_ID=$(pgrep -u "$user" "$prog")
     echo "$proc_ID"
     #(( DEBUG > 0 )) && msg "$progname PID is: $proc_ID" DEBUG NC
-    
 }
 #-----------------------------------------------------------------------------------------
 
@@ -67,7 +66,7 @@ function install_Rlibs_msg()
 RCMD
 
 # exit 0
-
+   return 0
 }
 
 #-----------------------------------------------------------------------------------------
@@ -182,6 +181,7 @@ function count_tree_branches()
 RCMD
 
    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
+   return 0
 }
 #-----------------------------------------------------------------------------------------
 function estimate_FT_gene_trees()
@@ -189,18 +189,20 @@ function estimate_FT_gene_trees()
    # estimate gene trees running FT in parallel using the user-defined thoroughness
     (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
     (( DEBUG > 0 )) && caller 0
-    local mol_type search_thoroughness cmd fext basemod n_cores spr spr_length
+    local mol_type search_thoroughness cmd fext basemod n_cores spr spr_length bindir
     
     mol_type=$1
     search_thoroughness=$2
     n_cores=$3
     spr=$4
     spr_length=$5
+    bindir=$6
     
     cmd=''
     fext=''
     basemod=''
-   
+    
+    
    if [ "$mol_type" == "DNA" ]
    then
        [ "$search_thoroughness" == "high" ] && FTmod="-quiet -nt -gtr -gamma -bionj -slow -slownni -mlacc 3 -spr $spr -sprlength $spr_length"
@@ -224,9 +226,10 @@ function estimate_FT_gene_trees()
    #	   we have first to save the command line in a variable and pipe its content into bash for execution.
    #       Then we can execute run_parallel_cmmds.pl with a customized command, resulting from the interpolation of multiple varialbles
    (( DEBUG > 0 )) && msg "$cmd" DEBUG NC
-   echo "$cmd" | bash &> /dev/null
-
+   { echo "$cmd" | bash &> /dev/null && return 0 ; }
+       
    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
+   return 0
 }
 #-----------------------------------------------------------------------------------------
 
@@ -302,6 +305,7 @@ function compute_FT_gene_tree_stats()
        fi
     fi
    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
+   return 0
 }
 #-----------------------------------------------------------------------------------------
 
@@ -338,8 +342,10 @@ estimate_IQT_gene_trees()
    #	   we have first to save the command line in a variable and pipe its content into bash for execution.
    #       Then we can execute run_parallel_cmmds.pl with a customized command, resulting from the interpolation of multiple varialbles
    (( DEBUG > 0 )) && msg " > $cmd | bash &> /dev/null" DEBUG NC
-   echo "$cmd" | bash &> /dev/null
+   { echo "$cmd" | bash &> /dev/null && return 0; } # 
+      
    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
+   return 0
 }
 #-----------------------------------------------------------------------------------------
 
@@ -399,6 +405,7 @@ function compute_IQT_gene_tree_stats()
     	check_output iqtree_output_files.tgz "$parent_PID"
     fi
    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
+   return 0
 }
 #-----------------------------------------------------------------------------------------
 compute_MJRC_tree()
@@ -434,6 +441,7 @@ compute_MJRC_tree()
     
     #"$distrodir"/add_labels2tree.pl "$top_dir"/tree_labels.list $contree_outfile &> /dev/null
     # check_output "$labelled_contree_outfile"
+   return 0
 }
 
 # NOTE: this consense-based version does not work if trees have different number of nodes! Use iqtree-based function above
@@ -503,6 +511,7 @@ function run_ASTRAL()
    # [ -s "astral_top${num_markers}geneTrees.sptree" ] && rm "astral_top${num_markers}geneTrees.sptree"
    
    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
+   return 0
 }
 #-----------------------------------------------------------------------------------------
 
@@ -575,7 +584,7 @@ function compute_ASTRALspTree_branch_lenghts()
    long_msg=" > iqtree -s $concat_aln -m $model -g astral_concord.cf.tree --prefix IQTree_constrained_by_ASTRAL_concord_spTree -T $threads &> /dev/null"
    (( DEBUG > 0 )) && msg "$long_msg" DEBUG NC
    iqtree -s "$concat_aln" -m "$model" -g astral_concord.cf.tree --prefix IQTree_constrained_by_ASTRAL_concord_spTree -T "$threads" &> /dev/null
-   if [[ IQTree_constrained_by_ASTRAL_concord_spTree.treefile ]]
+   if [[ -s IQTree_constrained_by_ASTRAL_concord_spTree.treefile ]]
    then
        # add labels to IQTree_constrained_by_ASTRAL_concord_spTree.treefile
        "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list IQTree_constrained_by_ASTRAL_concord_spTree.treefile &> /dev/null
@@ -583,6 +592,7 @@ function compute_ASTRALspTree_branch_lenghts()
        msg "WARNING: IQTree_constrained_by_ASTRAL_concord_spTree.treefile was not produced!" WARNING LRED
    fi
    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
+   return 0
 }
 #-----------------------------------------------------------------------------------------
 
@@ -644,6 +654,7 @@ function process_IQT_species_trees_for_molClock()
     [ -s top100_median_support_values4loci.tab ] && (( no_top_markers < 101 )) && rm top100_median_support_values4loci.tab
 
    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
+   return 0
 }
 #-----------------------------------------------------------------------------------------
 
@@ -673,6 +684,7 @@ function concat_alns()
     check_output "$concat_file" "$pPID"
     perl -ne 'if (/^#|^$/){ next }else{print}' "$concat_file" > k && mv k "$concat_file"
     (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
+   return 0
 }
 #-----------------------------------------------------------------------------------------
 
@@ -689,6 +701,7 @@ function fix_fastaheader()
 
    check_output "${file}ed" "$parent_PID"
    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
+   return 0
 }
 #-----------------------------------------------------------------------------------------
 
@@ -715,6 +728,7 @@ function get_critical_FuLi_values()
    FuLi_up=$(awk -v n="$no_seq" 'BEGIN{FS="\t"}$1 == n'  "${distrodir}"/pop_gen_tables/Fu_Li_predicted_CIs.tsv|cut -f3)
    echo "$FuLi_low $FuLi_up"
    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
+    return 0
 }
 #-----------------------------------------------------------------------------------------
 
@@ -729,7 +743,7 @@ function check_output()
     if [ -s "$outfile" ]
     then
          msg " >>> wrote file $outfile ..." PROGR GREEN
-	 return 0
+        (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
     else
         echo
 	msg " >>> ERROR! The expected output file $outfile was not produced, will exit now!" ERROR RED
@@ -738,11 +752,12 @@ function check_output()
 	(( DEBUG > 0 )) && msg "check_output running: kill -9 $pPID" DEBUG NC
 	kill -9 "$pPID"
     fi
-   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
+    return 0
 }
 
 #-----------------------------------------------------------------------------------------
-function check_IQT_DNA_models
+
+function check_IQT_DNA_models()
 {
     (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
     (( DEBUG > 0 )) && caller 0
@@ -761,11 +776,11 @@ function check_IQT_DNA_models
 
     dna_models=(JC F81 K2P HKY TrN TNe K3P K81u TPM2 TPM2u TPM3 TPM3u TIM TIMe TIM2 TIM2e TIM3 TIM3e TVM TVMe SYM GTR)
 
-    for u in ${usr_models[*]}
+    for u in "${usr_models[@]}"
     do
-        for m in ${dna_models[*]}
+        for m in "${dna_models[@]}"
 	do
-	    if echo "$u" | grep "$m" &> /dev/null
+	    if echo "$u" | grep -q "$m" &> /dev/null
 	    then
 		 modelOK=1
 		 break
@@ -776,11 +791,13 @@ function check_IQT_DNA_models
         then
            msg "ERROR: model $u is not available in IQ-TREE" ERROR RED
 	   print_help
+	   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
 	   exit 1
         fi
 	modelOK=0
     done
-   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
+    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
+    return 0
 }
 
 #-----------------------------------------------------------------------------------------
@@ -804,11 +821,11 @@ function check_IQT_PROT_models
     
     dna_models=(BLOSUM62 cpREV Dayhoff DCMut FLU HIVb HIVw JTT JTTDCMut LG mtART mtMAM mtREV mtZOA Poisson PMB rtREV VT WAG)
 
-    for u in ${usr_models[*]}
+    for u in "${usr_models[@]}"
     do
-        for m in ${dna_models[*]}
+        for m in "${dna_models[@]}"
 	do
-	    if echo "$u" | grep "$m" &> /dev/null
+	    if echo "$u" | grep -q "$m" &> /dev/null
 	    then
 		 modelOK=1
 		 break
@@ -819,14 +836,14 @@ function check_IQT_PROT_models
         then
            msg "ERROR: model $u is not available in IQ-TREE" ERROR RED
 	   print_help
-	   exit 1
-        fi
+       fi
 	modelOK=0
     done
    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
+   return 0
 }
-
 #-----------------------------------------------------------------------------------------
+
 function msg()
 {
     #(( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
@@ -835,7 +852,7 @@ function msg()
     msg=$1
     mtype=$2
     col=$3
-
+    
     NC='\033[0m'
 
     case $col in
@@ -858,5 +875,6 @@ function msg()
        VERBOSE)  printf "${col}%s${NC}\n" "$msg" >&1 | tee -a "${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log";;
     esac
    #(( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
+   return 0
 }
 #-----------------------------------------------------------------------------------------
