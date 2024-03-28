@@ -36,27 +36,25 @@
 
 # Set Bash strict mode
 # http://redsymbol.net/articles/unofficial-bash-strict-mode/
-uo pipefail
 #set -x # enables debugging output to trace the execution flow; required to get spot set -e problems.
-set -e   # NOTE: all "${distrodir}"/* calls fail unless they are wrapped in the following code
-         #   { "${distrodir}"/run_parallel_cmmds.pl faaed 'add_nos2fasta_header.pl $file > ${file}no' "$n_cores" &> /dev/null && return 0; }
+set -e  # NOTES: all "${distrodir}"/* calls fail unless they are wrapped in the following code
+        #   { "${distrodir}"/run_parallel_cmmds.pl faaed 'add_nos2fasta_header.pl $file > ${file}no' "$n_cores" &> /dev/null && return 0; }
+	    # Also added extended error and return 0 calls to the functions in get_phylomarkers_fun_lib and main script
 set -u
 set -o pipefail
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.5.1_2024-03-27'
+VERSION='2.5.2_2024-03-28'
                          		   
 # Set GLOBALS
 # in Strict mode, need to explicitly set undefined variables to an empty string var=''
 DEBUG=0
 wkdir=$(pwd) #echo "# working in $wkdir"
 PRINT_KDE_ERR_MESSAGE=0
-logdir=''
 logdir=$(pwd)
 dir_suffix=''
 lmsg=''
 gene_tree_ext=''
-#sp_tree_ext=''
 
 min_bash_vers=4.3 # required for:
                   # 1.  printf '%(%F)T' '-1' in print_start_time; and 
@@ -201,69 +199,68 @@ function check_scripts_in_path()
     for prog in "${bash_scripts[@]}" "${perl_scripts[@]}" "${R_scripts[@]}"
     do
        bin=$(type -P "$prog")
-       if [ -z "$bin" ]; then
-          echo
-          if [ "$user" == "root" ]
-	  then
-	      msg "# WARNING: script $prog is not in \$PATH!" WARNING LRED
-	      msg " >>>  Will generate a symlink from /usr/local/bin or add it to \$PATH" WARNING CYAN
-	      not_in_path=1
-	  else
-	      msg "# WARNING: script $prog is not in \$PATH!" WARNING LRED
-	      msg " >>>  Will generate a symlink from $HOME/bin or add it to \$PATH" WARNING CYAN
-	      not_in_path=1
-	  fi
-       fi
+        if [ -z "$bin" ]; then
+            echo
+            if [ "$user" == "root" ]; then
+	            msg "# WARNING: script $prog is not in \$PATH!" WARNING LRED
+	            msg " >>>  Will generate a symlink from /usr/local/bin or add it to \$PATH" WARNING CYAN
+	            not_in_path=1
+	        else
+	            msg "# WARNING: script $prog is not in \$PATH!" WARNING LRED
+	            msg " >>>  Will generate a symlink from $HOME/bin or add it to \$PATH" WARNING CYAN
+	            not_in_path=1
+	        fi
+        fi
     done
 
     # if flag $not_in_path -eq 1, then either generate symlinks into $HOME/bin (if in $PATH) or export $distrodir to PATH
     if (( not_in_path == 1 ))
     then
-       if [[ "$user" == "root" ]]
-       then
-       	   if [ ! -d /usr/local/bin ]
-       	   then
+        if [[ "$user" == "root" ]]
+        then
+       	    if [ ! -d /usr/local/bin ]
+       	    then
           	   msg "Could not find a /usr/local/bin directory for $user ..."  WARNING CYAN
-	  	   msg " ... will update PATH=$distrodir:$PATH"  WARNING CYAN
-	  	   export PATH="${distrodir}:${PATH}" # prepend $ditrodir to $PATH
-       	   fi
+	  	       msg " ... will update PATH=$distrodir:$PATH"  WARNING CYAN
+	  	       export PATH="${distrodir}:${PATH}" # prepend $ditrodir to $PATH
+       	    fi
 
        	   # check if $HOME/bin is in $PATH
-       	   if echo "$PATH" | sed 's/:/\n/g' | grep "/usr/local/bin$" &> /dev/null
-       	   then
+       	    if echo "$PATH" | sed 's/:/\n/g' | grep "/usr/local/bin$" &> /dev/null
+       	    then
           	   msg "Found dir /usr/local/bin for $user in \$PATH ..." WARNING CYAN
           	   msg " ... will generate symlinks in /usr/local/bin to all scripts in $distrodir ..." WARNING CYAN
           	   ln -s "$distrodir"/*.sh /usr/local/bin &> /dev/null
           	   ln -s "$distrodir"/*.R /usr/local/bin &> /dev/null
           	   ln -s "$distrodir"/*.pl /usr/local/bin &> /dev/null
-       	   else
+       	    else
           	   msg " Found dir /usr/local/bin for $user, but it is NOT in \$PATH ..." WARNING CYAN
           	   msg " ... updating PATH=$PATH:$distrodir" WARNING CYAN
-	  	   export PATH="${distrodir}:${PATH}" # prepend $distrodir to $PATH
-       	   fi
-       else       
-       	   if [ ! -d "$HOME"/bin ]
-       	   then
+	  	       export PATH="${distrodir}:${PATH}" # prepend $distrodir to $PATH
+       	    fi
+        else       
+       	    if [ ! -d "$HOME"/bin ]
+       	    then
           	   msg "Could not find a $HOME/bin directory for $user ..."  WARNING CYAN
-	  	   msg " ... will update PATH=$distrodir:$PATH"  WARNING CYAN
-	  	   export PATH="${distrodir}:${PATH}" # prepend $ditrodir to $PATH
-       	   fi
+	  	       msg " ... will update PATH=$distrodir:$PATH"  WARNING CYAN
+	  	       export PATH="${distrodir}:${PATH}" # prepend $ditrodir to $PATH
+       	    fi
 
        	   # check if $HOME/bin is in $PATH
-       	   if echo "$PATH" | sed 's/:/\n/g'| grep "$HOME/bin$" &> /dev/null
-       	   then
+       	    if echo "$PATH" | sed 's/:/\n/g'| grep "$HOME/bin$" &> /dev/null
+       	    then
           	   msg "Found dir $HOME/bin for $user in \$PATH ..." WARNING CYAN
           	   msg " ... will generate symlinks in $HOME/bin to all scripts in $distrodir ..." WARNING CYAN
           	   ln -s "$distrodir"/*.sh "$HOME"/bin &> /dev/null
           	   ln -s "$distrodir"/*.R "$HOME"/bin &> /dev/null
           	   ln -s "$distrodir"/*.pl "$HOME"/bin &> /dev/null
           	   #ln -s $distrodir/rename.pl $HOME/bin &> /dev/null
-       	   else
+       	    else
           	   msg " Found dir $HOME/bin for $user, but it is NOT in \$PATH ..." WARNING CYAN
           	   msg " ... updating PATH=$PATH:$distrodir" WARNING CYAN
-	  	   export PATH="${distrodir}:${PATH}" # prepend $distrodir to $PATH
-       	   fi
-       fi
+	  	       export PATH="${distrodir}:${PATH}" # prepend $distrodir to $PATH
+       	    fi
+        fi
     fi
     (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]} ..." DEBUG NC
     return 0
@@ -305,7 +302,6 @@ function set_bindirs()
 #   fi
    #echo $setbindir_flag
    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}..." DEBUG NC
-   
    return 0
 }
 #-----------------------------------------------------------------------------------------
@@ -559,40 +555,6 @@ exit 0
 }
 
 #-----------------------------------------------------------------------------------------
-function msg()
-{
-    #(( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
-    (( DEBUG > 0 )) && caller 0
-    local msg mtype col
-    msg=$1
-    mtype=$2
-    col=$3
-    
-    NC='\033[0m'
-
-    case $col in
-       RED) col='\033[0;31m';;
-       LRED) col='\033[1;31m';;
-       GREEN) col='\033[0;32m';;
-       YELLOW) col='\033[1;33m';;
-       BLUE) col='\033[0;34m';;
-       LBLUE) col='\033[1;34m';;
-       CYAN) col='\033[0;36m';;
-       NC) col='\033[0m';;
-    esac
-
-    case $mtype in
-       HELP)  printf "\n${col}%s${NC}\n\n" "$msg" >&2;;
-       ERROR)  printf "\n${col}%s${NC}\n\n" "$msg" >&2 | tee -a "${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log";;
-       WARNING) printf "${col}%s${NC}\n" "$msg" >&1 | tee -a "${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log";;
-       PROGR)  printf "${col}%s${NC}\n" "$msg" >&1 | tee -a "${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log";;
-       DEBUG)  printf "${col}%s${NC}\n" "$msg" >&1 | tee -a "${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log";;
-       VERBOSE)  printf "${col}%s${NC}\n" "$msg" >&1 | tee -a "${logdir}/get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}.log";;
-    esac
-   #(( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
-   return 0
-}
-#-----------------------------------------------------------------------------------------
 
 function print_help()
 {
@@ -794,7 +756,6 @@ no_proc=$(echo "$env_vars"|awk '{print $4}')
 # source get_phylomarkers_fun_lib into the script to get access to reminder of the functions
 source "${distrodir}"/lib/get_phylomarkers_fun_lib || { echo "ERROR: could not source ${distrodir}/lib/get_phylomarkers_fun_lib" && exit 1 ; }
 
-
 if (( DEBUG == 2 )); then
    # Print shell input lines as they are read. 
    set -v
@@ -840,7 +801,6 @@ check_dependencies 1
 (( software_versions == 1 )) && print_software_versions
 
 
-
 #--------------------------------------#
 # >>> BLOCK 0.2 CHECK USER OPTIONS <<< #
 #--------------------------------------#
@@ -878,7 +838,6 @@ if [ "$mol_type" != "DNA" ] && [ "$mol_type" != "PROT" ] # "$mol_type" == "BOTH"
 then
      msg "ERROR: -t must be DNA or PROT" ERROR RED
      print_help
-     exit 1
 fi
 
 if [ -z "$IQT_models" ]
@@ -1065,7 +1024,6 @@ else
     done
 fi
 
-
 print_start_time && msg  "# Performing strain composition check on f?aed files ..." PROGR BLUE
 faaed_strain_intersection_check=$(grep '>' ./*faaed | cut -d: -f2 | sort | uniq -c | awk '{print $1}' | sort | uniq -c | wc -l)
 fnaed_strain_intersection_check=$(grep '>' ./*fnaed | cut -d: -f2 | sort | uniq -c | awk '{print $1}' | sort | uniq -c | wc -l)
@@ -1093,7 +1051,6 @@ else
 fi
 
 # 1.3 add_nos2fasta_header.pl to avoid problems with duplicate labels
-
 (( DEBUG > 0 )) && msg " > ${distrodir}/run_parallel_cmmds.pl faaed 'add_nos2fasta_header.pl \$file > \${file}no' $n_cores &> /dev/null" DEBUG NC
 { "${distrodir}"/run_parallel_cmmds.pl faaed 'add_nos2fasta_header.pl $file > ${file}no' "$n_cores" &> /dev/null && return 0; }
 
@@ -1101,8 +1058,6 @@ fi
 { "${distrodir}"/run_parallel_cmmds.pl fnaed 'add_nos2fasta_header.pl $file > ${file}no' "$n_cores" &> /dev/null && return 0; }
 
 no_alns=$(find . -name "*.fnaedno" | wc -l)
-
-
 
 (( no_alns == 0 )) && msg " >>> ERROR: There are no codon alignments to work on! Something went wrong. Please check input and settings ... " ERROR RED && exit 4
 print_start_time && msg "# Total number of alignments to be computed $no_alns" PROGR BLUE
@@ -1120,6 +1075,7 @@ fi
 # NOTE: complains about unbound variable c
 (( DEBUG > 0 )) && msg " > perl -pe '\$c++; s/>/\$c\t/; s/\h\[/_[/\\' tree_labels.list > k && mv k tree_labels.list" DEBUG NC
 perl -pe '$c++; s/>/$c\t/; s/\h\[/_[/' tree_labels.list > k && mv k tree_labels.list
+
 
 #------------------------------------------------------------------------------------------------------#
 # >>>BLOCK 2. Generate cdnAlns with with pal2nal, maintaining the input-order of the source fastas <<< #
@@ -1185,6 +1141,7 @@ tar -czf numbered_fna_files.tgz ./*fnaedno
 tar -czf numbered_faa_files.tgz ./*faaedno
 rm ./*aedno
 
+
 #---------------------------------------------------------------------------------------------------------#
 #>>>BLOCK 3. run Phi-test to identify recombinant codon alignments on all *_cdnAln.fasta source files <<< #
 #---------------------------------------------------------------------------------------------------------#
@@ -1218,7 +1175,6 @@ declare -a nonInfoAln
 COUNTERNOINFO=0
 
 [ -s Phi.log ] && rm Phi.log
-
 
 set +e
 for f in ./*_Phi.log
@@ -1390,29 +1346,29 @@ then
     # remove trees with < 5 external branches (leaves)
     (( DEBUG > 0 )) && msg " >  removing trees with < $min_no_ext_branches external branches (leaves)" DEBUG NC
      
-    no_tree_counter=0
+    # collect the fasta file names producing "no real trees" with < 4 external branches in the no_tree_counter array
+    declare -a no_tree_counter
+    no_tree_counter=()
     for phy in $(grep -v '^#Tree' no_tree_branches.list | awk -v min_no_ext_branches="$min_no_ext_branches" 'BEGIN{FS="\t"; OFS="\t"}$7 < min_no_ext_branches {print $1}')
     do
-  	 if [ "$search_algorithm" == "F" ]; then
+  	    if [ "$search_algorithm" == "F" ]; then
             base=${phy//_FTGTR\.ph/}
-         elif [ "$search_algorithm" == "I" ]; then
+        elif [ "$search_algorithm" == "I" ]; then
             base=${phy//\.treefile/}
-         else
+        else
             continue  # Skip processing if search_algorithm is not "F" or "I"
-         fi
-	 print_start_time && msg " will remove ${base}* because it has < $min_no_ext_branches external branches" WARNING LRED
-	 if [ -e "$base" ]; then
-	    (( DEBUG > 0 )) && msg "will remove: ${base}* ..." DEBUG NC
-	 
-	      rm "$base" "${base}".*
-	 fi	 
-	      #(( no_tree_counter++ )) 
-	      #(( DEBUG > 0 )) && msg "DEBUG tree_counter: $no_tree_counter ..." DEBUG NC
+        fi
+	    print_start_time && msg " will remove ${base}* because it has < $min_no_ext_branches external branches" WARNING LRED
+	    if [ -e "$base" ]; then
+	       (( DEBUG > 0 )) && msg "will remove: ${base}* ..." DEBUG NC
+	       no_tree_counter+=("$base")
+	       rm "$base" "${base}".*
+	    fi	 
     done
     
-    #if (( no_tree_counter > 0 )); then
-    #    msg " >>> WARNING: there are $no_tree_counter trees with < 1 internal branches (not real trees) that will be discarded ..." WARNING LRED
-    #fi
+    if [[ "${#no_tree_counter[@]}" -gt 0 ]]; then
+        msg " >>> WARNING: there are  ${#no_tree_counter[@]} trees with < 1 internal branches (not real trees) that will be discarded ..." WARNING LRED
+    fi
 
     msg "" PROGR NC
     msg " >>>>>>>>>>>>>>> filter gene trees for outliers with kdetrees test <<<<<<<<<<<<<<< " PROGR YELLOW
@@ -2077,18 +2033,21 @@ then
     # remove trees with < 5 external branches (leaves)
      (( DEBUG > 0 )) && msg " >  removing trees with < 5 external branches (leaves)" DEBUG NC
 
-    no_tree_counter=0
+    declare -a no_tree_counter2
+    no_tree_counter2=()
     for phy in $(grep -v '^#Tree' no_tree_branches.list | awk -v min_no_ext_branches="$min_no_ext_branches" 'BEGIN{FS="\t"; OFS="\t"}$7 < min_no_ext_branches{print $1}')
     do
-         [ "$search_algorithm" == "F" ] && base="${phy//_allFT\.ph/}"
-	 [ "$search_algorithm" == "I" ] && base="${phy//\.treefile/}"
-	 print_start_time && msg " >>> will remove ${base}* because it has < 5 branches" WARNING LRED
-	 rm "${base}"*
-	 (( no_tree_counter++ ))
+        [ "$search_algorithm" == "F" ] && base="${phy//_allFT\.ph/}"
+	    [ "$search_algorithm" == "I" ] && base="${phy//\.treefile/}"
+	    print_start_time && msg " >>> will remove ${base}* because it has < 5 branches" WARNING LRED
+        no_tree_counter2+=("$base")
+	    rm "${base}"*
+	 
     done
-
-    msg " >>> WARNING: there are $no_tree_counter trees with < 1 internal branches (not real trees) that will be discarded ..." WARNING LRED
-
+    
+    if [[ "${#no_tree_counter2[@]}" -gt 0 ]]; then
+        msg " >>> WARNING: there are ${#no_tree_counter2[@]} trees with < 1 internal branches (not real trees) that will be discarded ..." WARNING LRED
+    fi
     msg "" PROGR NC
     msg " >>>>>>>>>>>>>>> filter gene trees for outliers with kdetrees test <<<<<<<<<<<<<<< " PROGR YELLOW
     msg "" PROGR NC
