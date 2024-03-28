@@ -1,3 +1,5 @@
+27mar24  * run_get_phylomarkers_pipeline.sh and get_phylomarkers_fun_lib now run under full Bash's unofficial strict mode: set -euo pipefail; optimal shellcheck compliance
+26mar24  * updated iqtree2 binary for Linux to v2.3.1 (released Mar 25, 2024)
 14jan23  * run_get_phylomarkers_pipeline.sh 2.5.0_2023-01-14: calls compute_ASTRALspTree_branch_lenghts; restored compute_suppValStas_and_RF-dist.R call for prot alignments; fixed bug in iqtree call: -B 1000 "$IQT_threads" => -B 1000 -T "$IQT_threads"
 15jan23  * get_phylomarkers_fun_lib v2023-01-16: run_ASTRAL computes the gene concordance factors (gCF); new function compute_ASTRALspTree_branch_lenghts uses iqtree to compute an ASTRAL species tree with branch lenghts
 14dec22  * run_get_phylomarkers updated check_scripts_in_path: Pass USER as 1st argument to get_script_PID, and progname as 2cnd arg from run_get_phylomarkers_pipeline.sh and estimate_pangenome_phylogenies.sh to get_script_PID calls; Localized user and prog in get_phylomarkers_fun_lib::get_script_PID to avoid unbound variable USER/user in function call
