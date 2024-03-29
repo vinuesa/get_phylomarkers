@@ -1,4 +1,6 @@
-27mar24  * run_get_phylomarkers_pipeline.sh and get_phylomarkers_fun_lib now run under full Bash's unofficial strict mode: set -euo pipefail; optimal shellcheck compliance
+28mar24  * run_get_phylomarkers_pipeline.sh 2.6.0_2024-03-28 implements the maximal matched-pairs tests to asses SRH assumptions. Calls new function parse_SRM_tests
+28mar24  * run_get_phylomarkers_pipeline.sh 2.5.2_2024-03-28 passes all tests under strict mode; used arrays to count and report fastas producing trees with < 4 external branches.
+27mar24  * run_get_phylomarkers_pipeline.sh 2.5.1_2024-03-27 and get_phylomarkers_fun_lib now run under full Bash's unofficial strict mode: set -euo pipefail; optimal shellcheck compliance
 26mar24  * updated iqtree2 binary for Linux to v2.3.1 (released Mar 25, 2024)
 14jan23  * run_get_phylomarkers_pipeline.sh 2.5.0_2023-01-14: calls compute_ASTRALspTree_branch_lenghts; restored compute_suppValStas_and_RF-dist.R call for prot alignments; fixed bug in iqtree call: -B 1000 "$IQT_threads" => -B 1000 -T "$IQT_threads"
 15jan23  * get_phylomarkers_fun_lib v2023-01-16: run_ASTRAL computes the gene concordance factors (gCF); new function compute_ASTRALspTree_branch_lenghts uses iqtree to compute an ASTRAL species tree with branch lenghts
