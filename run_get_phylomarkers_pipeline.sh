@@ -2,7 +2,7 @@
 
 #: PROGRAM: run_get_phylomarkers_pipeline.sh
 #: AUTHORS: Pablo Vinuesa, Center for Genomic Sciences, UNAM, Mexico
-#:          http://www.ccg.unam.mx/~vinuesa/
+#:          https://www.ccg.unam.mx/~vinuesa/
 #           Bruno Contreras Moreira, EEAD-CSIC, Zaragoza, Spain
 #           https://digital.csic.es/cris/rp/rp02661/
 #
@@ -16,23 +16,24 @@
 #: AVAILABILITY: freely available from GitHub @ https://github.com/vinuesa/get_phylomarkers
 #                freely available from DockerHub @ https://hub.docker.com/r/vinuesa/get_phylomarkers
 #
-#: PROJECT START: April 2017; This is a wrapper script to automate the whole process of marker selection and downstream analyses.
+#: PROJECT START: April 2017; This is a wrapper script to automate the whole process of marker selection and downstream phylogenomic analyses.
 #
-#: AIM: select optimal molecular markers for phylogenomics and population genomics from orthologous gene clusters computed by GET_HOMOLOGUES
+#: AIM: select optimal molecular markers for phylogenomics and population genomics from orthologous gene clusters computed by GET_HOMOLOGUES,
 #           which is freely available from GitHub @ https://github.com/eead-csic-compbio/get_homologues
 #
-#: OUTPUT: multiple sequence alignments (of protein and DNA sequences) of selected markers, gene trees and species tree 
-#              inferred from the concatenated supermatrix of top-ranking markers, along with graphics and tables summarizing 
-#              the results of the pipeline obtained at the different filtering steps.
+#: OUTPUT: multiple sequence alignments (of protein and DNA sequences) of selected markers, gene trees, and species trees 
+#              inferred from gene trees (ASTRAL/ASTER), and the concatenated supermatrix of top-ranking markers, 
+#              along with graphics and tables summarizing the results of the pipeline obtained at the different filtering steps.
 # 
-#: MANUAL: a detailed manual and tutorial are available at: https://vinuesa.github.io/get_phylomarkers/
+#: MANUAL: a detailed manual and tutorial are available here: https://vinuesa.github.io/get_phylomarkers/
 # 
 #: CITATION / PUBLICATION: If you use this software in your own publications, please cite the following paper:
 #    Vinuesa P, Ochoa-Sanchez LE, Contreras-Moreira B. GET_PHYLOMARKERS, a Software Package to Select Optimal Orthologous Clusters for Phylogenomics 
 #    and Inferring Pan-Genome Phylogenies, Used for a Critical Geno-Taxonomic Revision of the Genus Stenotrophomonas. 
 #    Front Microbiol. 2018 May 1;9:771. doi:10.3389/fmicb.2018.00771. 
 #    eCollection 2018. PubMed PMID: 29765358; PubMed Central PMCID: PMC5938378.
-#
+# ===============================================================================================================
+
 
 # Set Bash strict mode
 # http://redsymbol.net/articles/unofficial-bash-strict-mode/
@@ -44,7 +45,7 @@ set -u
 set -o pipefail
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.5.2_2024-03-28'
+VERSION='2.6.0_2024-03-28'
                          		   
 # Set GLOBALS
 # in Strict mode, need to explicitly set undefined variables to an empty string var=''
@@ -1105,7 +1106,6 @@ fi
 
 print_start_time && msg "# running pal2nal to generate codon alignments ..." PROGR LBLUE
 
-
 faaln_ext=faaln
 command="${distrodir}/run_parallel_cmmds.pl $faaln_ext '${distrodir}/pal2nal.pl \$file \${file%_cluo.faaln}.fnaedno -output fasta -nogap -nomismatch -codontable $codontable > \${file%_cluo.faaln}_cdnAln.fasta' $n_cores"
 
@@ -1120,17 +1120,17 @@ fi
 # check we got non-empty *cdnAln.fasta files
 for f in ./*cdnAln.fasta
 do
-     if [[ ! -s "$f" ]]
-     then
-           msg " >>> Warning: produced empty codon alignment ${f}!" WARNING LRED
-	   msg "    ... Will skip this locus and move it to problematic_alignments ..." WARNING LRED
-	   [[ ! -d problematic_alignments ]] && mkdir problematic_alignments
-	   locus_base=${f%_cdnAln.fasta}
-	   mv "$f" problematic_alignments
-	   mv "${locus_base}"* problematic_alignments
-     else
-         continue
-     fi
+    if [[ ! -s "$f" ]]
+    then
+          msg " >>> Warning: produced empty codon alignment ${f}!" WARNING LRED
+	  msg "    ... Will skip this locus and move it to problematic_alignments ..." WARNING LRED
+	  [[ ! -d problematic_alignments ]] && mkdir problematic_alignments
+	  locus_base=${f%_cdnAln.fasta}
+	  mv "$f" problematic_alignments
+	  mv "${locus_base}"* problematic_alignments
+    else
+        continue
+    fi
 done
 
 # 2.3 cleanup: remove the source faa, fna, fnaed and faaed files; make numbered_fna_files.tgz and numbered_faa_files.tgz; rm *aedno
@@ -1140,6 +1140,57 @@ tar -czf numbered_fna_files.tgz ./*fnaedno
 (( DEBUG > 0 )) && msg " > tar -czf numbered_fna_files.tgz ./*faaedno" DEBUG NC
 tar -czf numbered_faa_files.tgz ./*faaedno
 rm ./*aedno
+
+#-------------------------------------------------------------------------------#
+# >>>BLOCK 2.1 Run the maximal matched-pairs tests to asses SRH assumptions <<< #
+#-------------------------------------------------------------------------------#
+# 2.4 This block runs the maximal matched-pairs tests of homogeneity to asses the SRH model violations.
+# SRH = Stationarity, Reversibility, and Homogeneity assumptions made by standard substitutio models
+# The test is implemented in IQ-Tree, as published by Naser-Khdour et al. (2019) in GBE 11(12)3341-3352.
+
+msg "" PROGR NC
+msg " >>>>>>>>>>>>>>> parallel SRHtest runs to identify alignments violating the maximal matched-pairs tests of homogeneity <<<<<<<<<<<<<<< " PROGR YELLOW
+msg "" PROGR NC
+
+# 2.4.1 check that we have codon alignments before proceeding
+no_fasta_files=$(find . -name "*.fasta" | wc -l)
+(( no_fasta_files < 1 )) && print_start_time && msg " >>> ERROR: there are no codon alignments to run SRHtests on. Will exit now!" ERROR RED && exit 1
+
+# 2.4.2 run SRHtest in parallel, as implemented in IQ-TREE 
+print_start_time && msg "# running SRHtests on $no_fasta_files codon alignments ..." PROGR LBLUE
+
+# uses only n_cores/2 for the parallel run, to let each IQT call use 2 cores
+half_ncores=$(echo "$n_cores / 2" | bc -l)
+half_ncores="${half_ncores%.*}"
+
+{ (( DEBUG > 0 )) && msg " > \${distrodir}/run_parallel_cmmds.pl fasta 'iqtree -s \$file --symtest-only --quiet -nt 2' \$half_ncores &> /dev/null" DEBUG NC ; }
+{ "${distrodir}"/run_parallel_cmmds.pl fasta 'iqtree -s $file --symtest-only --quiet -nt 2' "$half_ncores" && return 0 ; }
+
+# verify that the SRMtest run successfully by collecting and counting the logfiles generated by IQT in the SRMtest_logs array 
+#  and comparing that number with the no_fasta_files
+
+# fill array SMRtest_logs with readarray
+declare -a SMRtest_logs=()
+# readarray -d $'\0' SMRtest_logs: This command reads input lines into an array variable (SMRtest_logs) using the null character (\0) as the delimiter.
+# < <(find . -type f -name "*.fasta" -print0): This part is a process substitution (<(...)) that runs the find command and provides its output as input to readarray. #readarray -d $'\0' SMRtest_logs < <(find . -maxdepth 1 -type f -name "*.fasta" -print0)
+
+SMRtest_logs=( $(ls *.fasta) )
+
+if [[ "${#SMRtest_logs[@]}" -eq "$no_fasta_files" ]]
+then
+    msg " >>> The SMRtest run successfully on all $no_fasta_files codon alignments" PROGR GREEN
+elif [[ "${#SMRtest_logs[@]}" -lt "$no_fasta_files" ]] && [[ "${#SMRtest_logs[@]}" -gt 0 ]]
+then
+    msg " >>> WARNING: The SMRtest run successfully only on ${#SMRtest_logs[@]} codon alignments" WARNING LRED
+elif [[ "${#SMRtest_logs[@]}" -eq "$no_fasta_files" ]] && [[ "${#SMRtest_logs[@]}" -eq 0 ]]
+then
+    msg " >>> ERROR: The SMRtest failed to run successfully" ERROR RED && exit 1
+fi
+
+# 2.4.3 parse the SRMtests results tables
+if [[ "${#SMRtest_logs[@]}" -gt  0 ]]; then
+    parse_SRM_tests 'csv'
+fi
 
 
 #---------------------------------------------------------------------------------------------------------#
