@@ -1,4 +1,4 @@
-#: VERSION: 2024-03-27
+#: VERSION: 2024-03-30
 #: LIBRARY: get_phylomarkers_fun_lib
 #     * functions called by run_get_phylomarkers_pipeline.sh
 #     * part of the GET_PHYLOMARKERS software package
@@ -68,7 +68,6 @@ RCMD
 # exit 0
    return 0
 }
-
 #-----------------------------------------------------------------------------------------
 
 function count_tree_labels()
@@ -219,12 +218,13 @@ function estimate_FT_gene_trees()
        [ "$search_thoroughness" == "lowest" ] && FTmod="-quiet -lg -gamma -bionj"
        fext="faaln"
        basemod="lg"
-      cmd="${distrodir}/run_parallel_cmmds.pl $fext '${bindir}/FastTree $FTmod -log \${file%.*}.log < \$file > \${file%.*}_FT${basemod}.ph' $n_cores"
+       cmd="${distrodir}/run_parallel_cmmds.pl $fext '${bindir}/FastTree $FTmod -log \${file%.*}.log < \$file > \${file%.*}_FT${basemod}.ph' $n_cores"
    fi
 
    # NOTE: to execute run_parallel_cmmds.pl with a customized command, resulting from the interpolation of multiple varialbles,
-   #	   we have first to save the command line in a variable and pipe its content into bash for execution.
-   #       Then we can execute run_parallel_cmmds.pl with a customized command, resulting from the interpolation of multiple varialbles
+   #	     we have first to save the command line in a variable and pipe its content into bash for execution.
+   #       Then we can execute run_parallel_cmmds.pl with a customized command, interpolating of multiple varialbles
+   #       Note the  && return 0 ; } to satisfy set -e strictness.
    (( DEBUG > 0 )) && msg "$cmd" DEBUG NC
    { echo "$cmd" | bash &> /dev/null && return 0 ; }
        
@@ -255,55 +255,55 @@ function compute_FT_gene_tree_stats()
        
        i=0
        for (( i=1; i<=N; i++ )); do
-          echo "$s_type" >> s_type.txt
+            echo "$s_type" >> s_type.txt
        done
        
        echo -e "alignment\tlnL\twc_secs\s_type" > FT_gene_tree_stats.header
    
-       if [ -s "FT_lnL_cdnAln_FTGTRG_T${search_thoroughness}.tsv" ] && [ -s "FT_tot_wc_seconds_cdnAln_FTGTRG_T${search_thoroughness}.tsv" ] && [ -s s_type.txt ]
-       then
-            # paste src files into table
-	    paste "FT_lnL_cdnAln_FTGTRG_T${search_thoroughness}.tsv" "FT_tot_wc_seconds_cdnAln_FTGTRG_T${search_thoroughness}.tsv" s_type.txt > \
-	    "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv"
-	    check_output "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv" "$parent_PID"
+      if [ -s "FT_lnL_cdnAln_FTGTRG_T${search_thoroughness}.tsv" ] && [ -s "FT_tot_wc_seconds_cdnAln_FTGTRG_T${search_thoroughness}.tsv" ] && [ -s s_type.txt ]
+      then
+         # paste src files into table
+	      paste "FT_lnL_cdnAln_FTGTRG_T${search_thoroughness}.tsv" "FT_tot_wc_seconds_cdnAln_FTGTRG_T${search_thoroughness}.tsv" s_type.txt > \
+	      "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv"
+	      check_output "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv" "$parent_PID"
         
-	    # add header
-	    cat "FT_gene_tree_stats.header" "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv" > t && \
-	    mv t "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv"
+	      # add header
+	      cat "FT_gene_tree_stats.header" "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv" > t && \
+	      mv t "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv"
 	
-	    # cleanup
-	    rm FT_gene_tree_stats.header "FT_lnL_cdnAln_FTGTRG_T${search_thoroughness}.tsv" "FT_tot_wc_seconds_cdnAln_FTGTRG_T${search_thoroughness}.tsv" s_type.txt
-       fi
-    else
-        s_type="FTprotT${search_thoroughness}"
+	      # cleanup
+	      rm FT_gene_tree_stats.header "FT_lnL_cdnAln_FTGTRG_T${search_thoroughness}.tsv" "FT_tot_wc_seconds_cdnAln_FTGTRG_T${search_thoroughness}.tsv" s_type.txt
+      fi
+   else
+      s_type="FTprotT${search_thoroughness}"
 
-       # parse computation-times and lnL stats for FT-computed gene trees and write to table
-       grep '^Gamma20LogLk' ./*cluo.log | cut -f1,2 | sed 's/:Gamma20LogLk//; s/ /\t/' > "FT_lnL_protAln_FTlgG_T${search_thoroughness}.tsv"
-       grep '^Total time:' ./*cluo.log | cut -d' ' -f3 > "FT_tot_wc_seconds_protAln_FTlgG_T${search_thoroughness}.tsv"
-       
-       N=$(find . -name "*.log" | wc -l)
-       
-       i=0
-       for (( i=1; i<=N; i++ )); do
-          echo "$s_type" >> s_type.txt
-       done
-       
-       echo -e "alignment\tlnL\twc_secs\ts_type" > FT_gene_tree_stats.header
+      # parse computation-times and lnL stats for FT-computed gene trees and write to table
+      grep '^Gamma20LogLk' ./*cluo.log | cut -f1,2 | sed 's/:Gamma20LogLk//; s/ /\t/' > "FT_lnL_protAln_FTlgG_T${search_thoroughness}.tsv"
+      grep '^Total time:' ./*cluo.log | cut -d' ' -f3 > "FT_tot_wc_seconds_protAln_FTlgG_T${search_thoroughness}.tsv"
+      
+      N=$(find . -name "*.log" | wc -l)
+      
+      i=0
+      for (( i=1; i<=N; i++ )); do
+         echo "$s_type" >> s_type.txt
+      done
+      
+      echo -e "alignment\tlnL\twc_secs\ts_type" > FT_gene_tree_stats.header
    
-       if [ -s "FT_lnL_protAln_FTlgG_T${search_thoroughness}.tsv" ] && [ -s "FT_tot_wc_seconds_protAln_FTlgG_T${search_thoroughness}.tsv" ] && [ -s s_type.txt ]
-       then
-            # paste src files into table
-	    paste "FT_lnL_protAln_FTlgG_T${search_thoroughness}.tsv" "FT_tot_wc_seconds_protAln_FTlgG_T${search_thoroughness}.tsv" s_type.txt > \
-	    "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv"
-	    check_output "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv" "$parent_PID"
-        
-	    # add header
-	    cat FT_gene_tree_stats.header "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv" > k && mv k "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv"
+      if [ -s "FT_lnL_protAln_FTlgG_T${search_thoroughness}.tsv" ] && [ -s "FT_tot_wc_seconds_protAln_FTlgG_T${search_thoroughness}.tsv" ] && [ -s s_type.txt ]
+      then
+         # paste src files into table
+	      paste "FT_lnL_protAln_FTlgG_T${search_thoroughness}.tsv" "FT_tot_wc_seconds_protAln_FTlgG_T${search_thoroughness}.tsv" s_type.txt > \
+	      "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv"
+	      check_output "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv" "$parent_PID"
+       
+	      # add header
+	      cat FT_gene_tree_stats.header "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv" > k && mv k "FT_${mol_type}_gene_tree_T${search_thoroughness}_search_stats.tsv"
 	
-	    # cleanup
-	    rm FT_gene_tree_stats.header "FT_lnL_protAln_FTlgG_T${search_thoroughness}.tsv" "FT_tot_wc_seconds_protAln_FTlgG_T${search_thoroughness}.tsv" s_type.txt
-       fi
-    fi
+	      # cleanup
+	      rm FT_gene_tree_stats.header "FT_lnL_protAln_FTlgG_T${search_thoroughness}.tsv" "FT_tot_wc_seconds_protAln_FTlgG_T${search_thoroughness}.tsv" s_type.txt
+      fi
+   fi   
    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
    return 0
 }
@@ -340,7 +340,7 @@ estimate_IQT_gene_trees()
 
    # NOTE: to execute run_parallel_cmmds.pl with a customized command, resulting from the interpolation of multiple varialbles,
    #	   we have first to save the command line in a variable and pipe its content into bash for execution.
-   #       Then we can execute run_parallel_cmmds.pl with a customized command, resulting from the interpolation of multiple varialbles
+   #     Then we can execute run_parallel_cmmds.pl with a customized command, interpolating multiple varialbles
    (( DEBUG > 0 )) && msg " > $cmd | bash &> /dev/null" DEBUG NC
    { echo "$cmd" | bash &> /dev/null && return 0; } # 
       
@@ -351,96 +351,97 @@ estimate_IQT_gene_trees()
 
 function compute_IQT_gene_tree_stats()
 {
-    (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
-    (( DEBUG > 0 )) && caller 0
-    local mol_type search_thoroughness i N
-    mol_type=$1
-    search_thoroughness=$2
-      
-    [ "$mol_type" == "DNA" ] && s_type="IQTdnaT${search_thoroughness}"
-    [ "$mol_type" == "PROT" ] && s_type="IQTprotT${search_thoroughness}"
-   
-    # prepare temporal header
-    echo -e "model\tcount" > model_count_header.tmp
+   (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
+   (( DEBUG > 0 )) && caller 0
+   local mol_type search_thoroughness i N
+   mol_type=$1
+   search_thoroughness=$2
+     
+   [ "$mol_type" == "DNA" ] && s_type="IQTdnaT${search_thoroughness}"
+   [ "$mol_type" == "PROT" ] && s_type="IQTprotT${search_thoroughness}"
+  
+   # prepare temporal header
+   echo -e "model\tcount" > model_count_header.tmp
 
-    # generate computation-time, lnL and best-model stats for IQT-computed gene trees
-    grep '^Total wall-clock' ./*log | cut -d: -f1,3 | perl -pe 's/:\h+/\t/; s/\s+sec.*$//'  > tot_wcsecs_IQT_mset_gtrees.tsv
-    grep '^Total CPU time used' ./*log | cut -d: -f1,3 | perl -pe 's/:\h+/\t/; s/\s+sec.*$//'  > tot_CPUsecs_IQT_mset_gtrees.tsv
-    grep '^BEST SCORE' ./*log | sort -nrk5 | cut -d: -f1,3 | perl -pe 's/\h+/\t/; s/://' > sorted_IQT_lnL_mset_gene_trees.tsv
-    grep '^BEST SCORE' ./*log | cut -d: -f1,3 | perl -pe 's/\h+/\t/; s/://' > sorted_by_FILE_NAME_lnL_mset_gene_trees.tsv
-    grep '^Best-fit model' ./*log | cut -d' ' -f1,3 | perl -pe 's/:\S+/\t/' > IQT_best_models_for_gene_tree.tsv
-    cut -f2 IQT_best_models_for_gene_tree.tsv | sort | uniq -c | awk 'BEGIN{OFS="\t"}{print $2,$1}' > IQT_best_model_counts_for_gene_trees.tsv
-    
-    cat model_count_header.tmp IQT_best_model_counts_for_gene_trees.tsv > k && mv k IQT_best_model_counts_for_gene_trees.tsv
-    [ -s IQT_best_model_counts_for_gene_trees.tsv ] && rm model_count_header.tmp
-    
-    [ -s s_type.txt ] && rm s_type.txt
-    N=$(find . -name "*.log" | wc -l)
-    i=0
-    for (( i=1; i<=N; i++ )); do
+   # generate computation-time, lnL and best-model stats for IQT-computed gene trees
+   grep '^Total wall-clock' ./*log | cut -d: -f1,3 | perl -pe 's/:\h+/\t/; s/\s+sec.*$//'  > tot_wcsecs_IQT_mset_gtrees.tsv
+   grep '^Total CPU time used' ./*log | cut -d: -f1,3 | perl -pe 's/:\h+/\t/; s/\s+sec.*$//'  > tot_CPUsecs_IQT_mset_gtrees.tsv
+   grep '^BEST SCORE' ./*log | sort -nrk5 | cut -d: -f1,3 | perl -pe 's/\h+/\t/; s/://' > sorted_IQT_lnL_mset_gene_trees.tsv
+   grep '^BEST SCORE' ./*log | cut -d: -f1,3 | perl -pe 's/\h+/\t/; s/://' > sorted_by_FILE_NAME_lnL_mset_gene_trees.tsv
+   grep '^Best-fit model' ./*log | cut -d' ' -f1,3 | perl -pe 's/:\S+/\t/' > IQT_best_models_for_gene_tree.tsv
+   cut -f2 IQT_best_models_for_gene_tree.tsv | sort | uniq -c | awk 'BEGIN{OFS="\t"}{print $2,$1}' > IQT_best_model_counts_for_gene_trees.tsv
+   
+   cat model_count_header.tmp IQT_best_model_counts_for_gene_trees.tsv > k && mv k IQT_best_model_counts_for_gene_trees.tsv
+   [ -s IQT_best_model_counts_for_gene_trees.tsv ] && rm model_count_header.tmp
+   
+   [ -s s_type.txt ] && rm s_type.txt
+   N=$(find . -name "*.log" | wc -l)
+   i=0
+   for (( i=1; i<=N; i++ )); do
        echo "$s_type" >> s_type.txt
-    done
+   done
 
-    echo -e "alignment\twc_secs\tCPU_secs\tlnL\tmodel\ts_type" > IQT_gene_tree_stats.header
+   echo -e "alignment\twc_secs\tCPU_secs\tlnL\tmodel\ts_type" > IQT_gene_tree_stats.header
+  
+   if [ -s tot_wcsecs_IQT_mset_gtrees.tsv ] && [ -s tot_CPUsecs_IQT_mset_gtrees.tsv ] && [ -s sorted_by_FILE_NAME_lnL_mset_gene_trees.tsv ] && \
+      [ -s IQT_best_models_for_gene_tree.tsv ] && [ -s s_type.txt ]
+   then
+   	# paste src files into table
+   	paste tot_wcsecs_IQT_mset_gtrees.tsv tot_CPUsecs_IQT_mset_gtrees.tsv sorted_by_FILE_NAME_lnL_mset_gene_trees.tsv IQT_best_models_for_gene_tree.tsv s_type.txt > \
+   	"IQT_${mol_type}_gene_tree_T${search_thoroughness}_stats.tsv"
+   	check_output "IQT_${mol_type}_gene_tree_T${search_thoroughness}_stats.tsv" "$parent_PID"
    
-    if [ -s tot_wcsecs_IQT_mset_gtrees.tsv ] && [ -s tot_CPUsecs_IQT_mset_gtrees.tsv ] && [ -s sorted_by_FILE_NAME_lnL_mset_gene_trees.tsv ] && \
-     [ -s IQT_best_models_for_gene_tree.tsv ] && [ -s s_type.txt ]
-    then
-    	# paste src files into table
-    	paste tot_wcsecs_IQT_mset_gtrees.tsv tot_CPUsecs_IQT_mset_gtrees.tsv sorted_by_FILE_NAME_lnL_mset_gene_trees.tsv IQT_best_models_for_gene_tree.tsv s_type.txt > \
-    	"IQT_${mol_type}_gene_tree_T${search_thoroughness}_stats.tsv"
-    	check_output "IQT_${mol_type}_gene_tree_T${search_thoroughness}_stats.tsv" "$parent_PID"
-    
-    	# fix columns and add header
-    	cut -f1,2,4,6,8,9 "IQT_${mol_type}_gene_tree_T${search_thoroughness}_stats.tsv" > k && mv k "IQT_${mol_type}_gene_tree_T${search_thoroughness}_stats.tsv"
-    	cat IQT_gene_tree_stats.header "IQT_${mol_type}_gene_tree_T${search_thoroughness}_stats.tsv" > k && mv k "IQT_${mol_type}_gene_tree_T${search_thoroughness}_stats.tsv"
+   	# fix columns and add header
+   	cut -f1,2,4,6,8,9 "IQT_${mol_type}_gene_tree_T${search_thoroughness}_stats.tsv" > k && mv k "IQT_${mol_type}_gene_tree_T${search_thoroughness}_stats.tsv"
+   	cat IQT_gene_tree_stats.header "IQT_${mol_type}_gene_tree_T${search_thoroughness}_stats.tsv" > k && mv k "IQT_${mol_type}_gene_tree_T${search_thoroughness}_stats.tsv"
 
-    	# cleanup
-    	rm tot_wcsecs_IQT_mset_gtrees.tsv tot_CPUsecs_IQT_mset_gtrees.tsv sorted_by_FILE_NAME_lnL_mset_gene_trees.tsv \
-    	IQT_best_models_for_gene_tree.tsv IQT_gene_tree_stats.header s_type.txt
-    	rm ./*.ckp.gz
-    
-    	mkdir iqtree_output_files && mv ./*.iqtree ./*.bionj ./*.mldist ./*model.gz ./*uniqueseq.phy iqtree_output_files
-    	[ -d iqtree_output_files ] && tar -czf iqtree_output_files.tgz iqtree_output_files && rm -rf iqtree_output_files
-    	check_output iqtree_output_files.tgz "$parent_PID"
-    fi
-   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
-   return 0
+   	# cleanup
+   	rm tot_wcsecs_IQT_mset_gtrees.tsv tot_CPUsecs_IQT_mset_gtrees.tsv sorted_by_FILE_NAME_lnL_mset_gene_trees.tsv \
+   	IQT_best_models_for_gene_tree.tsv IQT_gene_tree_stats.header s_type.txt
+   	rm ./*.ckp.gz
+   
+   	mkdir iqtree_output_files && mv ./*.iqtree ./*.bionj ./*.mldist ./*model.gz ./*uniqueseq.phy iqtree_output_files
+   	[ -d iqtree_output_files ] && tar -czf iqtree_output_files.tgz iqtree_output_files && rm -rf iqtree_output_files
+   	check_output iqtree_output_files.tgz "$parent_PID"
+   fi
+  (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
+  return 0
 }
 #-----------------------------------------------------------------------------------------
+
 compute_MJRC_tree()
 {
-    (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
-    (( DEBUG > 0 )) && caller 0
-    local ext algo contree_outfile
-    
-    ext="$1"
-    algo="$2"
-        
-    if [ "$algo" == "F" ]; then
-        contree_outfile=FT_MJRC_tree.nwk
-	#labelled_contree_outfile=FT_MJRC_tree_ed.nwk
-    else
-         contree_outfile=IQT_MJRC_tree.nwk   
-         #labelled_contree_outfile=IQT_MJRC_tree_ed.nwk   
-    fi
-    
-    cat ./*."${ext}" > alltrees.nwk
-    
-    [ -s alltrees.nwk ] && iqtree -con alltrees.nwk &> /dev/null 
-    [ -s alltrees.nwk.contree ] && mv alltrees.nwk.contree $contree_outfile && rm alltrees.nwk.log
-    
-    # NOTE: Possible Bug in IQ-TREE v1.6.2 and v1.6.3, 
-    #          IQT v1.6.2 and v1.6.3, but not v1.6.1!, cannot compute the mjrc tree from the debug set,
-    #          claiming that the number of taxa are different across trees when running with FT ???
-    #          There is not problem with the IQ-TREE run on the same sequences...
-    #          >>> Therefore check_output was changed for simple warning messages to avoid premature exit <<<
-    [ ! -s "$contree_outfile" ] && msg " >>> Warning, $contree_outfile was not produced!" WARNING LRED
-    [ -s "$contree_outfile" ] && msg " >>> Wrote file $contree_outfile ... " PROGR GREEN
-    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
-    
-    #"$distrodir"/add_labels2tree.pl "$top_dir"/tree_labels.list $contree_outfile &> /dev/null
-    # check_output "$labelled_contree_outfile"
+   (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
+   (( DEBUG > 0 )) && caller 0
+   local ext algo contree_outfile
+   
+   ext="$1"
+   algo="$2"
+       
+   if [ "$algo" == "F" ]; then
+       contree_outfile=FT_MJRC_tree.nwk
+	    #labelled_contree_outfile=FT_MJRC_tree_ed.nwk
+   else
+        contree_outfile=IQT_MJRC_tree.nwk   
+        #labelled_contree_outfile=IQT_MJRC_tree_ed.nwk   
+   fi
+   
+   cat ./*."${ext}" > alltrees.nwk
+   
+   [ -s alltrees.nwk ] && { "$bindir"/iqtree -con alltrees.nwk &> /dev/null && return 0 ; }
+   [ -s alltrees.nwk.contree ] && mv alltrees.nwk.contree "$contree_outfile" && rm alltrees.nwk.log
+   
+   # NOTE: Possible Bug in IQ-TREE v1.6.2 and v1.6.3, 
+   #          IQT v1.6.2 and v1.6.3, but not v1.6.1!, cannot compute the mjrc tree from the debug set,
+   #          claiming that the number of taxa are different across trees when running with FT ???
+   #          There is not problem with the IQ-TREE run on the same sequences...
+   #          >>> Therefore check_output was changed for simple warning messages to avoid premature exit <<<
+   [ ! -s "$contree_outfile" ] && msg " >>> Warning, $contree_outfile was not produced!" WARNING LRED
+   [ -s "$contree_outfile" ] && msg " >>> Wrote file $contree_outfile ... " PROGR GREEN
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
+   
+   #"$distrodir"/add_labels2tree.pl "$top_dir"/tree_labels.list $contree_outfile &> /dev/null
+   # check_output "$labelled_contree_outfile"
    return 0
 }
 
@@ -473,15 +474,21 @@ function run_ASTRAL()
    # estimate species trees from multiple source gene trees
    (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
    (( DEBUG > 0 )) && caller 0
-   local gene_trees num_markers tree_labels_dir
+   local gene_trees num_markers tree_labels_dir num_threads
    gene_trees=$1
    num_markers=$2
    tree_labels_dir=$3
+   num_threads=$4
 
-   (( DEBUG > 0 )) && msg " > java -jar $distrodir/ASTRAL/astral.jar -i $gene_trees -o astral_species_tree.tre 2> astral.log" DEBUG NC
-   java -jar "$distrodir"/ASTRAL/astral.jar -i "$gene_trees" -o astral_top"${num_markers}"geneTrees.sptree 2> astral.log
+   # This code was written for ASTRAL-III; from v2024-03-30 onwards, get_phylo calls astral4, written in C, from the ASTER package
+   #(( DEBUG > 0 )) && msg " > java -jar $distrodir/ASTRAL/astral.jar -i $gene_trees -o astral_species_tree.tre 2> astral.log" DEBUG NC
+   #java -jar "$distrodir"/ASTRAL/astral.jar -i "$gene_trees" -o astral_top"${num_markers}"geneTrees.sptree 2> astral.log
+   #check_output "astral_top${num_markers}geneTrees.sptree" "$parent_PID"
+
+   (( DEBUG > 0 )) && msg " > $bindir/astral -i $gene_trees -o astral_species_tree.tre 2> astral.log" DEBUG NC
+   "$bindir"/astral4 -r 10 -s 10 -i "$gene_trees" -o astral_top"${num_markers}"geneTrees.sptree -t "$num_threads" 2> astral.log
    check_output "astral_top${num_markers}geneTrees.sptree" "$parent_PID"
-
+    
    "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list "astral_top${num_markers}geneTrees.sptree" &> /dev/null
    check_output "astral_top${num_markers}geneTrees_ed.sptree" "$parent_PID"
    
@@ -801,6 +808,7 @@ function check_IQT_DNA_models()
 }
 
 #-----------------------------------------------------------------------------------------
+
 function check_IQT_PROT_models
 {
     (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
@@ -843,6 +851,7 @@ function check_IQT_PROT_models
    return 0
 }
 #-----------------------------------------------------------------------------------------
+
 function msg()
 {
     #(( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
@@ -877,6 +886,7 @@ function msg()
    return 0
 }
 #-----------------------------------------------------------------------------------------
+
 parse_SRM_tests() {
    # This function parses tables generated by the maximal matched-pairs tests of homogeneity 
    #   to asses the SRH model violations.
@@ -884,7 +894,11 @@ parse_SRM_tests() {
    # The test is implemented in IQ-Tree, as published by Naser-Khdour et al. (2019) in GBE 11(12)3341-3352.
    (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
    (( DEBUG > 0 )) && caller 0
-   for f in *.csv
+   
+   local ext fasta_base
+   ext=$1
+   
+   for f in *"${ext}"
    do 
       fasta="${f/.symtest.csv/}"
       perc_failed_comp_ChiSq=$(grep TOTAL "${fasta}".log | sed 's/\*\*\*\*  //' | awk '{print $2}')
@@ -908,16 +922,16 @@ parse_SRM_tests() {
       $2 <= 0.05 || $3 <= 0.05 || $4 <= 0.05' parsed_SRHtests.tsv > SRHtests_failed.tsv
    check_output SRHtests_failed.tsv "$parent_PID"
 
-   no_alns_failing_SRHtests=$(cat SRHtests_failed.tsv | wc -l)
-   no_alns_failing_SRHtests=$((no_alns_failing_SRHtests - 1)) # remove header
+   no_alns_failing_SRHtests=$(awk 'NR > 1' SRHtests_failed.tsv | wc -l) # remove header
 
-   msg ">>> $no_alns_failing_SRHtests codon alignments failed the SRH tests" PROGR GREEN
+   msg " >>> $no_alns_failing_SRHtests codon alignments failed the SRH tests" PROGR GREEN
 
-   # Move failed symtest to their directory
-   if ((no_alns_failing_SRHtests >= 1)); then
+   # Move failed symtest FASTA files (codon and faaln to their directory
+   if ((no_alns_failing_SRHtests >= 1)) && [[ -s SRHtests_failed.tsv ]]; then
       mkdir SMRtests_failed || { msg "ERROR: could not mkdir SMRtests_failed/" ERROR RED && exit 1 ; }
-      for f in $(awk 'NR > 1{print $1}' SRHtests_failed.tsv | sed 's/\.symtest\.csv//'); do 
-         mv "$f" SMRtests_failed
+      for f in $(awk 'BEGIN{FS="\t"}NR > 1{print $1}' SRHtests_failed.tsv); do
+          fasta_base="${f/_cdnAln.*/}" 
+          mv "${fasta_base}"* SMRtests_failed
       done
    fi
 
