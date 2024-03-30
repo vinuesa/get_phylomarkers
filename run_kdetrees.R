@@ -2,8 +2,9 @@
 
 # run_kdetrees.R
 
-VERSION <- 'Version: 0.3 - 20Oct202'  #v0.3 with portable shebang line
-                                      # runs kdetrees(all.trees.raw, distance = "dissimilarity", topo.only = TRUE &  topo.only = FALSE)
+VERSION <- 'Version: 0.3.1 - 20mar24'  
+                 #v0.3 20Oct22 with portable shebang line
+                 # runs kdetrees(all.trees.raw, distance = "dissimilarity", topo.only = TRUE &  topo.only = FALSE)
 AUTHOR <- "Authors: Pablo Vinuesa [CCG-UNAM], Bruno Contreras Moreira [EEAD-CSIC]; "
 REPOS <- "https://cloud.r-project.org"
 
@@ -361,4 +362,6 @@ checkFileCreated(violin_plot_file)
 
 
 # exit without saving workspace
-q(save = "no")
+# https://stackoverflow.com/questions/52871579/stop-r-script-with-exit-status-0
+q(save = "no", status = 0)
+
