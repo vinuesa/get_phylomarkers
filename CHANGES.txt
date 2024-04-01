@@ -1,3 +1,8 @@
+30mar24  * run_kdetrees.R v0.3.1_20mar24; explicitly exits with status = 0 
+30mar24  * downgraded back again to iqtree2 v2.2.0 (latest release, Mar 25, 2022), in bin/linux/
+30mar24  * added astral4 v1.18.4.5, written in C, from the ASTER package to bin/linux/
+30mar24  * get_phylomarkers_fun_lib v2024-03-30 passes all test_get_phylomarkers.t under strict mode; run_ASTRAL calls astral4 C-binary, instead of ASTRAL-III (java jar). 
+30mar24  * run_get_phylomarkers_pipeline.sh 2.7.0_2024-03-30 passes all test_get_phylomarkers.t under strict mode; calls astral4 C-binary, instead of ASTRAL-III (java jar). 
 28mar24  * run_get_phylomarkers_pipeline.sh 2.6.0_2024-03-28 implements the maximal matched-pairs tests to asses SRH assumptions. Calls new function parse_SRM_tests
 28mar24  * run_get_phylomarkers_pipeline.sh 2.5.2_2024-03-28 passes all tests under strict mode; used arrays to count and report fastas producing trees with < 4 external branches.
 27mar24  * run_get_phylomarkers_pipeline.sh 2.5.1_2024-03-27 and get_phylomarkers_fun_lib now run under full Bash's unofficial strict mode: set -euo pipefail; optimal shellcheck compliance
