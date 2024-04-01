@@ -59,12 +59,10 @@ Please, follow the links for a detailed [**manual**](https://vinuesa.github.io/g
 Pablo Vinuesa, Luz-Edith Ochoa-Sanchez and Bruno Contreras-Moreira (2018).
 GET_PHYLOMARKERS, a software package to select optimal orthologous clusters for phylogenomics 
 and inferring pan-genome phylogenies, used for a critical geno-taxonomic revision of the 
-genus *Stenotrophomonas*. [Front. Microbiol. | doi: 10.3389/fmicb.2018.00771](https://www.frontiersin.org/articles/10.3389/fmicb.2018.00771/abstract) 
+genus *Stenotrophomonas*. [Front. Microbiol. | doi: 10.3389/fmicb.2018.00771](https://doi.org/10.3389/fmicb.2018.00771) 
 
 Published in the Research Topic on "Microbial Taxonomy, Phylogeny and Biodiversity"
 http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity
-
-A [**preprint version is available on bioRxiv**](https://www.biorxiv.org/content/early/2018/04/04/294660)
 
 ## Code
 - Source sode is freely available from [GitHub](https://github.com/vinuesa/get_phylomarkers) and released under the GNU GPLv3 license.
@@ -74,9 +72,9 @@ A [**preprint version is available on bioRxiv**](https://www.biorxiv.org/content
 
 ## Developers
 The code is developed and maintained by [Pablo Vinuesa](https://www.ccg.unam.mx/~vinuesa/) 
-at [CCG-UNAM, Mexico](https://www.ccg.unam.mx/) and 
-[Bruno Contreras-Moreira](https://www.eead.csic.es/home/staffinfo?Id=71) 
- at [EEAD-CSIC, Spain](http://www.eead.csic.es/). It is released to the public domain under the GNU GPLv3 [license](./LICENSE.txt).
+at [CCG-UNAM, Mexico](https://www.ccg.unam.mx) and 
+Bruno Contreras-Moreira  at [EEAD-CSIC, Spain](https://www.eead.csic.es/compbio). 
+It is released to the public domain with a [GPLv3-like license](./LICENSE.txt).
 
 ## Acknowledgements
 
