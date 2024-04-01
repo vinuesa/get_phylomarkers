@@ -2,7 +2,7 @@
 
 # run_kdetrees.R
 
-VERSION <- 'Version: 0.3.1 - 20mar24'  
+VERSION <- 'Version: 0.4.0_2024-04-01'  # check for outlier trees and quit if non are found
                  #v0.3 20Oct22 with portable shebang line
                  # runs kdetrees(all.trees.raw, distance = "dissimilarity", topo.only = TRUE &  topo.only = FALSE)
 AUTHOR <- "Authors: Pablo Vinuesa [CCG-UNAM], Bruno Contreras Moreira [EEAD-CSIC]; "
@@ -15,8 +15,6 @@ script.dir <- dirname(regmatches(cmd.args, m))
 
 LOCAL_LIB = paste(script.dir,"/lib/R",sep = "")
 .libPaths( c( .libPaths(), LOCAL_LIB) )
-
-
 
 # Note: development made on Tenerife@/home/vinuesa/Projects/marfil/PHYLOMARK/Enterobacter_MLSA_primers_Jan16/F2P_primers/dna_amps
 
@@ -233,9 +231,13 @@ checkFileCreated("parallel_bxplots_kdeDensity_dist_dissim_topo_TRUE-FALSE.svg")
 # print the bad files to screen
 topo.outlier.tree.idx <- kdeobj.diss.topo$i
 message("there are ", length(topo.outlier.tree.idx), " outlier trees")
+num_topo_outlier_trees <- length(topo.outlier.tree.idx)
 
 bl.outlier.tree.idx <- kdeobj.diss.bl$i
 message("there are ", length(bl.outlier.tree.idx), " outlier trees")
+num_bl_outlier_trees <- length(bl.outlier.tree.idx)
+
+total_outlier_trees <- num_topo_outlier_trees + num_bl_outlier_trees
 
 # create a color vector, to plot the good tree points in blue and outliers in black
 src.tree.idx = 1:length(all.trees.raw)
@@ -281,6 +283,11 @@ files[bl.outlier.tree.idx]
 sink()
 
 checkFileCreated(kde_outlier_files)
+
+if (total_outlier_trees == 0){
+    q(save = "no", status = 0)
+}else {
+
 
 # construct a dataframe
 flag.vec.topo <- src.tree.idx %in% topo.outlier.tree.idx
@@ -364,4 +371,4 @@ checkFileCreated(violin_plot_file)
 # exit without saving workspace
 # https://stackoverflow.com/questions/52871579/stop-r-script-with-exit-status-0
 q(save = "no", status = 0)
-
+}
