@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# Author: Pablo Vinuesa, CCG-UNAM; @pvinmex
 # 2022-07-02 # sudo and add-apt-repository --yes
 # Install R-packages on ubuntu with apt install
 
@@ -23,3 +24,6 @@ r-cran-stringr \
 r-cran-seqinr \
 r-cran-remotes \
 && sudo apt clean && apt purge && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+
+#NOTE: may need to install stringi as roow with install.packages("stringi", dep=T)

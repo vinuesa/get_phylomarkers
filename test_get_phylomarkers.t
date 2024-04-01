@@ -40,7 +40,7 @@ ok( eval{ `perl ./run_parallel_cmmds.pl` } =~ /usage/ , 'run_parallel_cmmds.pl' 
 ok( eval{ `Rscript ./compute_suppValStas_and_RF-dist.R 2>&1` } =~ /Usage/ , 'compute_suppValStas_and_RF-dist.R' ); 
 
 # test 11
-ok( eval{ `Rscript ./run_kdetrees.R 2>&1` } =~ /Execution/ , 'run_kdetrees.R' );
+ok( eval{ `Rscript ./run_kdetrees.R 2>&1` } =~ /Usage/ , 'run_kdetrees.R' );
 
 
 ### Test Bash scripts
@@ -84,7 +84,13 @@ ok( eval{  `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline
 ok( eval{ `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh -R 2 -t DNA -S K2P  | grep "Will run descriptive DNA polymorphism statistics"` }, 'run_get_phylomarkers_pipeline.sh -R 2 -t DNA -S K2P' );
 
 # test 22 estimate a ML pan-genome tree from the pan-genome matrix, using 2 independent IQT runs and UFBoot
-ok( eval{ `cd test_sequences/pan_genome && ../../estimate_pangenome_phylogenies.sh -f pangenome_matrix_t0.fasta -r 2 -S UFBoot -I 2 | grep "done!"` }, 'estimate_pangenome_phylogenies.sh -r 2 -S UFBoot ...' );
+my $testOK = ok( eval{ `cd test_sequences/pan_genome && ../../estimate_pangenome_phylogenies.sh -f pangenome_matrix_t0.fasta -r 2 -S UFBoot -I 2 | grep "done!"` }, 'estimate_pangenome_phylogenies.sh -r 2 -S UFBoot ...' );
+
+if(!$testOK) {
+  print "\n# Note: this test requires setting up libnw.so . Type the following:\n\n"; 
+  print "sudo cp /PATH/TO/get_phylomarkers/lib/libnw.so /usr/local/lib && sudo echo \"export LD_LIBRARY_PATH=/usr/local/lib\" && sudo ldconfig && make clean'\n\n";
+  print "# Read more at https://github.com/eead-csic-compbio/get_phylomarkers/blob/master/INSTALL.md\n\n";
+}
 
 # test 23 estimate a PARS  pan-genome tree with bootstrapping; 50 bootstrap replicates divided on 10 core (5 reps / core)
 ok( eval{ `cd test_sequences/pan_genome && ../../estimate_pangenome_phylogenies.sh -c PARS -R 3 -i pangenome_matrix_t0.phylip -b 5 -j 1 -t 1 | grep "seq_key"` }, 'estimate_pangenome_phylogenies.sh -c PARS -R 3 ...' );

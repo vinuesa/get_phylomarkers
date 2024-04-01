@@ -75,8 +75,8 @@ A [**preprint version is available on bioRxiv**](https://www.biorxiv.org/content
 ## Developers
 The code is developed and maintained by [Pablo Vinuesa](https://www.ccg.unam.mx/~vinuesa/) 
 at [CCG-UNAM, Mexico](https://www.ccg.unam.mx/) and 
-[Bruno Contreras-Moreira](https://digital.csic.es/cris/rp/rp02661/) 
- at [EEAD-CSIC, Spain](http://www.eead.csic.es/). It is released to the public domain under the GNU GPLv3 [license](./LICENSE).
+[Bruno Contreras-Moreira](https://www.eead.csic.es/home/staffinfo?Id=71) 
+ at [EEAD-CSIC, Spain](http://www.eead.csic.es/). It is released to the public domain under the GNU GPLv3 [license](./LICENSE.txt).
 
 ## Acknowledgements
 
@@ -84,4 +84,4 @@ at [CCG-UNAM, Mexico](https://www.ccg.unam.mx/) and
 We thank Alfredo J. Hernández and Víctor del Moral at CCG-UNAM for technical support with server administration.
 
 ### Funding
-We gratefully acknowledge the funding provided by [DGAPA-PAPIIT/UNAM](https://dgapa.unam.mx/index.php/impulso-a-la-investigacion/papiit) (grants IN201806-2, IN211814 and IN206318) and [CONACyT-Mexico](https://conacyt.mx/) (grants P1-60071, 179133 and A1-S-11242) to [Pablo Vinuesa](https://www.ccg.unam.mx/~vinuesa/), as well as the Fundación ARAID,Consejo  Superior  de Investigaciones Científicas (grant 200720I038 and Spanish MINECO (AGL2013-48756-R) to [Bruno Contreras-Moreira](https://digital.csic.es/cris/rp/rp02661).
+We gratefully acknowledge the funding provided by [DGAPA-PAPIIT/UNAM](https://dgapa.unam.mx/index.php/impulso-a-la-investigacion/papiit) (grants IN201806-2, IN211814 and IN206318) and [CONACyT-Mexico](https://conacyt.mx/) (grants P1-60071, 179133 and A1-S-11242) to [Pablo Vinuesa](https://www.ccg.unam.mx/~vinuesa/), as well as the Fundación ARAID,Consejo  Superior  de Investigaciones Científicas (grant 200720I038 and Spanish MINECO (AGL2013-48756-R) to [Bruno Contreras-Moreira](https://www.eead.csic.es/home/staffinfo?Id=71).
