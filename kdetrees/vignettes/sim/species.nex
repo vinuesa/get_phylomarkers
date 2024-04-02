@@ -1,0 +1,33 @@
+#NEXUS
+[R-package APE, Fri Dec 28 12:14:39 2012]
+
+BEGIN TAXA;
+	DIMENSIONS NTAX = 10;
+	TAXLABELS
+		taxon_1
+		taxon_2
+		taxon_5
+		taxon_4
+		taxon_9
+		taxon_8
+		taxon_6
+		taxon_3
+		taxon_10
+		taxon_7
+	;
+END;
+BEGIN TREES;
+	TRANSLATE
+		1	taxon_1,
+		2	taxon_2,
+		3	taxon_5,
+		4	taxon_4,
+		5	taxon_9,
+		6	taxon_8,
+		7	taxon_6,
+		8	taxon_3,
+		9	taxon_10,
+		10	taxon_7
+	;
+	TREE * UNTITLED = [&R] (((1:2591.513833,2:2591.513833):13.86500007,(3:329.7377915,4:329.7377915):2275.641041):134.6697971,((5:1617.460822,(6:1341.337705,((7:600.6969326,8:600.6969326):244.421527,9:845.1184596):496.2192453):276.1231168):1101.564444,10:2719.025266):21.02336418):0;
+END;

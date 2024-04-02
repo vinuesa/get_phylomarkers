@@ -1,0 +1,9 @@
+bibentry(bibtype="article",
+         title="{kdetrees}: Nonparametric Estimation of Phylogenetic Tree Distributions",
+         author=c(person("Grady", "Weyenberg"),
+             person("Peter", "Huggins"),
+             person("Christopher", "Schardl"),
+             person("Daniel K", "Howe"),
+             person("Ruriko","Yoshida")),
+         journal="Bioinformatics",
+         year="2014")

@@ -1,0 +1,4 @@
+0.1.4 --- Bugfixes
+- the function kdetrees.complete does not work because “infile” in the arguments is then called “file” in the code.
+- function “browser()” in the kdetrees function should be removed. It pauses the execution. I believe it was there for debugging matter?
+- in the vignette, top of page 2, “blibrary(ape)” should be “library(ape)”
