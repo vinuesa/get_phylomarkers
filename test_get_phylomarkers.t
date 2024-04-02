@@ -1,4 +1,4 @@
-# version 2023-01-14
+# version 2024-04-01
 use strict;
 use warnings;
 use Test::More tests => 23;
@@ -81,7 +81,7 @@ ok( eval{  `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline
 
 # test 21  Run in population-genetics mode (generates a table with descritive statistics for DNA-polymorphisms) with K2P model
 #ok( eval{ `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh -R 2 -t DNA -S K2P  | grep "wrote file polymorphism_descript_stats"` }, 'run_get_phylomarkers_pipeline.sh -R 2 -t DNA -S K2P' );
-ok( eval{ `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh -R 2 -t DNA -S K2P  | grep "Will run descriptive DNA polymorphism statistics"` }, 'run_get_phylomarkers_pipeline.sh -R 2 -t DNA -S K2P' );
+ok( eval{ `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh -R 2 -t DNA -S K2P -D 1 | grep "Will run descriptive DNA polymorphism statistics"` }, 'run_get_phylomarkers_pipeline.sh -R 2 -t DNA -S K2P -D 1' );
 
 # test 22 estimate a ML pan-genome tree from the pan-genome matrix, using 2 independent IQT runs and UFBoot
 my $testOK = ok( eval{ `cd test_sequences/pan_genome && ../../estimate_pangenome_phylogenies.sh -f pangenome_matrix_t0.fasta -r 2 -S UFBoot -I 2 | grep "done!"` }, 'estimate_pangenome_phylogenies.sh -r 2 -S UFBoot ...' );
