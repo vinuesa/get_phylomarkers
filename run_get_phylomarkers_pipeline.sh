@@ -45,7 +45,7 @@ set -u
 set -o pipefail
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.7.1_2024-03-31'
+VERSION='2.7.2_2024-04-01'
                          		   
 # Set GLOBALS
 # in Strict mode, need to explicitly set undefined variables to an empty string var=''
@@ -1433,9 +1433,9 @@ then
     # 4.2 run_kdetrees.R at desired stringency
     print_start_time && msg "# running kde test ..." PROGR BLUE
     (( DEBUG > 0 )) && msg " > ${distrodir}/run_kdetrees.R ${gene_tree_ext} all_gene_trees.tre $kde_stringency &> /dev/null" DEBUG NC
-    { "${distrodir}"/run_kdetrees.R "${gene_tree_ext}" all_gene_trees.tre "$kde_stringency" &> /dev/null && return 0 ; }
-    #"${distrodir}"/run_kdetrees.R "${gene_tree_ext}" all_gene_trees.tre "$kde_stringency" &> /dev/null || \
-    #{ msg "ERROR could not run ${distrodir}/run_kdetrees.R ${gene_tree_ext} all_gene_trees.tre $kde_stringency &> /dev/null" ERROR RED && exit 1 ; }
+    #{ "${distrodir}"/run_kdetrees.R "${gene_tree_ext}" all_gene_trees.tre "$kde_stringency" &> /dev/null && return 0 ; }
+    "${distrodir}"/run_kdetrees.R "${gene_tree_ext}" all_gene_trees.tre "$kde_stringency" &> /dev/null || \
+     { msg "WARNING could not run ${distrodir}/run_kdetrees.R ${gene_tree_ext} all_gene_trees.tre $kde_stringency &> /dev/null" WARNING LRED ; }
     
     # Print a warning if kdetrees could not be run, but do now exit
     #[ ! -s kde_dfr_file_all_gene_trees.tre.tab ] && install_Rlibs_msg kde_dfr_file_all_gene_trees.tre.tab kdetrees,ape
@@ -1453,6 +1453,7 @@ then
         no_kde_outliers=$(grep -c outlier kde_dfr_file_all_gene_trees.tre.tab)
         no_kde_ok=$(grep -v outlier kde_dfr_file_all_gene_trees.tre.tab|grep -vc '^file')
     fi 
+    ((DEBUG > 0 )) && msg "PRINT_KDE_ERR_MESSAGE: $PRINT_KDE_ERR_MESSAGE; no_kde_outliers:$no_kde_outliers; no_kde_ok:$no_kde_ok" DEBUG NC
 
 
     # 4.4 Check how many cdnAlns passed the test and separate into two subirectories those passing and failing the test
@@ -1491,8 +1492,9 @@ then
 	find . -type l -delete
         cd ..
     else
-        print_start_time && msg "# ERROR There are $no_kde_ok gene trees producing non-significant kde-test results! Increase the actual -k $kde_stringency value. Will stop here!" ERROR RED
-	exit 5
+         PRINT_KDE_ERR_MESSAGE=1
+    #    print_start_time && msg "# ERROR There are $no_kde_ok gene trees producing non-significant kde-test results! Increase the actual -k $kde_stringency value. Will stop here!" ERROR RED
+    #    exit 5
     fi
 
 #----------------------------------#
@@ -1935,15 +1937,16 @@ then
         print_start_time && msg "# converting $no_top_markers fasta files to nexus format ..." PROGR BLUE
         (( DEBUG > 0 )) && msg " > convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null" DEBUG NC
     	#$distrodir/
-    	{ "${distrodir}"/convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null ; } || \
-	{ msg "ERROR: could not run convert_aln_format_batch_bp.pl fasta fasta nexus nex" ERROR RED && exit 1 ; }
+    	"${distrodir}"/convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null 
+	#; } || \
+	#{ msg "WARNING: could not run convert_aln_format_batch_bp.pl fasta fasta nexus nex" WARNING LRED ; }
     
         print_start_time && msg "# Running popGen_summStats.pl ..." PROGR BLUE
     	lmsg=" > popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u &> popGen_summStats_hs100.log"
     	(( DEBUG > 0 )) && msg "$lmsg" DEBUG NC
-    	#$distrodir/popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u &> popGen_summStats_hs100.log
-    	{ "${distrodir}"/popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t "$TajD_l" -T "$TajD_u" -s "$FuLi_l" -S "$FuLi_u" &> popGen_summStats_hs100.log ; } || \
-	{ msg "ERROR: could not run popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u" ERROR RED && exit 1 ; }
+    	$distrodir/popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u &> popGen_summStats_hs100.log
+    	#{ "${distrodir}"/popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t "$TajD_l" -T "$TajD_u" -s "$FuLi_l" -S "$FuLi_u" &> popGen_summStats_hs100.log ; } || \
+	#{ msg "ERROR: could not run popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u" ERROR RED && exit 1 ; }
     
     	check_output polymorphism_descript_stats.tab "$parent_PID"
     
@@ -2091,7 +2094,10 @@ then
     # 5.2 run_kdetrees.R at desired stringency
     print_start_time && msg "# running kde test ..." PROGR BLUE
     (( DEBUG > 0 )) && msg " > ${distrodir}/run_kdetrees.R ${gene_tree_ext} all_gene_trees.tre $kde_stringency &> /dev/null" DEBUG NC
-    { "${distrodir}"/run_kdetrees.R "$gene_tree_ext" all_gene_trees.tre "$kde_stringency" &> /dev/null && return 0 ; }
+    #{ "${distrodir}"/run_kdetrees.R "$gene_tree_ext" all_gene_trees.tre "$kde_stringency" &> /dev/null && return 0 ; }
+    "${distrodir}"/run_kdetrees.R "$gene_tree_ext" all_gene_trees.tre "$kde_stringency" &> /dev/null || \
+    { msg "WARNING: could not run ${distrodir}/run_kdetrees.R $gene_tree_ext all_gene_trees.tre $kde_stringency &> /dev/null" WARNING LRED ; }
+    
     #[ ! -s kde_dfr_file_all_gene_trees.tre.tab ] && install_Rlibs_msg kde_dfr_file_all_gene_trees.tre.tab kdetrees,ape
     #check_output kde_dfr_file_all_gene_trees.tre.tab "$parent_PID"
 
@@ -2108,6 +2114,7 @@ then
         no_kde_outliers=$(grep -c outlier kde_dfr_file_all_gene_trees.tre.tab)
         no_kde_ok=$(grep -v outlier kde_dfr_file_all_gene_trees.tre.tab | grep -vc '^file')
     fi 
+    ((DEBUG > 0 )) && msg "PRINT_KDE_ERR_MESSAGE: $PRINT_KDE_ERR_MESSAGE; no_kde_outliers:$no_kde_outliers; no_kde_ok:$no_kde_ok" DEBUG NC
 
     # 5.4 Check how many cdnAlns passed the test and separate into two subirectories those passing and failing the test
     if (( no_kde_outliers > 0 ))
@@ -2143,8 +2150,9 @@ then
 	
         cd .. || { msg "ERROR: could not cd ../" ERROR RED && exit 1 ; }
     else
-        print_start_time && msg "# ERROR There are $no_kde_ok gene trees producing non-significant kde-test results! Increase the actual -k $kde_stringency value. Will stop here!" ERROR RED
-	exit 5
+        PRINT_KDE_ERR_MESSAGE=1
+	#print_start_time && msg "# ERROR There are $no_kde_ok gene trees producing non-significant kde-test results! Increase the actual -k $kde_stringency value. Will stop here!" ERROR RED
+        #    exit 5
     fi
 
     #----------------------------------#
