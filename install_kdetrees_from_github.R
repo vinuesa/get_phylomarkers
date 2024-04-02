@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-# 2024-04-01
+# 2022-06-13
 # install_kdetrees_from_github
 # call to build docker image
 
@@ -23,7 +23,6 @@ for (package in required_packages) {
 
 
 library("remotes")
-#remotes::install_github("grady/kdetrees", dependencies = TRUE, force = TRUE, upgrade="always")
-remotes::install_github("vinuesa/get_phylomarkers/kdetrees", dependencies = TRUE, force = TRUE, upgrade="always")
+remotes::install_github("grady/kdetrees", dependencies = TRUE)
 
 sessionInfo()
