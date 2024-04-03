@@ -1,7 +1,7 @@
 # version 2024-04-02
 use strict;
 use warnings;
-use Test::More tests => 20;
+use Test::More tests => 23;
 
 use lib "lib";
 use lib "lib/perl/bioperl-1.5.2_102/";
