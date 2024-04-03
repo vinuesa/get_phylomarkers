@@ -409,7 +409,7 @@ function compute_IQT_gene_tree_stats()
 }
 #-----------------------------------------------------------------------------------------
 
-compute_MJRC_tree()
+function compute_MJRC_tree()
 {
    (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
    (( DEBUG > 0 )) && caller 0
