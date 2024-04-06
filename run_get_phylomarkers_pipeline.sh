@@ -45,7 +45,7 @@ set -u
 set -o pipefail
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.7.4_2024-04-02'
+VERSION='2.7.5_2024-04-06'
                          		   
 # Set GLOBALS
 # in Strict mode, need to explicitly set undefined variables to an empty string var=''
@@ -1658,11 +1658,11 @@ then
 	    # top100_median_support_values4loci.tab should probably not be written in the first instance
 	    [[ -s top100_median_support_values4loci.tab ]] && (( no_top_markers < 101 )) && rm top100_median_support_values4loci.tab
 
-	    # compute_ASTRALspTree_branch_lenghts
-	    if [[ -s astral_top"${no_top_markers}"geneTrees.sptree ]]
+	    # compute_wASTRALspTree_branch_lenghts
+	    if [[ -s wastral_top"${no_top_markers}"geneTrees.sptree ]]
 	    then
 	    	# returns IQTree_constrained_by_ASTRALspTree.treefile
-	    	compute_ASTRALspTree_branch_lenghts concat_cdnAlns.fnainf GTR+G astral_top"${no_top_markers}"geneTrees.sptree "$IQT_threads"
+	    	compute_ASTRALspTree_branch_lenghts concat_cdnAlns.fnainf GTR+G wastral_top"${no_top_markers}"geneTrees.sptree "$IQT_threads"
 	    fi
 
         fi # [ "$search_algorithm" == "F" ]
@@ -1754,10 +1754,10 @@ then
             	process_IQT_species_trees_for_molClock iqtree_abayes "$best_tree_file" "$top_markers_dir" "$no_top_markers"
 	    fi
 
-	    # compute_ASTRALspTree_branch_lenghts
-	    if [[ -s astral_top"${no_top_markers}"geneTrees.sptree ]]
+	    # compute_wASTRALspTree_branch_lenghts
+	    if [[ -s wastral_top"${no_top_markers}"geneTrees.sptree ]]
 	    then
-	    	compute_ASTRALspTree_branch_lenghts concat_cdnAlns.fnainf "$best_model" astral_top"${no_top_markers}"geneTrees.sptree "$IQT_threads"
+	    	compute_ASTRALspTree_branch_lenghts concat_cdnAlns.fnainf "$best_model" wastral_top"${no_top_markers}"geneTrees.sptree "$IQT_threads"
 	    fi
 
         fi # if [ "$search_algorithm" == "I" ]
@@ -2303,10 +2303,10 @@ then
         (( DEBUG > 0 )) && msg " > compute_suppValStas_and_RF-dist.R $top_markers_dir 2 faaln ph 1 &> /dev/null" DEBUG NC
         { "${distrodir}"/compute_suppValStas_and_RF-dist.R "$top_markers_dir" 2 faaln ph 1 &> /dev/null && return 0 ; }
 
-	# compute_ASTRALspTree_branch_lenghts
-	if [[ -s astral_top"${no_top_markers}"geneTrees.sptree ]]
+	# compute_wASTRALspTree_branch_lenghts
+	if [[ -s wastral_top"${no_top_markers}"geneTrees.sptree ]]
 	then
-	    compute_ASTRALspTree_branch_lenghts concat_protAlns.faainf LG+G astral_top"${no_top_markers}"geneTrees.sptree "$IQT_threads"
+	    compute_ASTRALspTree_branch_lenghts concat_protAlns.faainf LG+G wastral_top"${no_top_markers}"geneTrees.sptree "$IQT_threads"
 	fi
     fi # [ "$search_algorithm" == "F" ]
 
@@ -2414,10 +2414,10 @@ then
             "$distrodir"/compute_suppValStas_and_RF-dist.R "$top_markers_dir" 2 fasta ph 1 &> /dev/null
         fi # if/else [ "$search_thoroughness" == "high" ]
 
-        # compute_ASTRALspTree_branch_lenghts
-        if [[ -s astral_top"${no_top_markers}"geneTrees.sptree ]]
+        # compute_wASTRALspTree_branch_lenghts
+        if [[ -s wastral_top"${no_top_markers}"geneTrees.sptree ]]
         then
-            compute_ASTRALspTree_branch_lenghts concat_protAlns.faainf "$best_model" astral_top"${no_top_markers}"geneTrees.sptree "$IQT_threads"
+            compute_ASTRALspTree_branch_lenghts concat_protAlns.faainf "$best_model" wastral_top"${no_top_markers}"geneTrees.sptree "$IQT_threads"
         fi
     fi # if [ "$search_algorithm" == "I" ]
 
