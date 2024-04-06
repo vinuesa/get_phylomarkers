@@ -482,14 +482,11 @@ function run_ASTRAL()
 
    local ASTER_search_rounds=20
    local ASTER_subsampling_rounds=20
-
-   # This code was written for ASTRAL-III; from v2024-03-30 onwards, get_phylo calls astral4, written in C, from the ASTER package
-   #(( DEBUG > 0 )) && msg " > java -jar $distrodir/ASTRAL/astral.jar -i $gene_trees -o astral_species_tree.tre 2> astral.log" DEBUG NC
-   #java -jar "$distrodir"/ASTRAL/astral.jar -i "$gene_trees" -o astral_top"${num_markers}"geneTrees.sptree 2> astral.log
-   #check_output "astral_top${num_markers}geneTrees.sptree" "$parent_PID"
-
    
-   # Run ASTRAL-IV to estimat unrooted species tree from unrooted gene tree topologies with integrated CASTLES-II for branch lengths
+   # 1. Run ASTRAL-IV to estimat unrooted species tree from unrooted gene tree topologies with integrated CASTLES-II for branch lengths
+   # ASTRAL-IV re-implements ASTRAL as a scalable alternative to ASTRAL on datasets for which ASTRAL is not suitable 
+   # (e.g. large datasets, multi-individual, and gene trees with missing taxa). 
+   # ASTRAL-IV also integrates CASTLES-II and thus computes terminal and internal branch lengths in substitution-per-site units
    (( DEBUG > 0 )) && msg " > $bindir/astral -i $gene_trees -o astral_species_tree.tre 2> astral.log" DEBUG NC
    "$bindir"/astral4 -r "$ASTER_search_rounds" -s "$ASTER_subsampling_rounds" -i "$gene_trees" -o astral_top"${num_markers}"geneTrees.sptree -t "$num_threads" 2> astral.log
    check_output "astral_top${num_markers}geneTrees.sptree" "$parent_PID"
@@ -497,16 +494,14 @@ function run_ASTRAL()
    "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list "astral_top${num_markers}geneTrees.sptree" &> /dev/null
    check_output "astral_top${num_markers}geneTrees_ed.sptree" "$parent_PID"
    
-   
-   # Run weighted ASTRAL
+   # 2. Run wASTRAL
    # Weighted ASTRAL series introduce threshold-free weighting schemes for the quartet-based species tree inference, the metric used in ASTRAL. 
    # By reducing the impact of quartets with low support or long terminal branches (or both), weighting provides stronger theoretical guarantees 
    # and better empirical performance than the unweighted ASTRAL. 
    # weighted ASTRAL improves the utility of summary methods and can reduce the incongruence often observed across analytical pipelines.
    
-   # run wastral to estimate unrooted species tree from unrooted gene trees with branch lengths and Bootstrap/Bayesian/alrt supports 
-   #  assuming that horizontal gene transfers and hybridizations are rare. It utilizes branch lengths and supports to improve accuracy.
-   
+   # Run wastral to estimate unrooted species tree from unrooted gene trees with branch lengths and Bootstrap/Bayesian/alrt supports 
+   # assuming that horizontal gene transfers and hybridizations are rare. It utilizes branch lengths and supports to improve accuracy.
    (( DEBUG > 0 )) && msg " > $bindir/wastral -i $gene_trees -o wastral_species_tree.tre 2> wastral.log" DEBUG NC
    "$bindir"/wastral -r "$ASTER_search_rounds" -s "$ASTER_subsampling_rounds" -i "$gene_trees" -o wastral_top"${num_markers}"geneTrees.sptree -t "$num_threads" 2> wastral.log
    check_output "wastral_top${num_markers}geneTrees.sptree" "$parent_PID"
@@ -514,7 +509,7 @@ function run_ASTRAL()
    "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list "wastral_top${num_markers}geneTrees.sptree" &> /dev/null
    check_output "wastral_top${num_markers}geneTrees_ed.sptree" "$parent_PID"
    
-   # compute the gene concordance factor (gCF) for each branch of the species tree 
+   # 3.1 compute the gene concordance factor (gCF) for each branch of the ASTRAL-IV species tree 
    # as the fraction of decisive gene trees concordant with this branch
    # NOTE: the IQTree_constrained_by_ASTRALspTree_concord.cf.tree produced by IQT may not be visualizable with FigTree!!!
    msg "# computing  the gene concordance factor (gCF) for each branch of the ASTRAL-IV species tree ..." PROGR LBLUE
@@ -523,15 +518,24 @@ function run_ASTRAL()
    iqtree -t astral_top"${num_markers}"geneTrees.sptree --gcf alltrees.nwk --prefix astral_concord &> /dev/null
    check_output astral_concord.cf.tree "$parent_PID"
 
+   # 3.2 add labels to wastral_concord.cf.tree
+   "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list astral_concord.cf.tree &> /dev/null
+   if [[ -s astral_concord_ed.cf ]] 
+   then
+       mv astral_concord_ed.cf astral_concord_ed_cf.treefile
+       check_output astral_concord_ed_cf.treefile "$parent_PID"
+   else
+       msg "WARNING: astral_concord_ed.cf was not produced ..." WARNING LRED
+   fi
 
+   # 3.3 compute the gene concordance factor (gCF) for each branch of the wASTRAL species tree 
    msg "# computing  the gene concordance factor (gCF) for each branch of the wASTRAL species tree ..." PROGR LBLUE
    long_msg=" > iqtree -t wastral_top${num_markers}geneTrees.sptree --gcf alltrees.nwk --prefix astral_concord &> /dev/null"
    (( DEBUG > 0 )) && msg "$long_msg" DEBUG NC
    iqtree -t wastral_top"${num_markers}"geneTrees.sptree --gcf alltrees.nwk --prefix wastral_concord &> /dev/null
    check_output wastral_concord.cf.tree "$parent_PID"
 
-
-   # add labels to wastral_concord.cf.tree
+   # 3.4 add labels to wastral_concord.cf.tree
    "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list wastral_concord.cf.tree &> /dev/null
    if [[ -s wastral_concord_ed.cf ]] 
    then
@@ -541,10 +545,11 @@ function run_ASTRAL()
        msg "WARNING: wastral_concord_ed.cf was not produced ..." WARNING LRED
    fi
    
-   # compute mean gCF
+   # 4.1 compute mean gCF from astral_concord.cf.stat
    awk 'BEGIN{FS=OFS="\t"; print "num_branches\tcum_gCF\tmean_branch_gCF"}NR > 1{branches++; gCFcum+=$2;} 
       END{print branches, gCFcum, gCFcum/branches}' astral_concord.cf.stat > astral_concord_mean_gCF.tsv
 
+   # 4.2 compute mean gCF from wastral_concord.cf.stat
    awk 'BEGIN{FS=OFS="\t"; print "num_branches\tcum_gCF\tmean_branch_gCF"}NR > 1{branches++; gCFcum+=$2;} 
       END{print branches, gCFcum, gCFcum/branches}' wastral_concord.cf.stat > wastral_concord_mean_gCF.tsv
    
@@ -555,21 +560,21 @@ function run_ASTRAL()
 
 function compute_ASTRALspTree_branch_lenghts()
 {
-   # uses iqtree to compute an ASTRAL species tree with branch lenghts 
-   #  - needs the concatenated alignment, the model and the ASTRAL species tree topology, 
+   # uses iqtree to compute an wASTRAL species tree with branch lenghts 
+   #  - needs the concatenated alignment, the model and the wASTRAL species tree topology, 
    #    which will be used by iqtree as a constrain
-   #  iqtree -s concat_cdnAlns.fnainf -m GTR+F+ASC+R6 -g astral_top92geneTrees.sptree --prefix IQTree_constrained_by_ASTRALspTree -T 12
+   #  iqtree -s concat_cdnAlns.fnainf -m GTR+F+ASC+R6 -g wastral_top92geneTrees.sptree --prefix IQTree_constrained_by_wASTRALspTree -T 12
    (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
    (( DEBUG > 0 )) && caller 0
    
    local concat_aln model astral_spTree threads long_msg
    concat_aln=$1
    model=$2
-   astral_spTree=$3
+   astral_spTree=$3  # wastral!
    threads=$4 
 
 # ======================================================================================================================================
-# >>> NOTE ON BUG: IQ-Tree v2.2.0 seems to have a bug, as it dups a core (see below) when threads=AUTO in the following line:
+# >>> NOTE ON BUG: IQ-Tree v2.2.0 seems to have a bug, as it dumps a core (see below) when threads=AUTO in the following line:
 # iqtree -s $concat_aln -m $model -g $astral_spTree --prefix IQTree_constrained_by_ASTRALspTree -T $threads
 
 #132  132    0.00%    passed	14.07%
@@ -598,36 +603,35 @@ function compute_ASTRALspTree_branch_lenghts()
 
    [[ "$threads" == 'AUTO' ]] && threads=10 # see note above on but in IQ-Tree 2.2.0 <<< !!!!
    
-   # compute ML branch lenghts of astral_spTree with IQT using the best model found for concat_aln
-   msg "# computing ML branch lenghts of astral_spTree with IQT using the best model found for concat_aln ..." PROGR LBLUE
-   long_msg=" > iqtree -s $concat_aln -m $model -g $astral_spTree --prefix IQTree_constrained_by_ASTRALspTree -T $threads &> /dev/null"
+   # compute ML branch lenghts of wASTRAL species tree with IQT using the best model found for concat_aln
+   msg "# computing ML branch lenghts of wASTRAL species tree with IQT using the best model found for concat_aln ..." PROGR LBLUE
+   long_msg=" > iqtree -s $concat_aln -m $model -g $astral_spTree --prefix IQTree_constrained_by_wASTRALspTree -T $threads &> /dev/null"
    (( DEBUG > 0 )) && msg "$long_msg" DEBUG NC
-   iqtree -s "$concat_aln" -m "$model" -g "$astral_spTree" --prefix IQTree_constrained_by_ASTRALspTree -T "$threads" &> /dev/null
+   iqtree -s "$concat_aln" -m "$model" -g "$astral_spTree" --prefix IQTree_constrained_by_wASTRALspTree -T "$threads" &> /dev/null
    
    # the IQT implementaion in v2.2.0 seems to be buggy, as for the same data
    #  the previous call is sometimes not successful (particularly in the Travis environment)
    #  therefore here we do not use check_output, but rather a simple -s test.
-   if [[ -s IQTree_constrained_by_ASTRALspTree.treefile ]]
+   if [[ -s IQTree_constrained_by_wASTRALspTree.treefile ]]
    then
-    
        # add labels to IQTree_constrained_by_ASTRALspTree.treefile
-       "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list IQTree_constrained_by_ASTRALspTree.treefile &> /dev/null
-        check_output IQTree_constrained_by_ASTRALspTree_ed.treefile "$parent_PID"
+       "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list IQTree_constrained_by_wASTRALspTree.treefile &> /dev/null
+        check_output IQTree_constrained_by_wASTRALspTree_ed.treefile "$parent_PID"
    else
-       msg "WARNING: IQTree_constrained_by_ASTRALspTree.treefile was not produced!" WARNING LRED
+       msg "WARNING: IQTree_constrained_by_wASTRALspTree.treefile was not produced!" WARNING LRED
    fi
    
-   # compute ML branch lenghts for astral_concord.cf.tree  
-   msg "#  compute ML branch lenghts for astral_concord.cf.tree ..." PROGR LBLUE
-   long_msg=" > iqtree -s $concat_aln -m $model -g astral_concord.cf.tree --prefix IQTree_constrained_by_ASTRAL_concord_spTree -T $threads &> /dev/null"
+   # compute ML branch lenghts for wastral_concord.cf.tree  
+   msg "#  compute ML branch lenghts for wastral_concord.cf.tree ..." PROGR LBLUE
+   long_msg=" > iqtree -s $concat_aln -m $model -g wastral_concord.cf.tree --prefix IQTree_constrained_by_wASTRAL_concord_spTree -T $threads &> /dev/null"
    (( DEBUG > 0 )) && msg "$long_msg" DEBUG NC
-   iqtree -s "$concat_aln" -m "$model" -g astral_concord.cf.tree --prefix IQTree_constrained_by_ASTRAL_concord_spTree -T "$threads" &> /dev/null
-   if [[ -s IQTree_constrained_by_ASTRAL_concord_spTree.treefile ]]
+   iqtree -s "$concat_aln" -m "$model" -g wastral_concord.cf.tree --prefix IQTree_constrained_by_wASTRAL_concord_spTree -T "$threads" &> /dev/null
+   if [[ -s IQTree_constrained_by_wASTRAL_concord_spTree.treefile ]]
    then
-       # add labels to IQTree_constrained_by_ASTRAL_concord_spTree.treefile
-       "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list IQTree_constrained_by_ASTRAL_concord_spTree.treefile &> /dev/null
+       # add labels to IQTree_constrained_by_wASTRAL_concord_spTree.treefile
+       "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list IQTree_constrained_by_wASTRAL_concord_spTree.treefile &> /dev/null
    else
-       msg "WARNING: IQTree_constrained_by_ASTRAL_concord_spTree.treefile was not produced!" WARNING LRED
+       msg "WARNING: IQTree_constrained_by_wASTRAL_concord_spTree.treefile was not produced!" WARNING LRED
    fi
    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]}  ..." DEBUG NC
    return 0
