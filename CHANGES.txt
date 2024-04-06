@@ -1,3 +1,13 @@
+05apr24  * wastral v1.18.3.5 for Linux; first commit 2024-04-05
+02apr24  * test_get_phylomarkers.t: fixed regexes t17,t19,t20; PASSES TRAVIS CI BUILD using all 23 tests
+02apr24  * run_get_phylomarkers_pipeline.sh v2.7.4_2024-04-02: run_ASTRAL is called before FT or IQT on concatenated alignment
+02apr24  * run_get_phylomarkers_pipeline.sh v2.7.3_2024-04-02 & get_phylomarkers_fun_lib v2024-04-02 renamed mispelled SRHtests
+02apr24  * .travis.yml v2024-04-02; removed env: global: secure: ***; set up new ATP; 
+01apr24  * NEW RELEASE v2.1.1: GET_PHYLOMARKERS_v2.1.1_2024-04-01; https://github.com/vinuesa/get_phylomarkers/releases/tag/v2.1.1
+01apr24  * run_kdetrees.R v0.4.0_2024-04-01 checks for number of outlier trees, and quit if non are found; 
+01apr24  * run_get_phylomarkers_pipeline.sh v2.7.2_2024-04-01; improved checking and handling of run_kdetrees output 
+01apr24  * updated LICENSE.txt, removed ASTRAL-III directory and java code; test_get_phylomarkers.t v2024-04-01; test 21 (popGen) runs with -D 1
+01apr24  * Dockerfile v2024-04-01 and Docker image on DockerHub
 30mar24  * run_kdetrees.R v0.3.1_20mar24; explicitly exits with status = 0 
 30mar24  * downgraded back again to iqtree2 v2.2.0 (latest release, Mar 25, 2022), in bin/linux/
 30mar24  * added astral4 v1.18.4.5, written in C, from the ASTER package to bin/linux/
