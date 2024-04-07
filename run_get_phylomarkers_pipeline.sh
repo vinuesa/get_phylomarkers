@@ -45,7 +45,7 @@ set -u
 set -o pipefail
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.7.5_2024-04-06'
+VERSION='2.7.6_2024-04-06'
                          		   
 # Set GLOBALS
 # in Strict mode, need to explicitly set undefined variables to an empty string var=''
@@ -1332,42 +1332,42 @@ then
     # 4.1 >>> call functions estimate_IQT_gene_trees | estimate_FT_gene_trees
     if [ "$search_algorithm" == "F" ]
     then
-	    msg "" PROGR NC
-	    msg " >>>>>>>>>>>>>>> parallel FastTree runs to estimate gene trees <<<<<<<<<<<<<<< " PROGR YELLOW
-	    msg "" PROGR NC
+	msg "" PROGR NC
+	msg " >>>>>>>>>>>>>>> parallel FastTree runs to estimate gene trees <<<<<<<<<<<<<<< " PROGR YELLOW
+	msg "" PROGR NC
 
         print_start_time && msg "# estimating $no_non_recomb_alns_perm_test gene trees from non-recombinant sequences ..." PROGR LBLUE
 
         gene_tree_ext="ph"
-	    lmsg=" > running estimate_FT_gene_trees $mol_type $search_thoroughness ..."
+	lmsg=" > running estimate_FT_gene_trees $mol_type $search_thoroughness ..."
         (( DEBUG > 0 )) && msg "$lmsg" DEBUG NC
 	
-	    estimate_FT_gene_trees "$mol_type" "$search_thoroughness" "$n_cores" "$spr" "$spr_length" "$bindir"
+	estimate_FT_gene_trees "$mol_type" "$search_thoroughness" "$n_cores" "$spr" "$spr_length" "$bindir"
 	
-	    # 4.1.1 check that FT computed the expected gene trees
+	# 4.1.1 check that FT computed the expected gene trees
         no_gene_trees=$(find . -name "*.ph" | wc -l)
         (( no_gene_trees < 1 )) && print_start_time && msg " >>> ERROR: There are no gene tree to work on in non_recomb_cdn_alns/. will exit now!" ERROR RED && exit 3
 
-	    # 4.1.2 generate computation-time and lnL stats
-	    (( DEBUG > 0 )) && msg "compute_FT_gene_tree_stats $mol_type $search_thoroughness" DEBUG NC
-	    compute_FT_gene_tree_stats "$mol_type" "$search_thoroughness" "$parent_PID"
-	    print_start_time && msg "# running compute_MJRC_tree ph $search_algorithm ..." PROGR BLUE
-	    compute_MJRC_tree ph "$search_algorithm" 
+	# 4.1.2 generate computation-time and lnL stats
+	(( DEBUG > 0 )) && msg "compute_FT_gene_tree_stats $mol_type $search_thoroughness" DEBUG NC
+	compute_FT_gene_tree_stats "$mol_type" "$search_thoroughness" "$parent_PID"
+	print_start_time && msg "# running compute_MJRC_tree ph $search_algorithm ..." PROGR BLUE
+	compute_MJRC_tree ph "$search_algorithm" 
     else
         gene_tree_ext="treefile"
-	    msg "" PROGR NC
-	    msg " >>>>>>>>>>>>>>> parallel IQ-TREE runs to estimate gene trees <<<<<<<<<<<<<<< " PROGR YELLOW
-	    msg "" PROGR NC
-	    estimate_IQT_gene_trees "$mol_type" "$search_thoroughness" # "$IQT_models"
+	msg "" PROGR NC
+	msg " >>>>>>>>>>>>>>> parallel IQ-TREE runs to estimate gene trees <<<<<<<<<<<<<<< " PROGR YELLOW
+	msg "" PROGR NC
+	estimate_IQT_gene_trees "$mol_type" "$search_thoroughness" # "$IQT_models"
 	
-	    # 4.1.1 check that IQT computed the expected gene trees
-	    no_gene_trees=$(find . -name "*.treefile" | wc -l)
+	# 4.1.1 check that IQT computed the expected gene trees
+	no_gene_trees=$(find . -name "*.treefile" | wc -l)
         (( no_gene_trees < 1 )) && print_start_time && msg " >>> ERROR: There are no gene tree to work on in non_recomb_cdn_alns/. will exit now!" ERROR RED && exit 3
 
-	    # 4.1.2 generate computation-time, lnL and best-model stats
-	    compute_IQT_gene_tree_stats "$mol_type" "$search_thoroughness"	
-	    print_start_time && msg "# running compute_MJRC_tree treefile $search_algorithm ..." PROGR BLUE
-	    compute_MJRC_tree treefile "$search_algorithm" 
+	# 4.1.2 generate computation-time, lnL and best-model stats
+	compute_IQT_gene_tree_stats "$mol_type" "$search_thoroughness"      
+	print_start_time && msg "# running compute_MJRC_tree treefile $search_algorithm ..." PROGR BLUE
+	compute_MJRC_tree treefile "$search_algorithm" 
     fi
 
     #remove trees with < 4 external branches
@@ -1387,7 +1387,7 @@ then
     no_tree_counter=()
     for phy in $(grep -v '^#Tree' no_tree_branches.list | awk -v min_no_ext_branches="$min_no_ext_branches" 'BEGIN{FS="\t"; OFS="\t"}$7 < min_no_ext_branches {print $1}')
     do
-  	    if [ "$search_algorithm" == "F" ]; then
+  	if [ "$search_algorithm" == "F" ]; then
             base=${phy//_FTGTR\.ph/}
         elif [ "$search_algorithm" == "I" ]; then
             base=${phy//\.treefile/}
@@ -1397,10 +1397,10 @@ then
 	    
         print_start_time && msg " will remove ${base}* because it has < $min_no_ext_branches external branches" WARNING LRED
         if [ -e "$base" ]; then
-	        (( DEBUG > 0 )) && msg "will remove: ${base}* ..." DEBUG NC
-	        no_tree_counter+=("$base")
-	        rm "$base" "${base}".*
-	    fi	 
+	   (( DEBUG > 0 )) && msg "will remove: ${base}* ..." DEBUG NC
+	   no_tree_counter+=("$base")
+	   rm "$base" "${base}".*
+	fi	 
     done
     
     if [[ "${#no_tree_counter[@]}" -gt 0 ]]; then
@@ -1462,9 +1462,9 @@ then
         print_start_time && msg "# making dir kde_outliers/ and moving $no_kde_outliers outlier files into it ..." PROGR BLUE
         mkdir kde_outliers || { msg "ERROR: could not run mkdir kde_outliers" ERROR RED && exit 1 ; }
         if [ "$search_algorithm" == "F" ]; then
-	       for f in $(grep outlier kde_dfr_file_all_gene_trees.tre.tab | cut -f1|sed 's/\.ph//'); do 
-	           mv "${f}"* kde_outliers
-	       done
+	   for f in $(grep outlier kde_dfr_file_all_gene_trees.tre.tab | cut -f1|sed 's/\.ph//'); do 
+	       mv "${f}"* kde_outliers
+	   done
 	fi  
 
 	if [ "$search_algorithm" == "I" ]; then
@@ -1510,7 +1510,7 @@ then
         msg " >>>>>>>>>>>>>>> filter gene trees by phylogenetic signal content <<<<<<<<<<<<<<< " PROGR YELLOW
         msg "" PROGR NC
 
-	    print_start_time && msg "# computing tree support values ..." PROGR BLUE
+	print_start_time && msg "# computing tree support values ..." PROGR BLUE
         (( DEBUG > 0 )) && msg " > compute_suppValStas_and_RF-dist.R $wkdir 1 fasta ${gene_tree_ext} 1 &> /dev/null" DEBUG NC
         compute_suppValStas_and_RF-dist.R "$wkdir" 1 fasta "${gene_tree_ext}" 1 &> /dev/null
 
@@ -1519,10 +1519,9 @@ then
         no_digits="${#min_supp_val_perc}"
         (( no_digits == 1 )) && min_supp_val_perc="${min_supp_val_perc}0"
 
-
-	    # NOTE: IQ-TREE -alrt 1000 provides support values in 1-100 scale, not as 0-1 as FT!
-	    #       therefore we convert IQT-bases SH-alrt values to 0-1 scale for consistency
-	    [ "$search_algorithm" == "I" ] && min_supp_val=$(echo "$min_supp_val * 100" | bc)
+	# NOTE: IQ-TREE -alrt 1000 provides support values in 1-100 scale, not as 0-1 as FT!
+	#	therefore we convert IQT-bases SH-alrt values to 0-1 scale for consistency
+	[ "$search_algorithm" == "I" ] && min_supp_val=$(echo "$min_supp_val * 100" | bc)
 
         awk -v min_supp_val="$min_supp_val" '$2 >= min_supp_val' sorted_aggregated_support_values4loci.tab > "sorted_aggregated_support_values4loci_ge${min_supp_val_perc}perc.tab"
         check_output "sorted_aggregated_support_values4loci_ge${min_supp_val_perc}perc.tab" "$parent_PID"
@@ -1532,7 +1531,7 @@ then
         top_markers_tab=$(ls "sorted_aggregated_support_values4loci_ge${min_supp_val_perc}perc.tab")
 
         # >>> 5.2 move top-ranking markers to $top_markers_dir
-	    print_start_time && msg "# making dir $top_markers_dir and moving $no_top_markers top markers into it ..." PROGR LBLUE
+	print_start_time && msg "# making dir $top_markers_dir and moving $no_top_markers top markers into it ..." PROGR LBLUE
         { mkdir "$top_markers_dir" && cd "$top_markers_dir" ; } || { msg "ERROR: cannot cd into $top_markers_dir" ERROR RED && exit 1 ; }
         top_markers_dir=$(pwd)
         ln -s ../"$top_markers_tab" .
@@ -1596,7 +1595,7 @@ then
             (( DEBUG > 0 )) && msg " search_thoroughness: $search_thoroughness" DEBUG NC
 	    if [[ "$search_thoroughness" == "high" ]]
             then
-                 "$bindir"/FastTree -quiet -nt -gtr -gamma -bionj -slow -slownni -mlacc 3 -spr "$spr" -sprlength "$spr_length" \
+                "$bindir"/FastTree -quiet -nt -gtr -gamma -bionj -slow -slownni -mlacc 3 -spr "$spr" -sprlength "$spr_length" \
 	          -log "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log < concat_cdnAlns.fnainf > \
 	          "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
             fi
@@ -1657,14 +1656,6 @@ then
 	  
 	    # top100_median_support_values4loci.tab should probably not be written in the first instance
 	    [[ -s top100_median_support_values4loci.tab ]] && (( no_top_markers < 101 )) && rm top100_median_support_values4loci.tab
-
-	    # compute_wASTRALspTree_branch_lenghts
-	    if [[ -s wastral_top"${no_top_markers}"geneTrees.sptree ]]
-	    then
-	    	# returns IQTree_constrained_by_ASTRALspTree.treefile
-	    	compute_ASTRALspTree_branch_lenghts concat_cdnAlns.fnainf GTR+G wastral_top"${no_top_markers}"geneTrees.sptree "$IQT_threads"
-	    fi
-
         fi # [ "$search_algorithm" == "F" ]
 
         #::::::::::::::::::::::::::::::#
@@ -1677,13 +1668,14 @@ then
 	    # -------------- #
 
 	    msg "" PROGR NC
-	    msg " >>>>>>>>>>>>>>> Computing ASTRAL species tree on ${no_top_markers} top marker gene trees <<<<<<<<<<<<<<< " PROGR YELLOW
+	    msg " >>>>>>>>>>>>>>> Computing ASTRAL-IV and wASTRAL species trees from ${no_top_markers} top marker gene trees <<<<<<<<<<<<<<< " PROGR YELLOW
 	    msg "" PROGR NC
 
             print_start_time && msg "# running compute_MJRC_tree treefile $search_algorithm ..." PROGR BLUE
+	    (( DEBUG > 0 )) && msg "  >  compute_MJRC_tree treefile $search_algorithm" DEBUG NC
 	    compute_MJRC_tree treefile "$search_algorithm" 
 	    
-            # compute ASTRAL species tree on the alltrees.nwk file
+            # compute ASTRAL-IV and wASTRAL species trees on the alltrees.nwk file
             if [ -s alltrees.nwk ]
             then
                 print_start_time && msg "# computing ASTRAL species tree from ${no_top_markers} top marker gene trees ..." PROGR BLUE
@@ -1753,13 +1745,6 @@ then
 	    	best_tree_file="${tree_prefix}_nonRecomb_KdeFilt_iqtree_${best_model}.treefile"
             	process_IQT_species_trees_for_molClock iqtree_abayes "$best_tree_file" "$top_markers_dir" "$no_top_markers"
 	    fi
-
-	    # compute_wASTRALspTree_branch_lenghts
-	    if [[ -s wastral_top"${no_top_markers}"geneTrees.sptree ]]
-	    then
-	    	compute_ASTRALspTree_branch_lenghts concat_cdnAlns.fnainf "$best_model" wastral_top"${no_top_markers}"geneTrees.sptree "$IQT_threads"
-	    fi
-
         fi # if [ "$search_algorithm" == "I" ]
 
         # NOTE: after v0.9 this process is prallelized with run_parallel_cmmds.pl
@@ -1833,10 +1818,10 @@ then
 		tar -czf molClock_PAUP_files.tgz ./*_paup.block ./*.nex  ./*_clockTest.log \
 		./*tre ./*clock.scores ./*critical_X2_val.R \
 		"$mol_clock_tab" "${mol_clock_tab}"sorted mol_clock_*_ClockTest.*
-            (( DEBUG == 0 )) \
+                (( DEBUG == 0 )) \
 		&& [ -s molClock_PAUP_files.tgz ] \
 		&& rm ./*_paup.block ./*.nex  ./*_clockTest.log ./*tre ./*clock.scores ./*critical_X2_val.R
-            (( DEBUG == 0 )) && rm list2concat Rplots.pdf header.tmp list2grep.tmp concat_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
+                (( DEBUG == 0 )) && rm list2concat Rplots.pdf header.tmp list2grep.tmp concat_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
 	    fi
 	    
 	    tar -czf concatenated_alignment_files.tgz concat_cdnAlns.fna concat_cdnAlns.fnainf
@@ -1913,11 +1898,11 @@ then
         msg "" PROGR NC
 
         { mkdir popGen && cd popGen ; } || { msg "ERROR: cannot cd into popGen" ERROR RED && exit 1 ; }
-	    popGen_dir=$(pwd)
+	popGen_dir=$(pwd)
 
         print_start_time && msg "# Moved into dir popGen ..." PROGR LBLUE
 
-	    ln -s ../*fasta .
+	ln -s ../*fasta .
     	no_top_markers=$(find . -name "*.fasta" | wc -l)
     	tmpf=$(find . -name "*.fasta" | head -1)
     	no_seqs=$(grep -c '>' "$tmpf")
@@ -2063,10 +2048,10 @@ then
     for phy in $(grep -v '^#Tree' no_tree_branches.list | awk -v min_no_ext_branches="$min_no_ext_branches" 'BEGIN{FS="\t"; OFS="\t"}$7 < min_no_ext_branches{print $1}')
     do
         [ "$search_algorithm" == "F" ] && base="${phy//_allFT\.ph/}"
-	    [ "$search_algorithm" == "I" ] && base="${phy//\.treefile/}"
-	    print_start_time && msg " >>> will remove ${base}* because it has < 5 branches" WARNING LRED
+	[ "$search_algorithm" == "I" ] && base="${phy//\.treefile/}"
+	print_start_time && msg " >>> will remove ${base}* because it has < 5 branches" WARNING LRED
         no_tree_counter2+=("$base")
-	    rm "${base}"*
+	rm "${base}"*
     done
     
     if [[ "${#no_tree_counter2[@]}" -gt 0 ]]; then
@@ -2088,7 +2073,7 @@ then
         # 4.1 generate the all_IQT_trees.tre holding all source trees, which is required by kdetrees
         #     Make a check for the existence of the file to interrupt the pipeline if something has gone wrong
         (( DEBUG > 0 )) && msg " > cat ./*treefile > all_gene_trees.tre" DEBUG NC
-	    cat ./*.treefile > all_gene_trees.tre
+	cat ./*.treefile > all_gene_trees.tre
         check_output all_gene_trees.tre "$parent_PID"
         [ ! -s all_gene_trees.tre ] && exit 3
     fi
@@ -2142,11 +2127,11 @@ then
        
         print_start_time && msg "# labeling $no_kde_ok gene trees in dir kde_ok/ ..." PROGR BLUE
         (( DEBUG > 0 )) \
-	    && msg " > ${distrodir}/run_parallel_cmmds.pl ${gene_tree_ext} 'add_labels2tree.pl ../../../tree_labels.list $file' $n_cores &> /dev/null" DEBUG NC
-	    { "${distrodir}"/run_parallel_cmmds.pl "${gene_tree_ext}" 'add_labels2tree.pl ../../../tree_labels.list $file' "$n_cores" &> /dev/null && return 0 ; }
+	  && msg " > ${distrodir}/run_parallel_cmmds.pl ${gene_tree_ext} 'add_labels2tree.pl ../../../tree_labels.list $file' $n_cores &> /dev/null" DEBUG NC
+	  { "${distrodir}"/run_parallel_cmmds.pl "${gene_tree_ext}" 'add_labels2tree.pl ../../../tree_labels.list $file' "$n_cores" &> /dev/null && return 0 ; }
          
 
-	    # remove symbolic links to cleanup kde_ok/
+	# remove symbolic links to cleanup kde_ok/
         #for f in $(./*."${gene_tree_ext}" | grep -v "_ed\.${gene_tree_ext}"); do rm "$f"; done
         find . -type l -delete
 	
@@ -2281,7 +2266,7 @@ then
         then
             # lnL=$(grep ML_Lengths2 "${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.log" | grep TreeLogLk | sed 's/TreeLogLk[[:space:]]ML_Lengths2[[:space:]]//')
             # lnL=$(grep '^Gamma20LogLk' "${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.log" |awk '{print $2}')
-	        lnL=$(awk '/^Gamma20LogLk/{print $2}' "${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.log")
+	    lnL=$(awk '/^Gamma20LogLk/{print $2}' "${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.log")
             msg " >>> lnL for ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph = $lnL" PROGR GREEN
         else
             msg " >>> WARNING: ${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.log could not be produced!" WARNING LRED
@@ -2302,12 +2287,6 @@ then
 
         (( DEBUG > 0 )) && msg " > compute_suppValStas_and_RF-dist.R $top_markers_dir 2 faaln ph 1 &> /dev/null" DEBUG NC
         { "${distrodir}"/compute_suppValStas_and_RF-dist.R "$top_markers_dir" 2 faaln ph 1 &> /dev/null && return 0 ; }
-
-	# compute_wASTRALspTree_branch_lenghts
-	if [[ -s wastral_top"${no_top_markers}"geneTrees.sptree ]]
-	then
-	    compute_ASTRALspTree_branch_lenghts concat_protAlns.faainf LG+G wastral_top"${no_top_markers}"geneTrees.sptree "$IQT_threads"
-	fi
     fi # [ "$search_algorithm" == "F" ]
 
     #::::::::::::::::::::::::::::::#
@@ -2413,12 +2392,6 @@ then
 	        (( DEBUG > 0 )) && msg " > compute_suppValStas_and_RF-dist.R $top_markers_dir 2 fasta treefile 1 &> /dev/null" DEBUG NC
             "$distrodir"/compute_suppValStas_and_RF-dist.R "$top_markers_dir" 2 fasta ph 1 &> /dev/null
         fi # if/else [ "$search_thoroughness" == "high" ]
-
-        # compute_wASTRALspTree_branch_lenghts
-        if [[ -s wastral_top"${no_top_markers}"geneTrees.sptree ]]
-        then
-            compute_ASTRALspTree_branch_lenghts concat_protAlns.faainf "$best_model" wastral_top"${no_top_markers}"geneTrees.sptree "$IQT_threads"
-        fi
     fi # if [ "$search_algorithm" == "I" ]
 
     # >>> 5.9 CLEANUP <<< #
