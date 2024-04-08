@@ -45,7 +45,7 @@ set -u
 set -o pipefail
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.7.6_2024-04-06'
+VERSION='2.7.6.1_2024-04-06'
                          		   
 # Set GLOBALS
 # in Strict mode, need to explicitly set undefined variables to an empty string var=''
@@ -592,12 +592,12 @@ function print_help()
      -r <string> root method (midpoint|outgroup)                                                   [default: $root_method]
      -s <integer> number of spr rounds (4-20 are reasonable values) for FastTree tree searching    [default: $spr]
      -S <string> quoted 'comma-separated list' of base models to be evaluated by IQ-TREE 
-                 when estimating the species tree from the concatenated supermatrix  (see -H for details). 
-		 If no -S is passed, then sinlge default models are used, as shown below
-              <'JC,F81,K2P,HKY,TrN,TNe,K3P,K81u,TPM2,TPM2u,TPM3,TPM3u,
-	      TIM,TIMe,TIM2,TIM2e,TIM3,TIM3e,TVM,TVMe,SYM,GTR'>              for DNA alignments    [default: $IQT_DNA_models]
-              <'BLOSUM62,cpREV,Dayhoff,DCMut,FLU,HIVb,HIVw,JTT,JTTDCMut,LG,
-                mtART,mtMAM,mtREV,mtZOA,Poisson,PMB,rtREV,VT,WAG'>           for PROT alignments   [default: $IQT_PROT_models]
+           when estimating the species tree from the concatenated supermatrix (see -H for details). 
+	   If no -S is passed, then sinlge default models are used, as shown below
+           <'JC,F81,K2P,HKY,TrN,TNe,K3P,K81u,TPM2,TPM2u,TPM3,TPM3u,
+	     TIM,TIMe,TIM2,TIM2e,TIM3,TIM3e,TVM,TVMe,SYM,GTR'> for DNA alignments	           [default: $IQT_DNA_models]
+           <'BLOSUM62,cpREV,Dayhoff,DCMut,FLU,HIVb,HIVw,JTT,JTTDCMut,LG,
+             mtART,mtMAM,mtREV,mtZOA,Poisson,PMB,rtREV,VT,WAG'> for PROT alignments	           [default: $IQT_PROT_models]
      -T <string> tree search Thoroughness: high|medium|low|lowest (see -H for details)             [default: $search_thoroughness]
      -v|--version flag, print version and exit
      -V|--Versions flag, print software versions
@@ -1528,14 +1528,18 @@ then
 
         no_top_markers=$(perl -lne 'END{print $.}' "sorted_aggregated_support_values4loci_ge${min_supp_val_perc}perc.tab")
         top_markers_dir="top_${no_top_markers}_markers_ge${min_supp_val_perc}perc"
-        top_markers_tab=$(ls "sorted_aggregated_support_values4loci_ge${min_supp_val_perc}perc.tab")
+        #top_markers_tab=$(ls "sorted_aggregated_support_values4loci_ge${min_supp_val_perc}perc.tab")
+	top_markers_tab=$(find . -maxdepth 1 -type f -name "sorted_aggregated_support_values4loci_ge${min_supp_val_perc}perc.tab" -printf '%f\n')
 
         # >>> 5.2 move top-ranking markers to $top_markers_dir
 	print_start_time && msg "# making dir $top_markers_dir and moving $no_top_markers top markers into it ..." PROGR LBLUE
         { mkdir "$top_markers_dir" && cd "$top_markers_dir" ; } || { msg "ERROR: cannot cd into $top_markers_dir" ERROR RED && exit 1 ; }
         top_markers_dir=$(pwd)
         ln -s ../"$top_markers_tab" .
-        for base in $(awk '{print $1}' "$top_markers_tab" | grep -v loci | sed 's/"//g'); do ln -s ../"${base}"* .; done
+        #for base in $(awk '{print $1}' "$top_markers_tab" | grep -v loci | sed 's/"//g'); do ln -s ../"${base}"* .; done
+	
+	while read -r line; do id=$(echo "$line" | awk '{print $1}' | sed 's/"//g'); ln -s ../"${id}"* .; done < "$top_markers_tab"
+	
 
         (( no_top_markers < 2 )) && print_start_time && msg " >>> Warning: There are less than 2 top markers. Relax your filtering thresholds. will exit now!" ERROR LRED && exit 3
 
