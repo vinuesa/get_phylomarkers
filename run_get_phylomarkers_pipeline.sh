@@ -45,7 +45,7 @@ set -u
 set -o pipefail
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.7.6.2_2024-04-06'
+VERSION='2.7.6.3_2024-04-08'
                          		   
 # Set GLOBALS
 # in Strict mode, need to explicitly set undefined variables to an empty string var=''
@@ -1535,8 +1535,9 @@ then
         { mkdir "$top_markers_dir" && cd "$top_markers_dir" ; } || { msg "ERROR: cannot cd into $top_markers_dir" ERROR RED && exit 1 ; }
         top_markers_dir=$(pwd)
         ln -s ../"$top_markers_tab" .
-	while read -r line; do 
-	     id=$(echo "$line" | awk '{print $1}' | sed 's/"//g')
+	while read -r id rest; do 
+	     [[ "$id" =~ loci ]] && continue
+	     id=${id//\"/}
 	     if [ ! -h "${id}"* ]
 	     then
 	         ln -s ../"${id}"* .
@@ -2053,15 +2054,24 @@ then
 
     declare -a no_tree_counter2
     no_tree_counter2=()
-    for phy in $(grep -v '^#Tree' no_tree_branches.list | awk -v min_no_ext_branches="$min_no_ext_branches" 'BEGIN{FS="\t"; OFS="\t"}$7 < min_no_ext_branches{print $1}')
-    do
-        [ "$search_algorithm" == "F" ] && base="${phy//_allFT\.ph/}"
+    #for phy in $(grep -v '^#Tree' no_tree_branches.list | awk -v min_no_ext_branches="$min_no_ext_branches" 'BEGIN{FS="\t"; OFS="\t"}$7 < min_no_ext_branches{print $1}')
+    #do
+    #    [ "$search_algorithm" == "F" ] && base="${phy//_allFT\.ph/}"
+    #	[ "$search_algorithm" == "I" ] && base="${phy//\.treefile/}"
+    #	print_start_time && msg " >>> will remove ${base}* because it has < 5 branches" WARNING LRED
+    #   no_tree_counter2+=("$base")
+    # 	rm "${base}"*
+    #done
+    
+    while read -r file; do 
+        [[ "$file" =~ ^#Tree ]] && continue
+	[ "$search_algorithm" == "F" ] && base="${phy//_allFT\.ph/}"
 	[ "$search_algorithm" == "I" ] && base="${phy//\.treefile/}"
 	print_start_time && msg " >>> will remove ${base}* because it has < 5 branches" WARNING LRED
         no_tree_counter2+=("$base")
 	rm "${base}"*
-    done
-    
+    done < <(awk -v min_no_ext_branches="$min_no_ext_branches" 'BEGIN{FS="\t"; OFS="\t"}$7 < min_no_ext_branches{print $1}' no_tree_branches.list)
+	
     if [[ "${#no_tree_counter2[@]}" -gt 0 ]]; then
         msg " >>> WARNING: there are ${#no_tree_counter2[@]} trees with < 1 internal branches (not real trees) that will be discarded ..." WARNING LRED
     fi
@@ -2188,7 +2198,12 @@ then
     # https://www.shellcheck.net/wiki/SC2013
     while IFS= read -r base
     do
-        ln -s ../"${base}"* .
+        if [ ! -h "${base}"* ];
+	then
+	    ln -s ../"${base}"* .
+	else
+	    continue
+	fi    
     done < <(awk '{print $1}' < "$top_markers_tab" | grep -v loci| sed 's/"//g')
 
     (( no_top_markers < 2 )) \
