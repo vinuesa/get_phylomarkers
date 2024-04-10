@@ -45,7 +45,7 @@ set -u
 set -o pipefail
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.7.6.3_2024-04-08'
+VERSION='2.7.6.4_2024-04-09'
                          		   
 # Set GLOBALS
 # in Strict mode, need to explicitly set undefined variables to an empty string var=''
@@ -1287,17 +1287,16 @@ set -e
 #     non_recomb_cdn_alns/ and  non_recomb_cdn_alns/
 #     Mark dir as non_recomb_cdn_alns
 mkdir non_recomb_cdn_alns || { msg "ERROR: could not mkdir non_recomb_cdn_alns" ERROR RED; exit 1 ; }
-
-for base in $(awk '$2 > 5e-02 && $3 > 5e-02{print $1}' Phi_results_"${TIMESTAMP_SHORT}".tsv |sed 's/_Phi\.log//')
+while IFS= read -r base
 do
     cp "${base}".fasta non_recomb_cdn_alns
-done
+done < <(awk '$2 > 5e-02 && $3 > 5e-02{print $1}' Phi_results_"${TIMESTAMP_SHORT}".tsv |sed 's/_Phi\.log//')
 
 mkdir non_recomb_FAA_alns || { msg "ERROR: could not mkdir non_recomb_FAA_alns" ERROR RED; exit 1 ; }
-for base in $(awk '$2 > 5e-02 && $3 > 5e-02{print $1}' Phi_results_"${TIMESTAMP_SHORT}".tsv |sed 's/_cdnAln_Phi\.log//')
+while IFS= read -r base
 do
-   cp ../"${base}"*.faaln non_recomb_FAA_alns
-done
+    cp ../"${base}"*.faaln non_recomb_FAA_alns
+done < <(awk '$2 > 5e-02 && $3 > 5e-02{print $1}' Phi_results_"${TIMESTAMP_SHORT}".tsv | sed 's/_cdnAln_Phi\.log//')
 
 # 3.5.2 cleanup phipack_dir; rm *fasta, which are the same as in topdir
 rm ./*cdnAln.fasta
@@ -1385,8 +1384,8 @@ then
     # collect the fasta file names producing "no real trees" with < 4 external branches in the no_tree_counter array
     declare -a no_tree_counter
     no_tree_counter=()
-    for phy in $(grep -v '^#Tree' no_tree_branches.list | awk -v min_no_ext_branches="$min_no_ext_branches" 'BEGIN{FS="\t"; OFS="\t"}$7 < min_no_ext_branches {print $1}')
-    do
+    #for phy in $(grep -v '^#Tree' no_tree_branches.list | awk -v min_no_ext_branches="$min_no_ext_branches" 'BEGIN{FS="\t"; OFS="\t"}$7 < min_no_ext_branches {print $1}')
+    while IFS= read -r phy; do
   	if [ "$search_algorithm" == "F" ]; then
             base=${phy//_FTGTR\.ph/}
         elif [ "$search_algorithm" == "I" ]; then
@@ -1401,7 +1400,7 @@ then
 	   no_tree_counter+=("$base")
 	   rm "$base" "${base}".*
 	fi	 
-    done
+    done < <(grep -v '^#Tree' no_tree_branches.list | awk -v min_no_ext_branches="$min_no_ext_branches" 'BEGIN{FS="\t"; OFS="\t"}$7 < min_no_ext_branches {print $1}')
     
     if [[ "${#no_tree_counter[@]}" -gt 0 ]]; then
         msg " >>> WARNING: there are  ${#no_tree_counter[@]} trees with < 1 internal branches (not real trees) that will be discarded ..." WARNING LRED
@@ -1462,15 +1461,17 @@ then
         print_start_time && msg "# making dir kde_outliers/ and moving $no_kde_outliers outlier files into it ..." PROGR BLUE
         mkdir kde_outliers || { msg "ERROR: could not run mkdir kde_outliers" ERROR RED && exit 1 ; }
         if [ "$search_algorithm" == "F" ]; then
-	   for f in $(grep outlier kde_dfr_file_all_gene_trees.tre.tab | cut -f1|sed 's/\.ph//'); do 
+	   #for f in $(grep outlier kde_dfr_file_all_gene_trees.tre.tab | cut -f1|sed 's/\.ph//'); do 
+	   while IFS= read -r f; do 
 	       mv "${f}"* kde_outliers
-	   done
+	   done < <(grep outlier kde_dfr_file_all_gene_trees.tre.tab | cut -f1|sed 's/\.ph//')
 	fi  
 
 	if [ "$search_algorithm" == "I" ]; then
-	   for f in $(grep outlier kde_dfr_file_all_gene_trees.tre.tab | cut -f1|sed 's/\.treefile//'); do 
+	   #for f in $(grep outlier kde_dfr_file_all_gene_trees.tre.tab | cut -f1|sed 's/\.treefile//'); do 
+	    while IFS= read -r f; do
 	       mv "${f}"* kde_outliers
-	   done
+	   done < <(grep outlier kde_dfr_file_all_gene_trees.tre.tab | cut -f1|sed 's/\.treefile//')
 	fi   
     else
         print_start_time && msg " >>> there are no kde-test outliers ..." PROGR GREEN
@@ -1538,12 +1539,16 @@ then
 	while read -r id rest; do 
 	     [[ "$id" =~ loci ]] && continue
 	     id=${id//\"/}
-	     if [ ! -h "${id}"* ]
-	     then
-	         ln -s ../"${id}"* .
-	     else
-	         continue
-	     fi
+	     
+	     # -h doesn't work with globs. Use a for loop
+	     for i in "${id}"*; do
+	         if [ ! -h "${i}" ]
+	         then
+	             ln -s ../"$i" .
+	         else
+	             continue
+	         fi
+	      done
 	done < "$top_markers_tab"
 
         (( no_top_markers < 2 )) && print_start_time && msg " >>> Warning: There are less than 2 top markers. Relax your filtering thresholds. will exit now!" ERROR LRED && exit 3
@@ -1940,9 +1945,7 @@ then
         print_start_time && msg "# Running popGen_summStats.pl ..." PROGR BLUE
     	lmsg=" > popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u &> popGen_summStats_hs100.log"
     	(( DEBUG > 0 )) && msg "$lmsg" DEBUG NC
-    	$distrodir/popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u &> popGen_summStats_hs100.log
-    	#{ "${distrodir}"/popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t "$TajD_l" -T "$TajD_u" -s "$FuLi_l" -S "$FuLi_u" &> popGen_summStats_hs100.log ; } || \
-	#{ msg "ERROR: could not run popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u" ERROR RED && exit 1 ; }
+    	"$distrodir"/popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t "$TajD_l" -T "$TajD_u" -s "$FuLi_l" -S "$FuLi_u" &> popGen_summStats_hs100.log
     
     	check_output polymorphism_descript_stats.tab "$parent_PID"
     
@@ -2063,8 +2066,8 @@ then
     # 	rm "${base}"*
     #done
     
-    while read -r file; do 
-        [[ "$file" =~ ^#Tree ]] && continue
+    while read -r phy; do 
+        [[ "$phy" =~ ^#Tree ]] && continue
 	[ "$search_algorithm" == "F" ] && base="${phy//_allFT\.ph/}"
 	[ "$search_algorithm" == "I" ] && base="${phy//\.treefile/}"
 	print_start_time && msg " >>> will remove ${base}* because it has < 5 branches" WARNING LRED
@@ -2126,10 +2129,23 @@ then
     then
         print_start_time && msg "# making dir kde_outliers/ and moving $no_kde_outliers outlier files into it ..." PROGR BLUE
         mkdir kde_outliers || { msg "ERROR: could not mkdir kde_outliers" ERROR RED && exit 1 ; }
-        [ "$search_algorithm" == "F" ] \
-	&& for f in $(grep outlier kde_dfr_file_all_gene_trees.tre.tab|cut -f1|sed 's/_allFTlgG\.ph//'); do mv "${f}"* kde_outliers; done
-	[ "$search_algorithm" == "I" ] \
-	&& for f in $(grep outlier kde_dfr_file_all_gene_trees.tre.tab|cut -f1|sed 's/\.treefile//'); do mv "${f}"* kde_outliers; done
+        #[ "$search_algorithm" == "F" ] \
+	#&& for f in $(grep outlier kde_dfr_file_all_gene_trees.tre.tab|cut -f1|sed 's/_allFTlgG\.ph//'); do mv "${f}"* kde_outliers; done
+	#[ "$search_algorithm" == "I" ] \
+	#&& for f in $(grep outlier kde_dfr_file_all_gene_trees.tre.tab|cut -f1|sed 's/_allFTlgG\.ph//')
+        if [ "$search_algorithm" == "F" ]; then
+            while IFS= read -r f
+            do
+	        mv "${f}"* kde_outliers
+	    done < <(grep outlier kde_dfr_file_all_gene_trees.tre.tab | cut -f1 | sed 's/_allFTlgG\.ph//')
+	fi
+
+	if [ "$search_algorithm" == "I" ]; then
+            while IFS= read -r f
+            do
+                mv "${f}"* kde_outliers
+            done < <(grep outlier kde_dfr_file_all_gene_trees.tre.tab | cut -f1 | sed 's/\.treefile//')
+        fi
     fi
     
     if (( no_kde_outliers == 0 )); then
@@ -2198,12 +2214,15 @@ then
     # https://www.shellcheck.net/wiki/SC2013
     while IFS= read -r base
     do
-        if [ ! -h "${base}"* ];
-	then
-	    ln -s ../"${base}"* .
-	else
-	    continue
-	fi    
+        # -h doesn't work with globs. Use a for loop
+	for b in "${base}"*; do 
+	    if [ ! -h "$b" ];
+	    then
+	        ln -s ../"${b}" .
+	    else
+	        continue
+	    fi
+	done   
     done < <(awk '{print $1}' < "$top_markers_tab" | grep -v loci| sed 's/"//g')
 
     (( no_top_markers < 2 )) \
