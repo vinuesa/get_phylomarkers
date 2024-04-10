@@ -1,4 +1,4 @@
-#: VERSION: 2024-04-06
+#: VERSION: 2024-04-09
 #: LIBRARY: get_phylomarkers_fun_lib
 #     * functions called by run_get_phylomarkers_pipeline.sh
 #     * part of the GET_PHYLOMARKERS software package
@@ -484,6 +484,10 @@ function run_ASTRAL()
    local ASTER_subsampling_rounds=20
    
    local concat_aln=''
+   local dna_mset='HKY,TN,TNef,TIM,TIMef,TVM,TVMef,SYM,GTR'
+   local prot_mset='EX2,EX3,LG4M,LG4X,EHO,UL2,UL3,EX_EHO'
+   
+   local cmax=15
    
    # 1. Run ASTRAL-IV to estimat unrooted species tree from unrooted gene tree topologies with integrated CASTLES-II for branch lengths
    # ASTRAL-IV re-implements ASTRAL as a scalable alternative to ASTRAL on datasets for which ASTRAL is not suitable 
@@ -518,7 +522,7 @@ function run_ASTRAL()
        lmsg=" # computing best-fitting model for $concat_aln using fixed user-tree wASTRAL species tree"
        msg "$lmsg" PRGR LBLUE
        iqtree -s "$concat_aln" -m MF+ASC+F+G+R*ASC*F*G*R -g "wastral_top${num_markers}geneTrees.sptree" \
-       --prefix wastral_usertree_concat_model_selection -nt "$num_threads" -mset HKY,TN,TNef,TIM,TIMef,TVM,TVMef,SYM,GTR -cmax 15 --fast --quiet
+       --prefix wastral_usertree_concat_model_selection -nt "$num_threads" -mset "$dna_mset" -cmax "$cmax" --fast --quiet
    
        best_wastral_constrained_IQT_concat_model=''
        best_wastral_constrained_IQT_concat_model=$(awk '/chosen according to BIC/{print $3}' wastral_usertree_concat_model_selection.log)
@@ -537,7 +541,7 @@ function run_ASTRAL()
        
        # NOTE: mixture models + ASC not yet implemented in iqtree v2.3.1 (Mar 25, 2024) 
        iqtree -s "$concat_aln" -m MF+F+G+R -g "wastral_top${num_markers}geneTrees.sptree" \
-       --prefix wastral_usertree_concat_model_selection -nt "$num_threads" -mset EX2,EX3,LG4M,LG4X,EHO,UL2,UL3,EX_EHO -cmax 10 --fast --quiet
+       --prefix wastral_usertree_concat_model_selection -nt "$num_threads" -mset "$prot_mset" -cmax 10 --fast --quiet
    
        best_wastral_constrained_IQT_concat_model=''
        best_wastral_constrained_IQT_concat_model=$(awk '/chosen according to BIC/{print $3}' wastral_usertree_concat_model_selection.log)
@@ -551,14 +555,7 @@ function run_ASTRAL()
        fi
    fi
    
-   # 4. compute_ASTRALspTree_branch_lenghts using best_wastral-constrained_IQT_concat_model and concat_cdnAlns.fnainf
-   if [ "$mol_type" == "DNA" ]
-   then
-        concat_aln=concat_cdnAlns.fnainf
-   else
-        concat_aln=concat_protAlns.faainf
-   fi
-  
+   # 4. compute_ASTRALspTree_branch_lenghts using best_wastral-constrained_IQT_concat_model and DNA|PROT \$concat_aln
    compute_ASTRALspTree_branch_lenghts "$concat_aln" "$best_wastral_constrained_IQT_concat_model" wastral_top"${no_top_markers}"geneTrees.sptree "$num_threads"
    
    # 5.1 compute the gene concordance factor (gCF) for each branch of the ASTRAL-IV species tree 
@@ -1006,10 +1003,10 @@ parse_SRH_tests() {
    # Move failed symtest FASTA files (codon and faaln to their directory
    if ((no_alns_failing_SRHtests >= 1)) && [[ -s SRHtests_failed.tsv ]]; then
       mkdir SRHtests_failed || { msg "ERROR: could not mkdir SRHtests_failed/" ERROR RED && exit 1 ; }
-      for f in $(awk 'BEGIN{FS="\t"}NR > 1{print $1}' SRHtests_failed.tsv); do
-          fasta_base="${f/_cdnAln.*/}" 
-          mv "${fasta_base}"* SRHtests_failed
-      done
+      while IFS= read -r f; do
+          fasta_base="${f/_cdnAln.*/}"
+	  mv "${fasta_base}"* SRHtests_failed 
+      done < <(awk 'BEGIN{FS="\t"}NR > 1{print $1}' SRHtests_failed.tsv)
    fi
 
    # cleanup
