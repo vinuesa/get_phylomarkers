@@ -493,8 +493,8 @@ function run_ASTRAL()
    # ASTRAL-IV re-implements ASTRAL as a scalable alternative to ASTRAL on datasets for which ASTRAL is not suitable 
    # (e.g. large datasets, multi-individual, and gene trees with missing taxa). 
    # ASTRAL-IV also integrates CASTLES-II and thus computes terminal and internal branch lengths in substitution-per-site units
-   (( DEBUG > 0 )) && msg " > $bindir/astral4 -i $gene_trees -o astral4_species_tree.tre 2> astral4.log" DEBUG NC
-   "$bindir"/astral4 -r "$ASTER_search_rounds" -s "$ASTER_subsampling_rounds" -i "$gene_trees" -o astral4_top"${num_markers}"geneTrees.sptree -t "$num_threads" 2> astral4.log
+   (( DEBUG > 0 )) && msg " > $bindir/astral -i $gene_trees -o astral4_species_tree.tre 2> astral4.log" DEBUG NC
+   "$bindir"/astral -r "$ASTER_search_rounds" -s "$ASTER_subsampling_rounds" -i "$gene_trees" -o astral4_top"${num_markers}"geneTrees.sptree -t "$num_threads" 2> astral4.log
    check_output "astral4_top${num_markers}geneTrees.sptree" "$parent_PID"
     
    "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list "astral4_top${num_markers}geneTrees.sptree" &> /dev/null
