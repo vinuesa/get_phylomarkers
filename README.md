@@ -6,7 +6,7 @@
 [![DockerHub](https://badgen.net/badge/icon/docker?icon=docker&label)](https://hub.docker.com/r/vinuesa/get_phylomarkers)
 
 
-**GET_PHYLOMARKERS** ([Vinuesa et al., 2018](https://www.frontiersin.org/articles/10.3389/fmicb.2018.00771/full)) is primarily an open-source software package to select optimal markers for microbial phylogenomics and species tree estimation using the multispecies coalescent and concatenation approaches. It implements a [**bioinformatics pipeline**](https://vinuesa.github.io/get_phylomarkers/#brief-presentation-and-graphical-overview-of-the-pipeline) to filter orthologous gene clusters computed by the companion package [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues) to select those with optimal attributes for phylogenetic inference using maximum likelihood (ML). Multiple sequence alignments of loci passing the filters are concatenated into a supermatrix to estimate a species tree under the ML criterion using the state-of-the-art fast ML tree searching algorithms [FastTree](http://www.microbesonline.org/fasttree) or [IQ-TREE](http://www.iqtree.org). We have also tested it with plant coding sequences (details [here](https://github.com/vinuesa/get_phylomarkers?tab=readme-ov-file#manual-and-tutorials)).
+**GET_PHYLOMARKERS** ([Vinuesa et al., 2018](https://www.frontiersin.org/articles/10.3389/fmicb.2018.00771/full)) is primarily an open-source software package to select optimal markers for microbial phylogenomics and species tree estimation using the multispecies coalescent and concatenation approaches. It implements a [**bioinformatics pipeline**](https://vinuesa.github.io/get_phylomarkers/#brief-presentation-and-graphical-overview-of-the-pipeline) to filter orthologous gene clusters computed by the companion package [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues) to select those with optimal attributes for phylogenetic inference using maximum likelihood (ML). Multiple sequence alignments of loci passing the filters are concatenated into a supermatrix to estimate a species tree under the ML criterion using the state-of-the-art fast ML tree searching algorithms [FastTree](http://www.microbesonline.org/fasttree) or [IQ-TREE](http://www.iqtree.org). We have also tested it with **plant coding sequences** (details [here](https://github.com/vinuesa/get_phylomarkers?tab=readme-ov-file#manual-and-tutorials)).
 
 Starting with **release 2.0.0** (2022-11-20), a **concatenation-independent species tree** is computed from the ML gene trees estimated from top-scoring alignments using [ASTRAL-III](https://github.com/smirarab/ASTRAL). 
 
@@ -59,7 +59,7 @@ the pipeline should be run using protein instead of DNA sequences.
 ## Manual and tutorials
 
 Please, follow the links for a detailed [**manual**](https://vinuesa.github.io/get_phylomarkers/#get_phylomarkers-manual) and [**tutorials**](https://vinuesa.github.io/get_phylomarkers/#get_phylomarkers-tutorial), including a [**graphical flowchart**](https://vinuesa.github.io/get_phylomarkers/#brief-presentation-and-graphical-overview-of-the-pipeline) of the pipeline and explanations of the implementation details. 
-See also our [plant tutorial](http://eead-csic-compbio.github.io/get_homologues/plant_pangenome/protocol.html#downstream-phylogenomic-analyses).
+See also our [**plant tutorial**](http://eead-csic-compbio.github.io/get_homologues/plant_pangenome/protocol.html#downstream-phylogenomic-analyses).
 
 ## Citation.
 
