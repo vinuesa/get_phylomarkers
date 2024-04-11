@@ -6,7 +6,7 @@ cd FastTree_v2.1.11
 wget -c wget -c http://www.microbesonline.org/fasttree/FastTree-2.1.11.c
 
 # compile with double precision to resolve short branches!
-gcc -DUSE_DOUBLE -O3 -finline-functions -funroll-loops -Wall -o FastTree FastTree-2.1.11.c -lm
+gcc -static -s -DUSE_DOUBLE -O3 -finline-functions -funroll-loops -Wall -o FastTree FastTree-2.1.11.c -lm
 #gcc -O3 -finline-functions -funroll-loops -Wall -o FastTree FastTree.c -lm
 # or if that fails
 gcc -DNO_SSE -O3 -finline-functions -funroll-loops -Wall -o FastTree FastTree-2.1.11.c -lm
