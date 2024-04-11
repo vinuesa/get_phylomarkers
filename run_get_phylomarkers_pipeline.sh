@@ -45,7 +45,7 @@ set -u
 set -o pipefail
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.7.6.4_2024-04-09'
+VERSION='2.7.6.5_2024-04-10'
                          		   
 # Set GLOBALS
 # in Strict mode, need to explicitly set undefined variables to an empty string var=''
@@ -1536,19 +1536,21 @@ then
         { mkdir "$top_markers_dir" && cd "$top_markers_dir" ; } || { msg "ERROR: cannot cd into $top_markers_dir" ERROR RED && exit 1 ; }
         top_markers_dir=$(pwd)
         ln -s ../"$top_markers_tab" .
-	while read -r id rest; do 
+	while read -r id _; do 
 	     [[ "$id" =~ loci ]] && continue
 	     id=${id//\"/}
 	     
 	     # -h doesn't work with globs. Use a for loop
-	     for i in "${id}"*; do
-	         if [ ! -h "${i}" ]
-	         then
+	     for i in $(find .. -maxdepth 1 -name "${id}"\* -printf "%f\n")
+	     do
+	         (( DEBUG > 0 )) && msg " > reading top_markers_tab:$top_markers_tab in top_markers_dir:$top_markers_dir; running: ln -s ../${i} ." DEBUG NC
+	         if [ ! -h "$i" ]
+		 then
 	             ln -s ../"$i" .
 	         else
 	             continue
 	         fi
-	      done
+	     done
 	done < "$top_markers_tab"
 
         (( no_top_markers < 2 )) && print_start_time && msg " >>> Warning: There are less than 2 top markers. Relax your filtering thresholds. will exit now!" ERROR LRED && exit 3
@@ -1918,22 +1920,33 @@ then
 
 	ln -s ../*fasta .
     	no_top_markers=$(find . -name "*.fasta" | wc -l)
-    	tmpf=$(find . -name "*.fasta" | head -1)
+    	tmpf=$(find . -maxdepth 1 -name "*.fasta" | head -1)
     	no_seqs=$(grep -c '>' "$tmpf")
     	(( DEBUG > 0 )) && msg "no_seqs:$no_seqs" DEBUG NC
     
-        print_start_time && msg "# Will run descriptive DNA polymorphism statistics for $no_top_markers top markers. This will take some time ..." PROGR BLUE
+        print_start_time && msg "# Will run descriptive DNA polymorphism statistics for $no_top_markers top markers. This will take some time!" PROGR BLUE
+	    
+    	#TajD_crit_vals=$(get_critical_TajD_values "$no_seqs")
+    	#TajD_l=$(printf "%s\n" "$TajD_crit_vals" | awk '{print $1}')
+    	#TajD_u=$(printf "%s\n" "$TajD_crit_vals" | awk '{print $2}')
+
+    	declare -a TajD_crit_vals
+	TajD_crit_vals=()
+	TajD_crit_vals=( $(get_critical_TajD_values "$no_seqs") )
+    	TajD_l="${TajD_crit_vals[0]}"
+    	TajD_u="${TajD_crit_vals[1]}"
     
-    	TajD_crit_vals=$(get_critical_TajD_values "$no_seqs")
-    	TajD_l=$(echo "$TajD_crit_vals" | awk '{print $1}')
-    	TajD_u=$(echo "$TajD_crit_vals" | awk '{print $2}')
+    	#FuLi_crit_vals=$(get_critical_FuLi_values "$no_seqs")
+    	#FuLi_l=$(printf "%s\n" "$FuLi_crit_vals"|awk '{print $1}')
+    	#FuLi_u=$(printf "%s\n" "$FuLi_crit_vals"|awk '{print $2}')
     
-    	FuLi_crit_vals=$(get_critical_FuLi_values "$no_seqs")
-    	FuLi_l=$(echo "$FuLi_crit_vals"|awk '{print $1}')
-    	FuLi_u=$(echo "$FuLi_crit_vals"|awk '{print $2}')
-    
-    	(( DEBUG > 0 )) \
-    	&& msg "TajD_crit_vals:$TajD_crit_vals|TajD_l:$TajD_l|TajD_u:$TajD_u|FuLi_crit_vals:$FuLi_crit_vals|FuLi_l:$FuLi_l|FuLi_u:$FuLi_u" DEBUG NC
+    	declare -a FuLi_crit_vals
+	FuLi_crit_vals=()
+	FuLi_crit_vals=( $(get_critical_FuLi_values "$no_seqs") )
+    	FuLi_l="${FuLi_crit_vals[0]}"
+    	FuLi_u="${FuLi_crit_vals[1]}"
+
+    	#(( DEBUG > 0 )) && msg "TajD_crit_vals:$TajD_crit_vals|TajD_l:$TajD_l|TajD_u:$TajD_u|FuLi_crit_vals:$FuLi_crit_vals|FuLi_l:$FuLi_l|FuLi_u:$FuLi_u" DEBUG NC
     
         print_start_time && msg "# converting $no_top_markers fasta files to nexus format ..." PROGR BLUE
         (( DEBUG > 0 )) && msg " > convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null" DEBUG NC
@@ -2212,10 +2225,13 @@ then
     ln -s ../"$top_markers_tab" .
     #for base in $(awk '{print $1}' "$top_markers_tab" |grep -v loci|sed 's/"//g'); do ln -s ../"${base}"* .; done
     # https://www.shellcheck.net/wiki/SC2013
-    while IFS= read -r base
-    do
+    while read -r base _; do
         # -h doesn't work with globs. Use a for loop
-	for b in "${base}"*; do 
+	[[ "$base" =~ loci ]] && continue
+	base=${base//\"/}
+	for b in $(find .. -maxdepth 1 -name "${base}"\* -printf "%f\n")
+        do
+	    (( DEBUG > 0 )) && msg " > reading base:$base in top_markers_tab:$top_markers_tab in top_markers_dir:$top_markers_dir; running: ln -s ../${b} ." DEBUG NC
 	    if [ ! -h "$b" ];
 	    then
 	        ln -s ../"${b}" .
@@ -2223,7 +2239,7 @@ then
 	        continue
 	    fi
 	done   
-    done < <(awk '{print $1}' < "$top_markers_tab" | grep -v loci| sed 's/"//g')
+    done < "$top_markers_tab"
 
     (( no_top_markers < 2 )) \
     && print_start_time \
