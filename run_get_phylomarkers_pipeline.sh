@@ -45,7 +45,7 @@ set -u
 set -o pipefail
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.7.6.5_2024-04-10'
+VERSION='2.7.6.6_2024-04-10'
                          		   
 # Set GLOBALS
 # in Strict mode, need to explicitly set undefined variables to an empty string var=''
@@ -664,6 +664,9 @@ nrep_IQT_searches=5
 
 software_versions=0
 
+declare -a args
+args=("$@")
+
 while getopts ':-:c:D:e:f:I:k:l:m:M:n:N:p:q:r:s:t:A:T:R:S:hCHKvV' VAL
 do
    case $VAL in
@@ -929,9 +932,10 @@ lmsg="Run started on $TIMESTAMP_SHORT_HMS under $OSTYPE on $HOSTNAME with $n_cor
      IQT_models:$IQT_models|search_thoroughness:$search_thoroughness
      nrep_IQT_searches:$nrep_IQT_searches|IQT_threads:$IQT_threads
  > Molecular Clock parmeters:
-     eval_clock:$eval_clock|root_method:$root_method|base_model:$base_mod|ChiSq_quantile:$q   
+     eval_clock:$eval_clock|root_method:$root_method|base_model:$base_mod|ChiSq_quantile:$q    
+ > DEBUG=$DEBUG
  
- DEBUG=$DEBUG"
+ # script invocation: $progname ${args[@]}"
  
 msg "$lmsg" PROGR YELLOW
 
