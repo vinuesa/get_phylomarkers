@@ -59,11 +59,6 @@ config
 description
 hooks/
 info/
-bin/FastTree_v2*
-bin/FastTree_PhiPack
-bin/clustal-omega*
-bin/parallel-*
-bin/phylip-*
 development_history_and_notes.txt
 test_bats_unit_testing_HOTOs.txt
 test.bats
