@@ -35,7 +35,7 @@ cd ../..
 # consense
 
 cd phylip-3.695/src/ 
-gcc -O3 -o consense consense.c phylip.c cons.c -lm
+make -f Makefile.unx consense pars seqboot
 cd ../..
 
 # PAUP
