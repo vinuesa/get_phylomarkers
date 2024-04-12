@@ -2,11 +2,11 @@
 
 [![Build Status](https://app.travis-ci.com/vinuesa/get_phylomarkers.svg?branch=master)](https://travis-ci.com/vinuesa/get_phylomarkers)
 [![Publication](https://img.shields.io/badge/DOI-10.3389/fmicb.2018.00771-blue)](https://doi.org/10.3389/fmicb.2018.00771)
-[![GPLv3 license](https://img.shields.io/badge/License-GPLv3-blue.svg)](http://perso.crans.org/besson/LICENSE.html)
+[![GPLv3-like license](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE.txt)
 [![DockerHub](https://badgen.net/badge/icon/docker?icon=docker&label)](https://hub.docker.com/r/vinuesa/get_phylomarkers)
 
 
-**GET_PHYLOMARKERS** ([Vinuesa et al., 2018](https://www.frontiersin.org/articles/10.3389/fmicb.2018.00771/full)) is an open-source software package to select optimal markers for microbial phylogenomics and species tree estimation using the multispecies coalescent and concatenation approaches. It implements a [**bioinformatics pipeline**](https://vinuesa.github.io/get_phylomarkers/#brief-presentation-and-graphical-overview-of-the-pipeline) to filter orthologous gene clusters computed by the companion package [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues) to select those with optimal attributes for phylogenetic inference using maximum likelihood (ML). Multiple sequence alignments of loci passing the filters are concatenated into a supermatrix to estimate a species tree under the ML criterion using the state-of-the-art fast ML tree searching algorithms [FastTree](http://www.microbesonline.org/fasttree/) or [IQ-TREE](http://www.iqtree.org/).
+**GET_PHYLOMARKERS** ([Vinuesa et al., 2018](https://www.frontiersin.org/articles/10.3389/fmicb.2018.00771/full)) is primarily an open-source software package to select optimal markers for microbial phylogenomics and species tree estimation using the multispecies coalescent and concatenation approaches. It implements a [**bioinformatics pipeline**](https://vinuesa.github.io/get_phylomarkers/#brief-presentation-and-graphical-overview-of-the-pipeline) to filter orthologous gene clusters computed by the companion package [**GET_HOMOLOGUES**](https://github.com/eead-csic-compbio/get_homologues) to select those with optimal attributes for phylogenetic inference using maximum likelihood (ML). Multiple sequence alignments of loci passing the filters are concatenated into a supermatrix to estimate a species tree under the ML criterion using the state-of-the-art fast ML tree searching algorithms [FastTree](http://www.microbesonline.org/fasttree) or [IQ-TREE](http://www.iqtree.org). We have also tested it with **plant coding sequences** (details [here](https://github.com/vinuesa/get_phylomarkers?tab=readme-ov-file#manual-and-tutorials)).
 
 Starting with **release 2.0.0** (2022-11-20), a **concatenation-independent species tree** is computed from the ML gene trees estimated from top-scoring alignments using [ASTRAL-III](https://github.com/smirarab/ASTRAL). 
 
@@ -58,7 +58,8 @@ the pipeline should be run using protein instead of DNA sequences.
 
 ## Manual and tutorials
 
-Please, follow the links for a detailed [**manual**](https://vinuesa.github.io/get_phylomarkers/#get_phylomarkers-manual) and [**tutorials**](https://vinuesa.github.io/get_phylomarkers/#get_phylomarkers-tutorial), including a [**graphical flowchart**](https://vinuesa.github.io/get_phylomarkers/#brief-presentation-and-graphical-overview-of-the-pipeline) of the pipeline and explanations of the implementation details.
+Please, follow the links for a detailed [**manual**](https://vinuesa.github.io/get_phylomarkers/#get_phylomarkers-manual) and [**tutorials**](https://vinuesa.github.io/get_phylomarkers/#get_phylomarkers-tutorial), including a [**graphical flowchart**](https://vinuesa.github.io/get_phylomarkers/#brief-presentation-and-graphical-overview-of-the-pipeline) of the pipeline and explanations of the implementation details. 
+See also our [**plant tutorial**](http://eead-csic-compbio.github.io/get_homologues/plant_pangenome/protocol.html#downstream-phylogenomic-analyses).
 
 ## Citation.
 
@@ -71,21 +72,21 @@ Published in the Research Topic on "Microbial Taxonomy, Phylogeny and Biodiversi
 http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity
 
 ## Code
-- Source sode is freely available from [GitHub](https://github.com/vinuesa/get_phylomarkers) and released under the GNU GPLv3 license.
+
+- Source sode is freely available from [GitHub](https://github.com/vinuesa/get_phylomarkers) and released under a [GPLv3-like license](./LICENSE.txt).
 - Docker images ready to pull
     - [GET_PHYLOMARKERS Docker image](https://hub.docker.com/repository/docker/vinuesa/get_phylomarkers)
     - [GET_HOMOLOGUES+GET_PHYLOMARKERS Docker image](https://hub.docker.com/r/csicunam/get_homologues)
 
 ## Developers
+
 The code is developed and maintained by [Pablo Vinuesa](https://www.ccg.unam.mx/~vinuesa/) 
 at [CCG-UNAM, Mexico](https://www.ccg.unam.mx) and 
 Bruno Contreras-Moreira  at [EEAD-CSIC, Spain](https://www.eead.csic.es/compbio). 
-It is released to the public domain with a [GPLv3-like license](./LICENSE.txt).
 
 ## Acknowledgements
 
-### Personal
 We thank Alfredo J. Hernández and Víctor del Moral at CCG-UNAM for technical support with server administration.
 
 ### Funding
-We gratefully acknowledge the funding provided over the years by [DGAPA-PAPIIT/UNAM](https://dgapa.unam.mx/index.php/impulso-a-la-investigacion/papiit) (grants IN201806-2, IN211814, IN206318, and IN216424) and [CONAHCyT-Mexico](https://conahcyt.mx/) (grants P1-60071, 179133 and A1-S-11242) to [Pablo Vinuesa](https://www.ccg.unam.mx/~vinuesa/), as well as the Fundación ARAID,Consejo  Superior  de Investigaciones Científicas (grant 200720I038 and Spanish MINECO (AGL2013-48756-R) to [Bruno Contreras-Moreira](https://www.eead.csic.es/home/staffinfo?Id=71).
+We gratefully acknowledge the funding provided over the years by [DGAPA-PAPIIT/UNAM](https://dgapa.unam.mx/index.php/impulso-a-la-investigacion/papiit) (grants IN201806-2, IN211814, IN206318, and IN216424) and [CONAHCyT-Mexico](https://conahcyt.mx/) (grants P1-60071, 179133 and A1-S-11242) to [Pablo Vinuesa](https://www.ccg.unam.mx/~vinuesa/), as well as the Fundación ARAID,Consejo  Superior  de Investigaciones Científicas (grant 200720I038 and Spanish MINECO (AGL2013-48756-R) to Bruno Contreras-Moreira.
