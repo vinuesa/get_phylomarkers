@@ -14,9 +14,10 @@
 #           see https://github.com/vinuesa/get_phylomarkers/blob/master/LICENSE.txt
 #
 #: AVAILABILITY: freely available from GitHub @ https://github.com/vinuesa/get_phylomarkers
-#                freely available from DockerHub @ https://hub.docker.com/r/vinuesa/get_phylomarkers
+#                and DockerHub @ https://hub.docker.com/r/vinuesa/get_phylomarkers
 #
-#: PROJECT START: April 2017; This is a wrapper script to automate the whole process of marker selection and downstream phylogenomic analyses.
+#: PROJECT START: April 2017; This is a wrapper script to automate the whole process of marker selection
+#                     and downstream phylogenomic analyses.
 #
 #: AIM: select optimal molecular markers for phylogenomics and population genomics from orthologous gene clusters computed by GET_HOMOLOGUES,
 #           which is freely available from GitHub @ https://github.com/eead-csic-compbio/get_homologues
@@ -44,7 +45,7 @@ set -u
 set -o pipefail
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.7.6.6_2024-04-10'
+VERSION='2.7.6.8_2024-04-13'
                          		   
 # Set GLOBALS
 # in Strict mode, need to explicitly set undefined variables to an empty string var=''
@@ -1272,7 +1273,6 @@ no_non_recomb_alns_perm_test=$(awk '$2 > 5e-02 && $3 > 5e-02' Phi_results_"${TIM
 total_no_cdn_alns=$(find . -name '*_cdnAln.fasta' | wc -l)
 
 
-
 # 3.4 Check the number of remaining non-recombinant alignments
 if [ "${#nonInfoAln[@]}" == 0 ]
 then
@@ -1306,8 +1306,10 @@ filtering_results_kyes_a+=('Phi_test_n_nonInfoAln')
 
 filtering_results_h[n_non_recomb_alns_perm_test]="$no_non_recomb_alns_perm_test"
 filtering_results_kyes_a+=('n_non_recomb_alns_perm_test')
-
 (( DEBUG > 0 )) && for k in "${filtering_results_kyes_a[@]}"; do echo "$k: ${filtering_results_h[$k]}"; done
+
+msg " >>> Phi test found ${filtering_results_h[n_recomb_alns_perm_test]} recombinant alignments" PROGR GREEN
+
 
 #3.5 cleanup dir
 tar -czf Phi_test_log_files.tgz ./*Phi.log
@@ -1478,9 +1480,8 @@ then
     # 4.2 run_kdetrees.R at desired stringency
     print_start_time && msg "# running kde test ..." PROGR BLUE
     (( DEBUG > 0 )) && msg " > ${distrodir}/run_kdetrees.R ${gene_tree_ext} all_gene_trees.tre $kde_stringency &> /dev/null" DEBUG NC
-    #{ "${distrodir}"/run_kdetrees.R "${gene_tree_ext}" all_gene_trees.tre "$kde_stringency" &> /dev/null && return 0 ; }
-    "${distrodir}"/run_kdetrees.R "${gene_tree_ext}" all_gene_trees.tre "$kde_stringency" &> /dev/null || \
-     { msg "WARNING could not run ${distrodir}/run_kdetrees.R ${gene_tree_ext} all_gene_trees.tre $kde_stringency &> /dev/null" WARNING LRED ; }
+    "${distrodir}"/run_kdetrees.R "${gene_tree_ext}" all_gene_trees.tre "$kde_stringency" &> /dev/null && { echo "run_kdetrees.R returns $?" ; } ### <<< CHECK THIS; instead of || \ next line
+     #{ msg "WARNING could not run ${distrodir}/run_kdetrees.R ${gene_tree_ext} all_gene_trees.tre $kde_stringency &> /dev/null" WARNING LRED ; }
     
     # Print a warning if kdetrees could not be run, but do now exit
     #[ ! -s kde_dfr_file_all_gene_trees.tre.tab ] && install_Rlibs_msg kde_dfr_file_all_gene_trees.tre.tab kdetrees,ape
@@ -1495,7 +1496,8 @@ then
         no_kde_ok=$(wc -l all_gene_trees.tre | awk '{print $1}')
     else
         # 4.3 mv outliers to kde_outliers
-        no_kde_outliers=$(grep -c outlier kde_dfr_file_all_gene_trees.tre.tab)
+        check_output kde_dfr_file_all_gene_trees.tre.tab "$parent_PID"
+	no_kde_outliers=$(grep -c outlier kde_dfr_file_all_gene_trees.tre.tab)
         no_kde_ok=$(grep -v outlier kde_dfr_file_all_gene_trees.tre.tab|grep -vc '^file')
     fi 
     ((DEBUG > 0 )) && msg "PRINT_KDE_ERR_MESSAGE: $PRINT_KDE_ERR_MESSAGE; no_kde_outliers:$no_kde_outliers; no_kde_ok:$no_kde_ok" DEBUG NC
@@ -1979,9 +1981,9 @@ then
         print_start_time && msg "# Moved into dir popGen ..." PROGR LBLUE
 
 	ln -s ../*fasta .
-    	no_top_markers=$(find . -name "*.fasta" | wc -l)
-    	tmpf=$(find . -maxdepth 1 -name "*.fasta" | head -1)
-    	no_seqs=$(grep -c '>' "$tmpf")
+    	no_top_markers=$(find . -name \*.fasta | wc -l)
+    	tmpf=$(find . -maxdepth 1 -name \*.fasta | head -1)
+    	[ -s "$tmpf" ] && no_seqs=$(grep -c '>' "$tmpf")
     	(( DEBUG > 0 )) && msg "no_seqs:$no_seqs" DEBUG NC
     
         print_start_time && msg "# Will run descriptive DNA polymorphism statistics for $no_top_markers top markers. This will take some time!" PROGR BLUE
@@ -1989,12 +1991,15 @@ then
     	#TajD_crit_vals=$(get_critical_TajD_values "$no_seqs")
     	#TajD_l=$(printf "%s\n" "$TajD_crit_vals" | awk '{print $1}')
     	#TajD_u=$(printf "%s\n" "$TajD_crit_vals" | awk '{print $2}')
+	
+	TajD_l=TajD_u=FuLi_lFuLi_u=''
 
     	declare -a TajD_crit_vals
 	TajD_crit_vals=()
-	TajD_crit_vals=( $(get_critical_TajD_values "$no_seqs") )
-    	TajD_l="${TajD_crit_vals[0]}"
-    	TajD_u="${TajD_crit_vals[1]}"
+	#TajD_crit_vals=( $(get_critical_TajD_values "$no_seqs") ) # key fix! read -a to split command output 
+	read -r -a TajD_crit_vals <<< "$(get_critical_TajD_values "$no_seqs")"
+    	TajD_l=${TajD_crit_vals[0]}
+    	TajD_u=${TajD_crit_vals[1]}
     
     	#FuLi_crit_vals=$(get_critical_FuLi_values "$no_seqs")
     	#FuLi_l=$(printf "%s\n" "$FuLi_crit_vals"|awk '{print $1}')
@@ -2002,19 +2007,16 @@ then
     
     	declare -a FuLi_crit_vals
 	FuLi_crit_vals=()
-	FuLi_crit_vals=( $(get_critical_FuLi_values "$no_seqs") )
-    	FuLi_l="${FuLi_crit_vals[0]}"
-    	FuLi_u="${FuLi_crit_vals[1]}"
+	#FuLi_crit_vals=( $(get_critical_FuLi_values "$no_seqs") )
+	read -r -a FuLi_crit_vals <<< "$(get_critical_FuLi_values "$no_seqs")"
+    	FuLi_l=${FuLi_crit_vals[0]}
+    	FuLi_u=${FuLi_crit_vals[1]}
 
-    	#(( DEBUG > 0 )) && msg "TajD_crit_vals:$TajD_crit_vals|TajD_l:$TajD_l|TajD_u:$TajD_u|FuLi_crit_vals:$FuLi_crit_vals|FuLi_l:$FuLi_l|FuLi_u:$FuLi_u" DEBUG NC
+    	(( DEBUG > 0 )) && msg " # TajD_crit_vals:$TajD_crit_vals|TajD_l:$TajD_l|TajD_u:$TajD_u|FuLi_crit_vals:$FuLi_crit_vals|FuLi_l:$FuLi_l|FuLi_u:$FuLi_u" DEBUG NC
     
         print_start_time && msg "# converting $no_top_markers fasta files to nexus format ..." PROGR BLUE
         (( DEBUG > 0 )) && msg " > convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null" DEBUG NC
-    	#$distrodir/
-    	"${distrodir}"/convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null 
-	#; } || \
-	#{ msg "WARNING: could not run convert_aln_format_batch_bp.pl fasta fasta nexus nex" WARNING LRED ; }
-    
+     
         print_start_time && msg "# Running popGen_summStats.pl ..." PROGR BLUE
     	lmsg=" > popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u &> popGen_summStats_hs100.log"
     	(( DEBUG > 0 )) && msg "$lmsg" DEBUG NC
@@ -2656,11 +2658,11 @@ Docker images at:
    https://github.com/vinuesa/get_phylomarkers/issues
 
    Alternatively, see our contact details at:
-   http://www.ccg.unam.mx/~vinuesa/
+   https://www.ccg.unam.mx/~vinuesa/
    https://www.eead.csic.es/home/staffinfo?Id=71
 
-   Please run the script with the -D 1 or -D 2 added at the end of the
-   command line, and send us the output, to better diagnose
+   Please run the script with the -D 1 or -D 2 options added at the end
+   of the command line, and send us the output, to better diagnose
    the problem.
 
    Thanks!
