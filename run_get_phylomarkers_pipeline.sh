@@ -34,7 +34,6 @@
 #    eCollection 2018. PubMed PMID: 29765358; PubMed Central PMCID: PMC5938378.
 # ===============================================================================================================
 
-
 # Set Bash strict mode
 # http://redsymbol.net/articles/unofficial-bash-strict-mode/
 #set -x # enables debugging output to trace the execution flow; required to get spot set -e problems.
@@ -58,6 +57,11 @@ lmsg=''
 gene_tree_ext=''
 no_kde_outliers=''
 no_kde_ok=''
+
+declare -A filtering_results_h
+filtering_results_h=()
+declare -a filtering_results_kyes_a
+filtering_results_kyes_a=()
 
 min_bash_vers=4.3 # required for:
                   # 1.  printf '%(%F)T' '-1' in print_start_time; and 
@@ -932,7 +936,7 @@ lmsg="Run started on $TIMESTAMP_SHORT_HMS under $OSTYPE on $HOSTNAME with $n_cor
      IQT_models:$IQT_models|search_thoroughness:$search_thoroughness
      nrep_IQT_searches:$nrep_IQT_searches|IQT_threads:$IQT_threads
  > Molecular Clock parmeters:
-     eval_clock:$eval_clock|root_method:$root_method|base_model:$base_mod|ChiSq_quantile:$q    
+     eval_clock:$eval_clock|root_method:$root_method|base_model:$base_mod|ChiSq_quantile:$q
  > DEBUG=$DEBUG
  
  # script invocation: $progname ${args[@]}"
@@ -980,6 +984,9 @@ then
    msg "  http://eead-csic-compbio.github.io/get_homologues/manual/" ERROR LBLUE
    exit 3
 fi
+
+filtering_results_h[starting_loci]="$nfna"
+filtering_results_kyes_a+=('starting_loci')
 
 { mkdir "get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}" && cd "get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}" ; } \
  || { msg "ERROR: cannot cd into  get_phylomarkers_run_${dir_suffix}_${TIMESTAMP_SHORT}" ERROR RED && exit 1 ; }
@@ -1063,6 +1070,9 @@ fi
 { "${distrodir}"/run_parallel_cmmds.pl fnaed 'add_nos2fasta_header.pl $file > ${file}no' "$n_cores" &> /dev/null && return 0; }
 
 no_alns=$(find . -name "*.fnaedno" | wc -l)
+
+filtering_results_h[num_alignments]="$no_alns"
+filtering_results_kyes_a+=('num_alignments')
 
 (( no_alns == 0 )) && msg " >>> ERROR: There are no codon alignments to work on! Something went wrong. Please check input and settings ... " ERROR RED && exit 4
 print_start_time && msg "# Total number of alignments to be computed $no_alns" PROGR BLUE
@@ -1195,6 +1205,11 @@ if [[ "${#SRHtest_logs[@]}" -gt  0 ]]; then
     parse_SRH_tests 'csv'
 fi
 
+filtering_results_h[no_alns_failing_SRHtests]="$no_alns_failing_SRHtests"
+filtering_results_kyes_a+=('no_alns_failing_SRHtests')
+
+filtering_results_h[no_alns_passing_SRHtests]="$no_alns_passing_SRHtests"
+filtering_results_kyes_a+=('no_alns_passing_SRHtests')
 
 #---------------------------------------------------------------------------------------------------------#
 #>>>BLOCK 3. run Phi-test to identify recombinant codon alignments on all *_cdnAln.fasta source files <<< #
@@ -1257,6 +1272,7 @@ no_non_recomb_alns_perm_test=$(awk '$2 > 5e-02 && $3 > 5e-02' Phi_results_"${TIM
 total_no_cdn_alns=$(find . -name '*_cdnAln.fasta' | wc -l)
 
 
+
 # 3.4 Check the number of remaining non-recombinant alignments
 if [ "${#nonInfoAln[@]}" == 0 ]
 then
@@ -1281,6 +1297,17 @@ then
 fi
 
 (( no_non_recomb_alns_perm_test < 1 )) && print_start_time && msg " >>> ERROR: All alignments seem to have recombinant sequences. will exit now!" ERROR RED && exit 3
+
+filtering_results_h[n_recomb_alns_perm_test]=$((total_no_cdn_alns - no_non_recomb_alns_perm_test))
+filtering_results_kyes_a+=('n_recomb_alns_perm_test')
+
+filtering_results_h[Phi_test_n_nonInfoAln]="${#nonInfoAln[@]}"
+filtering_results_kyes_a+=('Phi_test_n_nonInfoAln')
+
+filtering_results_h[n_non_recomb_alns_perm_test]="$no_non_recomb_alns_perm_test"
+filtering_results_kyes_a+=('n_non_recomb_alns_perm_test')
+
+(( DEBUG > 0 )) && for k in "${filtering_results_kyes_a[@]}"; do echo "$k: ${filtering_results_h[$k]}"; done
 
 #3.5 cleanup dir
 tar -czf Phi_test_log_files.tgz ./*Phi.log
@@ -1356,6 +1383,10 @@ then
 	compute_FT_gene_tree_stats "$mol_type" "$search_thoroughness" "$parent_PID"
 	print_start_time && msg "# running compute_MJRC_tree ph $search_algorithm ..." PROGR BLUE
 	compute_MJRC_tree ph "$search_algorithm" 
+	
+	filtering_results_h[n_starting_gene_trees]="$no_gene_trees"
+        filtering_results_kyes_a+=('n_starting_gene_trees')
+        (( DEBUG > 0 )) && for k in "${filtering_results_kyes_a[@]}"; do echo "$k: ${filtering_results_h[$k]}"; done
     else
         gene_tree_ext="treefile"
 	msg "" PROGR NC
@@ -1371,6 +1402,10 @@ then
 	compute_IQT_gene_tree_stats "$mol_type" "$search_thoroughness"      
 	print_start_time && msg "# running compute_MJRC_tree treefile $search_algorithm ..." PROGR BLUE
 	compute_MJRC_tree treefile "$search_algorithm" 
+	
+	filtering_results_h[n_starting_gene_trees]="$no_gene_trees"
+        filtering_results_kyes_a+=('n_starting_gene_trees')
+        (( DEBUG > 0 )) && for k in "${filtering_results_kyes_a[@]}"; do echo "$k: ${filtering_results_h[$k]}"; done
     fi
 
     #remove trees with < 4 external branches
@@ -1386,10 +1421,10 @@ then
     (( DEBUG > 0 )) && msg " >  removing trees with < $min_no_ext_branches external branches (leaves)" DEBUG NC
      
     # collect the fasta file names producing "no real trees" with < 4 external branches in the no_tree_counter array
-    declare -a no_tree_counter
-    no_tree_counter=()
+    declare -a no_tree_counter_a
+    no_tree_counter_a=()
     #for phy in $(grep -v '^#Tree' no_tree_branches.list | awk -v min_no_ext_branches="$min_no_ext_branches" 'BEGIN{FS="\t"; OFS="\t"}$7 < min_no_ext_branches {print $1}')
-    while IFS= read -r phy; do
+    while read -r phy; do
   	if [ "$search_algorithm" == "F" ]; then
             base=${phy//_FTGTR\.ph/}
         elif [ "$search_algorithm" == "I" ]; then
@@ -1397,19 +1432,26 @@ then
         else
             continue  # Skip processing if search_algorithm is not "F" or "I"
         fi
-	    
-        print_start_time && msg " will remove ${base}* because it has < $min_no_ext_branches external branches" WARNING LRED
-        if [ -e "$base" ]; then
-	   (( DEBUG > 0 )) && msg "will remove: ${base}* ..." DEBUG NC
-	   no_tree_counter+=("$base")
+	
+        print_start_time && msg " will remove ${base} because it has < $min_no_ext_branches external branches" WARNING LRED
+        if [ -s "$base" ]; then
+	   (( DEBUG > 0 )) && msg "will remove: ${base} ..." DEBUG NC
+	   no_tree_counter_a+=("$base")
 	   rm "$base" "${base}".*
 	fi	 
     done < <(grep -v '^#Tree' no_tree_branches.list | awk -v min_no_ext_branches="$min_no_ext_branches" 'BEGIN{FS="\t"; OFS="\t"}$7 < min_no_ext_branches {print $1}')
     
-    if [[ "${#no_tree_counter[@]}" -gt 0 ]]; then
-        msg " >>> WARNING: there are  ${#no_tree_counter[@]} trees with < 1 internal branches (not real trees) that will be discarded ..." WARNING LRED
+    if [[ "${#no_tree_counter_a[@]}" -gt 0 ]]; then
+        msg " >>> WARNING: there are ${#no_tree_counter_a[@]} trees with < 1 internal branches (not real trees) that will be discarded ..." WARNING LRED
     fi
+    
+    filtering_results_h[n_trivial_gene_trees]="${#no_tree_counter_a[@]}"
+    filtering_results_kyes_a+=('n_trivial_gene_trees')
 
+    filtering_results_h[n_non_trivial_gene_trees]=$((no_gene_trees - "${#no_tree_counter_a[@]}"))
+    filtering_results_kyes_a+=('n_non_trivial_gene_trees')
+    (( DEBUG > 0 )) && for k in "${filtering_results_kyes_a[@]}"; do echo "$k: ${filtering_results_h[$k]}"; done
+    
     msg "" PROGR NC
     msg " >>>>>>>>>>>>>>> filter gene trees for outliers with kdetrees test <<<<<<<<<<<<<<< " PROGR YELLOW
     msg "" PROGR NC
@@ -1457,6 +1499,13 @@ then
         no_kde_ok=$(grep -v outlier kde_dfr_file_all_gene_trees.tre.tab|grep -vc '^file')
     fi 
     ((DEBUG > 0 )) && msg "PRINT_KDE_ERR_MESSAGE: $PRINT_KDE_ERR_MESSAGE; no_kde_outliers:$no_kde_outliers; no_kde_ok:$no_kde_ok" DEBUG NC
+
+    filtering_results_h[n_KDE_gene_tree_outliers]="$no_kde_outliers"
+    filtering_results_kyes_a+=('n_KDE_gene_tree_outliers')
+
+    filtering_results_h[n_KDE_gene_trees_OK]="$no_kde_ok"
+    filtering_results_kyes_a+=('n_KDE_gene_trees_OK')
+    (( DEBUG > 0 )) && for k in "${filtering_results_kyes_a[@]}"; do echo "$k: ${filtering_results_h[$k]}"; done
 
 
     # 4.4 Check how many cdnAlns passed the test and separate into two subirectories those passing and failing the test
@@ -1534,6 +1583,13 @@ then
         no_top_markers=$(perl -lne 'END{print $.}' "sorted_aggregated_support_values4loci_ge${min_supp_val_perc}perc.tab")
         top_markers_dir="top_${no_top_markers}_markers_ge${min_supp_val_perc}perc"
 	top_markers_tab=$(find . -maxdepth 1 -type f -name "sorted_aggregated_support_values4loci_ge${min_supp_val_perc}perc.tab" -printf '%f\n')
+
+        filtering_results_h[n_gene_trees_with_low_median_support]=$((no_kde_ok - no_top_markers))
+        filtering_results_kyes_a+=('n_gene_trees_with_low_median_support')
+
+        filtering_results_h[n_top_markers]="$no_top_markers"
+        filtering_results_kyes_a+=('n_top_markers')	
+        (( DEBUG > 0 )) && for k in "${filtering_results_kyes_a[@]}"; do echo "$k: ${filtering_results_h[$k]}"; done	
 
         # >>> 5.2 move top-ranking markers to $top_markers_dir
 	print_start_time && msg "# making dir $top_markers_dir and moving $no_top_markers top markers into it ..." PROGR LBLUE
@@ -2041,6 +2097,10 @@ then
     	
     	print_start_time && msg "# running compute_MJRC_tree $gene_tree_ext $search_algorithm ..." PROGR BLUE
     	compute_MJRC_tree "$gene_tree_ext" "$search_algorithm" 
+
+	filtering_results_h[n_starting_gene_trees]="$no_gene_trees"
+        filtering_results_kyes_a+=('n_starting_gene_trees')
+        (( DEBUG > 0 )) && for k in "${filtering_results_kyes_a[@]}"; do echo "$k: ${filtering_results_h[$k]}"; done
     else
         gene_tree_ext="treefile"
     	msg "" PROGR NC
@@ -2057,7 +2117,11 @@ then
     	compute_IQT_gene_tree_stats "$mol_type" "$search_thoroughness"
     	
     	print_start_time && msg "# running compute_MJRC_tree $gene_tree_ext $search_algorithm ..." PROGR BLUE
-          compute_MJRC_tree "$gene_tree_ext" "$search_algorithm" 
+        compute_MJRC_tree "$gene_tree_ext" "$search_algorithm" 
+
+	filtering_results_h[n_starting_gene_trees]="$no_gene_trees"
+        filtering_results_kyes_a+=('n_starting_gene_trees')
+        (( DEBUG > 0 )) && for k in "${filtering_results_kyes_a[@]}"; do echo "$k: ${filtering_results_h[$k]}"; done
     fi # if/else [[ "$search_algorithm" == "F" ]]
 
     #remove trees with < 5 branches
@@ -2095,6 +2159,15 @@ then
     if [[ "${#no_tree_counter2[@]}" -gt 0 ]]; then
         msg " >>> WARNING: there are ${#no_tree_counter2[@]} trees with < 1 internal branches (not real trees) that will be discarded ..." WARNING LRED
     fi
+     
+    filtering_results_h[n_trivial_gene_trees]="${#no_tree_counter2[@]}"
+    filtering_results_kyes_a+=('n_trivial_gene_trees')
+
+    filtering_results_h[n_non_trivial_gene_trees]=$((no_gene_trees - "${#no_tree_counter2[@]}"))
+    filtering_results_kyes_a+=('n_non_trivial_gene_trees')
+    (( DEBUG > 0 )) && for k in "${filtering_results_kyes_a[@]}"; do echo "$k: ${filtering_results_h[$k]}"; done
+
+
     msg "" PROGR NC
     msg " >>>>>>>>>>>>>>> filter gene trees for outliers with kdetrees test <<<<<<<<<<<<<<< " PROGR YELLOW
     msg "" PROGR NC
@@ -2193,6 +2266,14 @@ then
         #    exit 5
     fi
 
+    filtering_results_h[n_KDE_gene_tree_outliers]="$no_kde_outliers"
+    filtering_results_kyes_a+=('n_KDE_gene_tree_outliers')
+
+    filtering_results_h[n_KDE_gene_trees_OK]="$no_kde_ok"
+    filtering_results_kyes_a+=('n_KDE_gene_trees_OK')
+    (( DEBUG > 0 )) && for k in "${filtering_results_kyes_a[@]}"; do echo "$k: ${filtering_results_h[$k]}"; done
+
+
     #----------------------------------#
     # >>> BLOCK 5.2: PHYLOGENETICS <<< #
     #----------------------------------#
@@ -2221,6 +2302,13 @@ then
     no_top_markers=$(perl -lne 'END{print $.}' "sorted_aggregated_support_values4loci_ge${min_supp_val_perc}perc.tab")
     top_markers_dir="top_${no_top_markers}_markers_ge${min_supp_val_perc}perc"
     top_markers_tab=$(ls "sorted_aggregated_support_values4loci_ge${min_supp_val_perc}perc.tab")
+
+    filtering_results_h[n_gene_trees_with_low_median_support]=$((no_kde_ok - no_top_markers))
+    filtering_results_kyes_a+=('n_gene_trees_with_low_median_support')
+
+    filtering_results_h[n_top_markers]="$no_top_markers"
+    filtering_results_kyes_a+=('n_top_markers')     
+    (( DEBUG > 0 )) && for k in "${filtering_results_kyes_a[@]}"; do echo "$k: ${filtering_results_h[$k]}"; done    
 
     # >>> 5.2 move top-ranking markers to $top_markers_dir
     print_start_time && msg "# making dir $top_markers_dir and moving $no_top_markers top markers into it ..." PROGR LBLUE
@@ -2522,6 +2610,16 @@ then
     msg "#                    This run could therefore not apply kde filtering!" WARNING LRED
     msg "# This issue can be easily avoided by running the containerized version available from https://hub.docker.com/r/vinuesa/get_phylomarkers!" PROGR GREEN
 fi
+
+
+# print the pipeline's filtering overview
+
+print_start_time && msg "# Overview of the pipeline's filtering process:" PROGR LBLUE
+for k in "${filtering_results_kyes_a[@]}"
+do
+    msg "$k: ${filtering_results_h[$k]}" PROGR YELLOW
+done
+
 
 # compute the elapsed time since the script was fired
 end_time=$(date +%s)
