@@ -8,7 +8,10 @@
 #: - hcluster_pangenome_matrix.sh # <<< is officially distributed through the get_homologues GitHub repo
 
 progname="${0##*/}"
-version="2023-01-14"
+version="2024-04-13"
+
+# Activate set Bash's unofficial strict mode.
+set -euo pipefail
 
 function usage()
 {
@@ -87,20 +90,25 @@ echo ">>> Test # 5. FastTree thorough searching on a protein dataset with thorou
 run_get_phylomarkers_pipeline.sh -R 1 -t PROT -A F -T high -m 0.2
 echo
 
-# 6. Run in population-genetics mode (generates a table with descritive statistics for DNA-polymorphisms) with K2P model
-echo ">>> Test # 6. Run in population-genetics mode (generates a table with descritive statistics for DNA-polymorphisms) with K2P model"
+# 6. Run in population-genetics mode with K2P model, estimating the population tree with IQ-TREE
+echo ">>> Test # 6. Run in population-genetics mode with K2P model, estimating the population tree on SNP matrix with IQ-TREE under best-fit model"
 run_get_phylomarkers_pipeline.sh -R 2 -t DNA -S 'K2P'
 echo
 
-# 7. estimate a ML pan-genome tree from the pan-genome matrix, using 2 independent IQT runs and UFBoot
-echo ">>> Test # 7. estimate a ML pan-genome tree from the pan-genome matrix, using 2 independent IQT runs and UFBoot"
+# 7. Run in population-genetics mode, estimating the population tree with FastTree
+echo ">>> Test # 7. Run in population-genetics, estimating the population tree on SNP matrix with FastTree"
+run_get_phylomarkers_pipeline.sh -R 2 -t DNA -A F
+echo
+
+# 8. estimate a ML pan-genome tree from the pan-genome matrix, using 2 independent IQT runs and UFBoot
+echo ">>> Test # 8. estimate a ML pan-genome tree from the pan-genome matrix, using 2 independent IQT runs and UFBoot"
 cd "${base_dir}"/pan_genome  || { echo "ERROR could not cd into $base_dir/pan_genome"; exit 1 ; }
 [ -d iqtree_PGM_2_runs ] && rm -rf iqtree_PGM_2_runs
 estimate_pangenome_phylogenies.sh -f pangenome_matrix_t0.fasta -r 2 -S UFBoot -I 2
 echo
 
-# 8. estimate a PARS  pan-genome tree with bootstrapping; 100 bootstrap replicates divided on 10 core (10 reps / core)
-echo ">>> Test # 8. estimate a PARS  pan-genome tree with bootstrapping; 100 bootstrap replicates divided on 10 core (10 reps / core)"
+# 9. estimate a PARS  pan-genome tree with bootstrapping; 100 bootstrap replicates divided on 10 core (10 reps / core)
+echo ">>> Test # 9. estimate a PARS  pan-genome tree with bootstrapping; 100 bootstrap replicates divided on 10 core (10 reps / core)"
 [ -d boot_pars ] && rm -rf boot_pars
 estimate_pangenome_phylogenies.sh -c PARS -R 3 -i pangenome_matrix_t0.phylip -n 10 -b 10 -j 1 -t 1
 echo
