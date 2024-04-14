@@ -1,7 +1,7 @@
-# version 2024-04-02
+# version 2024-04-13
 use strict;
 use warnings;
-use Test::More tests => 23;
+use Test::More tests => 24;
 
 use lib "lib";
 use lib "lib/perl/bioperl-1.5.2_102/";
@@ -68,10 +68,10 @@ ok( eval{ `bash ./run_test_suite.sh 2>&1` } =~ /LAUNCHING THE CONTAINER/, 'run_t
 ### Test runs of main scripts
 ## NOTE: use -I 2 (but not higher, or a core may be dumped in some occasions by iqtree -T IQT_threads) instead of AUTO to speed-up tests 
 # test 17 default run on DNA sequence ... Builds on docker and locally, fails on travis 
-ok( eval{ `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh -R 1 -t DNA -I 2 | grep "markers into supermatrix" && rm -rf get_phylomarkers_run_*` }, 'run_get_phylomarkers_pipeline.sh -R 1 -t DNA' ); 
+ok( eval{ `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh -R 1 -t DNA -I 2 -N2 | grep "markers into supermatrix" && rm -rf get_phylomarkers_run_*` }, 'run_get_phylomarkers_pipeline.sh -R 1 -t DNA -I 2 -N 2' ); 
 
 # test 18 IQT run on proteins sequence ...
-ok( eval{ `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh -R 1 -t PROT -k 1.5 -m 0.3 -I 2 | grep "wrote file" && rm -rf get_phylomarkers_run_*` }, 'run_get_phylomarkers_pipeline.sh -R 1 -t PROT -k 1.5 -m 0.3' ); 
+ok( eval{ `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh -R 1 -t PROT -k 1.5 -m 0.3 -I 2 -N 2 | grep "wrote file" && rm -rf get_phylomarkers_run_*` }, 'run_get_phylomarkers_pipeline.sh -R 1 -t PROT -k 1.5 -m 0.3 -I 2 -N 2' ); 
 
 # test 19 Thorough FastTree searching and molecular clock analysis on DNA sequences using 10 cores and increasing k stringency
 ok( eval{  `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh -R 1 -t DNA -A F -k 1.2 -m 0.7 -s 20 -l 12 -T high -K -M HKY -q 0.95 | grep "running kde test"` }, 'run_get_phylomarkers_pipeline.sh -R 1 -t DNA -A F -k 1.2 ...' );
@@ -79,11 +79,14 @@ ok( eval{  `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline
 # test 20 FastTree thorough searching on a protein dataset with moderate average bipartition support
 ok( eval{  `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh -R 1 -t PROT -A F -T high -m 0.2 | grep "writing summary tables"` }, 'run_get_phylomarkers_pipeline.sh -R 1 -t PROT -A F ...' );
 
-# test 21  Run in population-genetics mode (generates a table with descritive statistics for DNA-polymorphisms) with K2P model
-#ok( eval{ `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh -R 2 -t DNA -S K2P  | grep "wrote file polymorphism_descript_stats"` }, 'run_get_phylomarkers_pipeline.sh -R 2 -t DNA -S K2P' );
-ok( eval{ `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh -R 2 -t DNA -S K2P -D 1 | grep "Will run descriptive DNA polymorphism statistics"` }, 'run_get_phylomarkers_pipeline.sh -R 2 -t DNA -S K2P -D 1' );
+# test 21  Run in population-genetics mode under K2P model, using IQ-Tree
+ok( eval{ `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh -R 2 -t DNA -S K2P -k 1.3 -T 2 | grep "wrote file concat_cdnAlns_SNPs.fasta"` }, 'run_get_phylomarkers_pipeline.sh -R 2 -t DNA -S K2P -k 1.3 -T 2' );
 
-# test 22 estimate a ML pan-genome tree from the pan-genome matrix, using 2 independent IQT runs and UFBoot
+# test 22  Run in population-genetics mode, estimating population tree using FastTree
+ok( eval{ `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh -R 2 -t DNA -A F -k 1.2 | grep "wrote file concat_cdnAlns_SNPs.fasta"` }, 'run_get_phylomarkers_pipeline.sh -R 2 -t DNA -A F -k 1.2' );
+
+
+# test 23 estimate a ML pan-genome tree from the pan-genome matrix, using 2 independent IQT runs and UFBoot
 my $testOK = ok( eval{ `cd test_sequences/pan_genome && ../../estimate_pangenome_phylogenies.sh -f pangenome_matrix_t0.fasta -r 2 -S UFBoot -I 2 | grep "done!"` }, 'estimate_pangenome_phylogenies.sh -r 2 -S UFBoot ...' );
 
 if(!$testOK) {
@@ -92,5 +95,5 @@ if(!$testOK) {
   print "# Read more at https://github.com/eead-csic-compbio/get_phylomarkers/blob/master/INSTALL.md\n\n";
 }
 
-# test 23 estimate a PARS  pan-genome tree with bootstrapping; 50 bootstrap replicates divided on 10 core (5 reps / core)
+# test 24 estimate a PARS  pan-genome tree with bootstrapping; 50 bootstrap replicates divided on 10 core (5 reps / core)
 ok( eval{ `cd test_sequences/pan_genome && ../../estimate_pangenome_phylogenies.sh -c PARS -R 3 -i pangenome_matrix_t0.phylip -b 5 -j 1 -t 1 | grep "seq_key"` }, 'estimate_pangenome_phylogenies.sh -c PARS -R 3 ...' );
