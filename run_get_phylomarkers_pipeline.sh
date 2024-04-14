@@ -45,7 +45,7 @@ set -u
 set -o pipefail
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.7.6.8_2024-04-13'
+VERSION='2.8.0.0_2024-04-13'
                          		   
 # Set GLOBALS
 # in Strict mode, need to explicitly set undefined variables to an empty string var=''
@@ -1517,14 +1517,15 @@ then
         mkdir kde_outliers || { msg "ERROR: could not run mkdir kde_outliers" ERROR RED && exit 1 ; }
         if [ "$search_algorithm" == "F" ]; then
 	   #for f in $(grep outlier kde_dfr_file_all_gene_trees.tre.tab | cut -f1|sed 's/\.ph//'); do 
-	   while IFS= read -r f; do 
-	       mv "${f}"* kde_outliers
-	   done < <(grep outlier kde_dfr_file_all_gene_trees.tre.tab | cut -f1|sed 's/\.ph//')
+	   while read -r f; do
+	       base=${f/_cdnAln*/_cdnAln} 
+	       mv "${base}"* kde_outliers
+	   done < <(grep outlier kde_dfr_file_all_gene_trees.tre.tab | cut -f1)
 	fi  
 
 	if [ "$search_algorithm" == "I" ]; then
 	   #for f in $(grep outlier kde_dfr_file_all_gene_trees.tre.tab | cut -f1|sed 's/\.treefile//'); do 
-	    while IFS= read -r f; do
+	    while read -r f; do
 	       mv "${f}"* kde_outliers
 	   done < <(grep outlier kde_dfr_file_all_gene_trees.tre.tab | cut -f1|sed 's/\.treefile//')
 	fi   
@@ -1983,52 +1984,234 @@ then
 	ln -s ../*fasta .
     	no_top_markers=$(find . -name \*.fasta | wc -l)
     	tmpf=$(find . -maxdepth 1 -name \*.fasta | head -1)
-    	[ -s "$tmpf" ] && no_seqs=$(grep -c '>' "$tmpf")
+    	if [ -s "$tmpf" ]
+	then
+	     no_seqs=$(grep -c '>' "$tmpf")
+	fi
     	(( DEBUG > 0 )) && msg "no_seqs:$no_seqs" DEBUG NC
     
         print_start_time && msg "# Will run descriptive DNA polymorphism statistics for $no_top_markers top markers. This will take some time!" PROGR BLUE
-	    
-    	#TajD_crit_vals=$(get_critical_TajD_values "$no_seqs")
-    	#TajD_l=$(printf "%s\n" "$TajD_crit_vals" | awk '{print $1}')
-    	#TajD_u=$(printf "%s\n" "$TajD_crit_vals" | awk '{print $2}')
-	
+
 	TajD_l=TajD_u=FuLi_lFuLi_u=''
 
     	declare -a TajD_crit_vals
 	TajD_crit_vals=()
-	#TajD_crit_vals=( $(get_critical_TajD_values "$no_seqs") ) # key fix! read -a to split command output 
-	read -r -a TajD_crit_vals <<< "$(get_critical_TajD_values "$no_seqs")"
+	#TajD_crit_vals=( $(get_critical_TajD_values "$no_seqs") ) 
+	# key fix! read -a to split command output (SC2207)
+	read -r -a TajD_crit_vals <<< "$(get_critical_TajD_values $no_seqs)"
     	TajD_l=${TajD_crit_vals[0]}
     	TajD_u=${TajD_crit_vals[1]}
-    
-    	#FuLi_crit_vals=$(get_critical_FuLi_values "$no_seqs")
-    	#FuLi_l=$(printf "%s\n" "$FuLi_crit_vals"|awk '{print $1}')
-    	#FuLi_u=$(printf "%s\n" "$FuLi_crit_vals"|awk '{print $2}')
     
     	declare -a FuLi_crit_vals
 	FuLi_crit_vals=()
 	#FuLi_crit_vals=( $(get_critical_FuLi_values "$no_seqs") )
-	read -r -a FuLi_crit_vals <<< "$(get_critical_FuLi_values "$no_seqs")"
+	read -r -a FuLi_crit_vals <<< $(get_critical_FuLi_values $no_seqs)
     	FuLi_l=${FuLi_crit_vals[0]}
     	FuLi_u=${FuLi_crit_vals[1]}
 
-    	(( DEBUG > 0 )) && msg " # TajD_crit_vals:$TajD_crit_vals|TajD_l:$TajD_l|TajD_u:$TajD_u|FuLi_crit_vals:$FuLi_crit_vals|FuLi_l:$FuLi_l|FuLi_u:$FuLi_u" DEBUG NC
+    	msg "# TajD_crit_vals:$TajD_crit_vals|TajD_l:$TajD_l|TajD_u:$TajD_u|FuLi_crit_vals:$FuLi_crit_vals|FuLi_l:$FuLi_l|FuLi_u:$FuLi_u" PROGR GREEN
     
         print_start_time && msg "# converting $no_top_markers fasta files to nexus format ..." PROGR BLUE
         (( DEBUG > 0 )) && msg " > convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null" DEBUG NC
+	convert_aln_format_batch_bp.pl fasta fasta nexus nex &> /dev/null
      
         print_start_time && msg "# Running popGen_summStats.pl ..." PROGR BLUE
-    	lmsg=" > popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u &> popGen_summStats_hs100.log"
-    	(( DEBUG > 0 )) && msg "$lmsg" DEBUG NC
+    	lmsg=" > $distrodir/popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t $TajD_l -T $TajD_u -s $FuLi_l -S $FuLi_u &> popGen_summStats_hs100.log"
+    	(( DEBUG > 0 )) && msg "$lmsg" PROGR GREEN
     	"$distrodir"/popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t "$TajD_l" -T "$TajD_u" -s "$FuLi_l" -S "$FuLi_u" &> popGen_summStats_hs100.log
     
     	check_output polymorphism_descript_stats.tab "$parent_PID"
-    
-    	msg " >>> descriptive DNA polymorphism stats are found in: $popGen_dir ..." PROGR GREEN
-    
+	
+	# save the neutral loci into array (SC2207)
+	declare -a neutral_loci
+	neutral_loci=()
+	while read -r aln; do 
+	    neutral_loci+=("$aln")
+	done < <(awk 'BEGIN{FS=OFS="\t"}NR > 1 && ! /\*/{print $1}' polymorphism_descript_stats.tab)
+	
+	msg " >>> Found ${#neutral_loci[@]} netural loci (Tajima's D and Fu & Li's D* tests) out of $no_top_markers top markers ..." PROGR GREEN
+	msg " >>> descriptive DNA polymorphism stats are found in: $popGen_dir ..." PROGR GREEN
+		
+	filtering_results_h[n_non_neutral_markers]=$((no_top_markers - "${#neutral_loci[@]}"))
+        filtering_results_kyes_a+=('n_non_neutral_markers')
+	
+	filtering_results_h[n_neutral_markers]="${#neutral_loci[@]}"
+        filtering_results_kyes_a+=('n_neutral_markers')
+        (( DEBUG > 0 )) && for k in "${filtering_results_kyes_a[@]}"; do echo "$k: ${filtering_results_h[$k]}"; done	
+
+	# move Nexus and FASTA files for neutral loci into its own dir for further processeing 
+	if ((${#neutral_loci[@]} > 0 ))
+	then
+	    mkdir neutral_loci_"${#neutral_loci[@]}" || { msg "ERROR: cannot mkdir neutral_loci_${#neutral_loci[@]}" ERROR RED && exit 1 ; }
+	    print_start_time && msg " # moving into neutral_loci_${#neutral_loci[@]} ..." PROGR LBLUE
+	    for f in "${neutral_loci[@]}"; do
+	        base="${f%.fasta}"
+	        mv "${base}"_clean.fasta neutral_loci_"${#neutral_loci[@]}"
+            done
+	else
+	    msg "Will stop here: 0 neutral loci found in polymorphism_descript_stats.tab" WARNING LRED
+	fi
+	
+	n_non_neutral_loci=$(find . -maxdepth 1 -name \*_clean.fasta | wc -l)
+	if (( n_non_neutral_loci > 0 ))
+	then
+	    mkdir non_neutral_loci || { msg "ERROR: cannot mkdir non_neutral_loci" ERROR RED && exit 1 ; }
+	
+	    msg " >>> moving $n_non_neutral_loci non-neutral markers into non_neutral_loci/ ..." PROGR GREEN
+	    mv ./*fasta non_neutral_loci
+	    (("${#neutral_loci[@]}" > 0 )) && mv ./*.nex non_neutral_loci
+	fi
+	
+	# Concatentate neutral loci, generate SNP matrix and compute phylogeny
+	if (("${#neutral_loci[@]}" > 1 ))
+	then
+	    cd neutral_loci_"${#neutral_loci[@]}" || { msg "ERROR: cannot cd into neutral_loci_${#neutral_loci[@]}" ERROR RED && exit 1 ; }
+ 
+            msg "" PROGR NC
+            msg " >>>>>>>>>>>>>>> generate supermatrix from concatenated, top-ranking, neutral alignments <<<<<<<<<<<<<<< " PROGR YELLOW
+            msg "" PROGR NC
+
+            # >>> 5.3 generate supermatrix (concatenated alignment)
+            print_start_time && msg "# concatenating ${#neutral_loci[@]} top, neutral markers into supermatrix ..." PROGR BLUE
+            (( DEBUG > 0 )) && msg " > concat_alns fasta $parent_PID &> /dev/null" DEBUG NC
+        
+	    concat_alns fasta "$parent_PID" &> /dev/null
+	    
+	    check_output concat_cdnAlns.fna "$parent_PID"
+	            
+            # >>> 5.4 Compute SNPs from the concatenated alignment using snp-sites https://github.com/sanger-pathogens/snp-sites
+	    # NOTE: available on CONDA and installable from apt repo for Debian/Ubuntu 
+            print_start_time && msg "# generating a SNPs matrix in FASTA format from the concatenated alignment ..." PROGR BLUE
+            #(( DEBUG > 0 )) && msg " > ${distrodir}/" DEBUG NC
+            #$distrodir/remove_uninformative_sites_from_aln.pl < concat_cdnAlns.fna > concat_cdnAlns.fnainf
+	    #"${distrodir}"/remove_uninformative_sites_from_aln.pl < concat_cdnAlns.fna > concat_cdnAlns.fnainf
+        
+	    # Generate the snp-matrix in FASTA format
+	    snp-sites -cm -o concat_cdnAlns_SNPs.fasta concat_cdnAlns.fna
+	    check_output concat_cdnAlns_SNPs.fasta "$parent_PID"
+
+	    # Generate the snp-matrix in VCF format
+	    snp-sites -cv -o concat_cdnAlns_SNPs.vcf concat_cdnAlns.fna
+	    check_output concat_cdnAlns_SNPs.vcf "$parent_PID"
+	    
+	    # compute phylogeny
+            if [[ "$search_algorithm" == "F" ]]	
+            then
+	        msg "" PROGR NC
+	        msg " >>>>>>>>>>>>>>> FastTree run on supermatrix to estimate the species tree <<<<<<<<<<<<<<< " PROGR YELLOW
+	        msg "" PROGR NC
+
+	        # 5.4 run FasTree under the GTR+G model
+                print_start_time && msg "# running FastTree on the SNP supermatrix with $search_thoroughness thoroughness. This may take a while ..." PROGR BLUE
+	  
+                (( DEBUG > 0 )) && msg " search_thoroughness: $search_thoroughness" DEBUG NC
+	        if [[ "$search_thoroughness" == "high" ]]
+                then
+                    "$bindir"/FastTree -quiet -nt -gtr -gamma -bionj -slow -slownni -mlacc 3 -spr "$spr" -sprlength "$spr_length" \
+	              -log "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log < concat_cdnAlns_SNPs.fasta > \
+	              "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
+                fi
+
+                if [[ "$search_thoroughness" == "medium" ]]
+                then
+                    "$bindir"/FastTree -quiet -nt -gtr -gamma -bionj -slownni -mlacc 2 -spr "$spr" -sprlength "$spr_length" \
+	            -log "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log < concat_cdnAlns_SNPs.fasta > \
+	            "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
+                fi
+
+                if [[ "$search_thoroughness" == "low" ]]
+                then
+                    { "$bindir"/FastTree -quiet -nt -gtr -gamma -bionj -spr "$spr" -sprlength "$spr_length" \
+	            -log "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log < concat_cdnAlns_SNPs.fasta > \
+	            "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph && return 0 ; }
+                fi
+
+                if [[ "$search_thoroughness" == "lowest" ]]
+                then
+                    "$bindir"/FastTree -quiet -nt -gtr -gamma -mlnni 4 -log "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log \
+	            < concat_cdnAlns_SNPs.fasta > "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
+                fi
+
+                check_output "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph "$parent_PID"
+
+	        if [[ -s "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log" ]] && [[ -s "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph" ]]
+	        then
+	    	    #lnL=$(grep ML_Lengths2 "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log" | grep TreeLogLk | sed 's/TreeLogLk[[:space:]]ML_Lengths2[[:space:]]//')
+	    	    #lnL=$(grep '^Gamma20LogLk' "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log" |awk '{print $2}')
+	    	    lnL=$(awk '/^Gamma20LogLk/{print $2}' "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log")
+	    	    msg " >>> lnL for ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph = $lnL" PROGR GREEN
+	        else
+	    	    msg " >>> ERROR: ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log could not be produced, will stop here" ERROR LRED
+	    	    exit 5
+	        fi
+
+                print_start_time && msg "# Adding labels back to tree ..." PROGR BLUE
+
+	        longmsg=" > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph &> /dev/null"
+                (( DEBUG > 0 )) && msg "$longmsg" DEBUG NC
+                "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph &> /dev/null
+
+                if [[ -s "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG_ed.ph ]]
+                then
+                    mv "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG_ed.ph "${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}cdnAlns_FTGTRG_ed.poptree"
+                    check_output "${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}cdnAlns_FTGTRG_ed.poptree" "$parent_PID"
+                else
+                    msg " >>> WARNING: ${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}cdnAlns_FTGTRG_ed.poptree could not be produced" WARNING LRED
+                fi
+            fi # [ "$search_algorithm" == "F" ]
+
+        #::::::::::::::::::::::::::::::#
+        # >>> IQ-TREE species tree <<< #
+        #::::::::::::::::::::::::::::::#
+            if [[ "$search_algorithm" == "I" ]]
+            then
+	        if [[ "$search_thoroughness" == "high" ]]
+	        then
+	    	    lmsg="# Searching for the best ML tree for the SNP supermatrix with 1000 IQ-Tree superfast boostrap replicates, this may take a while ..."
+	    	    print_start_time && msg "$lmsg" PROGR BLUE
+
+	    	    # run nrep_IQT_searches IQ-TREE searches under the best-fit model found
+	    	    print_start_time && msg " >>> Running $bindir/iqtree -s concat_cdnAlns_SNPs.fasta -st DNA -B 1000 -T $IQT_threads &> /dev/null" PROGR LBLUE
+	    	    "$bindir"/iqtree -s concat_cdnAlns_SNPs.fasta -st DNA -B 1000 -T "$IQT_threads" &> /dev/null
+		        
+	    	    check_output concat_cdnAlns_SNPs.fasta.treefile "$parent_PID"
+                    best_fit_model=$(awk '/^Best-fit model:/{print $3}' concat_cdnAlns_SNPs.fasta.log)
+		    
+		    longmsg=" > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.listconcat_cdnAlns_SNPs.fasta.treefile &> /dev/null"
+                    (( DEBUG > 0 )) && msg "$longmsg" DEBUG NC
+                    "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list concat_cdnAlns_SNPs.fasta.treefile &> /dev/null
+
+		    if [ -s concat_cdnAlns_SNPs_ed.fasta ]
+		    then 
+		       mv concat_cdnAlns_SNPs_ed.fasta concat_cdnAlns_SNPs_population_tree.ph
+		       check_output concat_cdnAlns_SNPs_population_tree.ph "$parent_PID"
+		    else
+		       msg "# WARGNING: could not produce the edited file concat_cdnAlns_SNPs_population_tree.ph" WARNING LRED
+		    fi 
+	        else
+	    	    print_start_time && msg ">>> Running $bindir/iqtree -s concat_cdnAlns_SNPs.fasta -st DNA -mset K2P,HKY,TN,TIM,TVM,GTR -B 1000. This will take a while ..." PROGR BLUE
+	    	    "$bindir"/iqtree -s concat_cdnAlns_SNPs.fasta -st DNA -mset K2P,HKY,TN,TIM,TVM,GTR -B 1000 -T "$IQT_threads" &> /dev/null
+	    	    check_output concat_cdnAlns_SNPs.fasta.treefile "$parent_PID"
+                    best_fit_model=$(awk '/^Best-fit model:/{print $3}' concat_cdnAlns_SNPs.fasta.log)
+		    
+		    longmsg=" > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.listconcat_cdnAlns_SNPs.fasta.treefile &> /dev/null"
+                    (( DEBUG > 0 )) && msg "$longmsg" DEBUG NC
+                    "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list concat_cdnAlns_SNPs.fasta.treefile &> /dev/null
+		   
+		    if [ -s concat_cdnAlns_SNPs_ed.fasta ]
+		    then 
+		       mv concat_cdnAlns_SNPs_ed.fasta concat_cdnAlns_SNPs_population_tree.ph
+		       check_output concat_cdnAlns_SNPs_population_tree.ph "$parent_PID"
+		    else
+		       msg "# WARGNING: could not produce the edited file concat_cdnAlns_SNPs_population_tree.ph" WARNING LRED
+		    fi 
+	        fi
+            fi # if [ "$search_algorithm" == "I" ] 
+        fi # if (("${#neutral_loci[@]}" > 1 ))
+   
     	#>>> CLEANUP <<<#
-    	tar -czf clean_cdnAlns.tgz ./*_cdnAln_clean.fasta ./*.nex
-    	[ -s clean_cdnAlns.tgz ] && rm -rf ./*_cdnAln_clean.fasta ./*.nex ./paup.cmd ./popGen_summStats_*.log ./*_cdnAln.fasta
+    	#tar -czf clean_cdnAlns.tgz ./*_cdnAln_clean.fasta ./*.nex
+    	#[ -s clean_cdnAlns.tgz ] && rm -rf ./*_cdnAln_clean.fasta ./*.nex ./paup.cmd ./popGen_summStats_*.log ./*_cdnAln.fasta
 
 #       # No molclock test for -R 2 implemented yet
 #     	if [ $eval_clock -eq 1 ]
