@@ -1,12 +1,16 @@
-## Dockerfile version 2024-04-01, based on v2022-11-19
+## Dockerfile version 2024-04-13, based on v2022-11-19
 # - build images using as context the cloned get_phylomarkers GitHub repository
 #     based on latest ubuntu (jammy) and r-base (4.2.2)
 # - runs 22 tests during the final image's build stage & sets ENV R_LIBS_SITE
+
+# Check versions: https://hub.docker.com/_/ubuntu
 FROM ubuntu:latest
+
+#Check versions and compatibility with ubuntu releases at https://github.com/rstudio/r-docker
 FROM rstudio/r-base:4.2.2-jammy
 
 LABEL authors="Pablo Vinuesa <https://www.ccg.unam.mx/~vinuesa/> and Bruno Contreras Moreira <https://www.eead.csic.es/compbio/>"
-LABEL keywods="bioinformatics, genomics, phylogenetics, phylogenomics, species tree, core-genome, pan-genome, maximum likelihood, parsimony, population genetics, molecular clock, Docker image"
+LABEL keywods="bioinformatics, genomics, phylogenetics, phylogenomics, species tree, core-genome, pan-genome, maximum likelihood, parsimony, population genetics, molecular clock, Docker image, pipeline"
 LABEL version="20240401"
 LABEL description="Ubuntu 22.04 + Rstudio/r-base 4.2.2 based image of GET_PHYLOMARKERS"
 LABEL summary="This image runs GET_PHYLOMARKERS for advanced and versatile phylogenomic analysis of microbial pan-genomes"
@@ -31,6 +35,7 @@ libssl-dev \
 make \
 parallel \
 wget \
+snp-sites \
 && apt clean && apt purge && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && cpanm Term::ReadLine
 
 ## mkdir get_phylomarkes in /, copy all contents into it; make it the working directory & install required R packages
@@ -123,7 +128,7 @@ CMD ["/bin/bash"]
 # $ cd ~/data/pan_genome
 # $ estimate_pangenome_phylogenies.sh -f pangenome_matrix_t0.fasta -r 1 -S UFBoot
 
-## Thorough functional testing (8 tests calling the two main scripts) can also be run automatically as follows,
+## Thorough functional testing (9 tests calling the two main scripts) can also be run automatically as follows,
 #   assuming that you have copied the core_genome and pan_genome test sequences to the data directory, as indicated above.
 # $ cd && run_test_suite.sh /home/you/data
 
