@@ -1,4 +1,4 @@
-#: VERSION: 2024-04-09
+#: VERSION: 2024-04-13
 #: LIBRARY: get_phylomarkers_fun_lib
 #     * functions called by run_get_phylomarkers_pipeline.sh
 #     * part of the GET_PHYLOMARKERS software package
@@ -331,7 +331,7 @@ estimate_IQT_gene_trees()
    else
        [ "$search_thoroughness" == "high" ] && IQTmod="-s \$file -st $mol_type -m MFP -T 1 -alrt 1000 -fast"
        [ "$search_thoroughness" == "medium" ] && IQTmod="-s \$file -st $mol_type -mset JTT,LG,PMB,VT,WAG -m MFP -T 1 -alrt 1000 -fast"
-       [ "$search_thoroughness" == "low" ] && IQTmod="-s \$file -st $mol_type -mset LG,VT,WAG -m MFP -T 1 -alrt 1000 -fast"
+       [ "$search_thoroughness" == "low" ] && IQTmod="-s \$file -st $mol_type -mset JTT,LG,VT,WAG -m MFP -T 1 -alrt 1000 -fast"
        [ "$search_thoroughness" == "lowest" ] && IQTmod="-s \$file -st $mol_type -mset LG -m MFP -T 1 -alrt 1000 -fast"
        fext="faaln"
        cmd="${distrodir}/run_parallel_cmmds.pl $fext '${bindir}/iqtree $IQTmod'"
@@ -996,7 +996,9 @@ parse_SRH_tests() {
       $2 <= 0.05 || $3 <= 0.05 || $4 <= 0.05' parsed_SRHtests.tsv > SRHtests_failed.tsv
    check_output SRHtests_failed.tsv "$parent_PID"
 
+   # keep these variables global
    no_alns_failing_SRHtests=$(awk 'NR > 1' SRHtests_failed.tsv | wc -l) # remove header
+   no_alns_passing_SRHtests=$(awk 'NR > 1' SRHtests_passed.tsv | wc -l) # remove header
 
    msg " >>> $no_alns_failing_SRHtests codon alignments failed the SRH tests" PROGR GREEN
 
