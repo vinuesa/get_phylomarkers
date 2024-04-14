@@ -80,7 +80,7 @@ ok( eval{  `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline
 ok( eval{  `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh -R 1 -t PROT -A F -T high -m 0.2 | grep "writing summary tables"` }, 'run_get_phylomarkers_pipeline.sh -R 1 -t PROT -A F ...' );
 
 # test 21  Run in population-genetics mode under K2P model, using IQ-Tree
-ok( eval{ `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh -R 2 -t DNA -S K2P -k 1.3 -T 2 | grep "wrote file concat_cdnAlns_SNPs.fasta"` }, 'run_get_phylomarkers_pipeline.sh -R 2 -t DNA -S K2P -k 1.3 -T 2' );
+ok( eval{ `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh -R 2 -t DNA -S K2P -k 1.3 -I 2 | grep "wrote file concat_cdnAlns_SNPs.fasta"` }, 'run_get_phylomarkers_pipeline.sh -R 2 -t DNA -S K2P -k 1.3 -I 2' );
 
 # test 22  Run in population-genetics mode, estimating population tree using FastTree
 ok( eval{ `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.sh -R 2 -t DNA -A F -k 1.2 | grep "wrote file concat_cdnAlns_SNPs.fasta"` }, 'run_get_phylomarkers_pipeline.sh -R 2 -t DNA -A F -k 1.2' );
