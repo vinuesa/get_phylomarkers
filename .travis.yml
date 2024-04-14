@@ -8,7 +8,7 @@ before_install:
 - sudo add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu focal-cran40/'
 - sudo apt update
 - sudo apt install -y libssl-dev libcurl4-openssl-dev curl build-essential bc make
-  g++ r-base r-base-dev python2.7 python2.7-dev
+  g++ r-base r-base-dev python2.7 python2.7-dev snp-sites
 - cpanm --sudo -v --installdeps --notest --cpanfile cpanfile .
 before_script:
 - sudo make install
