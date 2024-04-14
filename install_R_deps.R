@@ -36,7 +36,11 @@ repository = 'https://CRAN.R-project.org' # ; 'http://cran.rstudio.com' # 'https
 # Note that plyr should be called before dplyr; stringi before stringr;
 # https://github.com/tidyverse/stringr/issues/320
 # 
-required_packages = c("devtools", "ape", "cluster", "gplots", "vioplot", "plyr", "dplyr", "ggplot2", "stringi", "stringr", "seqinr", "dendextend", "factoextra")
+# required_packages = c("devtools", "ape", "cluster", "gplots", "vioplot", "plyr", "dplyr", "ggplot2", "stringi", "stringr", "seqinr", "dendextend", "factoextra")
+# 2024-04-13: removed "cluster", "dendextend", "factoextra", which are only required by hcluster_pangenome_matrix.sh, 
+#    which is distributed through the GET_HOMOLOGUES GitHub repo.
+required_packages = c("devtools", "ape", "gplots", "vioplot", "plyr", "dplyr", "ggplot2", "stringi", "stringr", "seqinr")
+
 
 local_lib = "./lib/R"
 
