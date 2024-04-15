@@ -45,7 +45,7 @@ set -u
 set -o pipefail
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.8.0.2_2024-04-14'
+VERSION='2.8.1.0_2024-04-15'
                          		   
 # Set GLOBALS
 # in Strict mode, need to explicitly set undefined variables to an empty string var=''
@@ -2087,13 +2087,13 @@ then
 	    #"${distrodir}"/remove_uninformative_sites_from_aln.pl < concat_cdnAlns.fna > concat_cdnAlns.fnainf
         
 	    # Generate the snp-matrix in FASTA format
-	    #"$bindir"/snp-sites -cm -o concat_cdnAlns_SNPs.fasta concat_cdnAlns.fna # activate only for statically-linked binary
-	    snp-sites -cm -o concat_cdnAlns_SNPs.fasta concat_cdnAlns.fna
+	    "$bindir"/snp-sites-static -cm -o concat_cdnAlns_SNPs.fasta concat_cdnAlns.fna # activate only for statically-linked binary
+	    #snp-sites -cm -o concat_cdnAlns_SNPs.fasta concat_cdnAlns.fna                 # for system-wide install, e.g. with apt install snp-sites
 	    check_output concat_cdnAlns_SNPs.fasta "$parent_PID"
 
 	    # Generate the snp-matrix in VCF format
-	    #"$bindir"/snp-sites -cv -o concat_cdnAlns_SNPs.vcf concat_cdnAlns.fna # activate only for statically-linked binary
-	    snp-sites -cv -o concat_cdnAlns_SNPs.vcf concat_cdnAlns.fna
+	    "$bindir"/snp-sites-static -cv -o concat_cdnAlns_SNPs.vcf concat_cdnAlns.fna # activate only for statically-linked binary
+	    #snp-sites -cv -o concat_cdnAlns_SNPs.vcf concat_cdnAlns.fna                 # for system-wide install, e.g. with apt install snp-sites
 	    check_output concat_cdnAlns_SNPs.vcf "$parent_PID"
 	    
 	    # compute phylogeny
