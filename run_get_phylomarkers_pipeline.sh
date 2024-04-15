@@ -45,7 +45,7 @@ set -u
 set -o pipefail
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.8.0.0_2024-04-13'
+VERSION='2.8.0.1_2024-04-14'
                          		   
 # Set GLOBALS
 # in Strict mode, need to explicitly set undefined variables to an empty string var=''
@@ -646,7 +646,7 @@ mol_type=''
 # Optional, with defaults
 cluster_format=STD
 search_thoroughness='high'
-IQT_threads=AUTO # used only with concatenated supermatrix AUTO|INTEGER
+IQT_threads=2 # used only with concatenated supermatrix 2|INTEGER; AUTO is too slow
 kde_stringency=1.5
 min_supp_val=0.7
 min_no_ext_branches=4
@@ -1206,11 +1206,11 @@ if [[ "${#SRHtest_logs[@]}" -gt  0 ]]; then
     parse_SRH_tests 'csv'
 fi
 
-filtering_results_h[no_alns_failing_SRHtests]="$no_alns_failing_SRHtests"
-filtering_results_kyes_a+=('no_alns_failing_SRHtests')
+filtering_results_h[n_alns_failing_SRHtests]="$no_alns_failing_SRHtests"
+filtering_results_kyes_a+=('n_alns_failing_SRHtests')
 
-filtering_results_h[no_alns_passing_SRHtests]="$no_alns_passing_SRHtests"
-filtering_results_kyes_a+=('no_alns_passing_SRHtests')
+filtering_results_h[n_alns_passing_SRHtests]="$no_alns_passing_SRHtests"
+filtering_results_kyes_a+=('n_alns_passing_SRHtests')
 
 #---------------------------------------------------------------------------------------------------------#
 #>>>BLOCK 3. run Phi-test to identify recombinant codon alignments on all *_cdnAln.fasta source files <<< #
@@ -1604,8 +1604,8 @@ then
 	     id=${id//\"/}
 	     
 	     # -h doesn't work with globs. Use a for loop
-	     for i in $(find .. -maxdepth 1 -name "${id}"\* -printf "%f\n")
-	     do
+	     #for i in $(find .. -maxdepth 1 -name "${id}"\* -printf "%f\n")
+	     while read i; do
 	         (( DEBUG > 0 )) && msg " > reading top_markers_tab:$top_markers_tab in top_markers_dir:$top_markers_dir; running: ln -s ../${i} ." DEBUG NC
 	         if [ ! -h "$i" ]
 		 then
@@ -1613,7 +1613,7 @@ then
 	         else
 	             continue
 	         fi
-	     done
+	     done < <(find .. -maxdepth 1 -name "${id}"\* -printf "%f\n")
 	done < "$top_markers_tab"
 
         (( no_top_markers < 2 )) && print_start_time && msg " >>> Warning: There are less than 2 top markers. Relax your filtering thresholds. will exit now!" ERROR LRED && exit 3
@@ -1771,7 +1771,7 @@ then
 	    
 	    print_start_time && msg "# running ModelFinder on the concatenated alignment with $IQT_models. This will take a while ..." PROGR BLUE
 
-            iqtree -s concat_cdnAlns.fnainf -st DNA -mset "$IQT_models" -m MF -T "$IQT_threads" -n 0 &> /dev/null
+            "$bindir"/iqtree -s concat_cdnAlns.fnainf -st DNA -mset "$IQT_models" -m MF -T "$IQT_threads" -n 0 &> /dev/null
 
 	    check_output concat_cdnAlns.fnainf.log "$parent_PID"
 
@@ -1791,7 +1791,7 @@ then
 	    	for ((rep=1;rep<=nrep_IQT_searches;rep++))
 	    	do
 	    	    print_start_time && msg " > iqtree -s concat_cdnAlns.fnainf -st DNA -m $best_model --abayes -B 1000 -T $IQT_threads --prefix abayes_run${rep} &> /dev/null" PROGR LBLUE
-	    	    iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" --abayes -B 1000 -T "$IQT_threads" --prefix abayes_run"${rep}" &> /dev/null
+	    	    "$bindir"/iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" --abayes -B 1000 -T "$IQT_threads" --prefix abayes_run"${rep}" &> /dev/null
 	    	done
 
 	    	grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_IQ-TREE_searches.out
@@ -1812,7 +1812,7 @@ then
 	    else
 	    	print_start_time && msg "# running IQ-tree on the concatenated alignment with best model ${best_model} --abayes -B 1000. This will take a while ..." PROGR BLUE
 
-	    	iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" --abayes -B 1000 -T "$IQT_threads" --prefix iqtree_abayes &> /dev/null
+	    	"$bindir"/iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" --abayes -B 1000 -T "$IQT_threads" --prefix iqtree_abayes &> /dev/null
 
 	    	grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_IQ-TREE_searches.out
 
@@ -1998,14 +1998,14 @@ then
 	TajD_crit_vals=()
 	#TajD_crit_vals=( $(get_critical_TajD_values "$no_seqs") ) 
 	# key fix! read -a to split command output (SC2207)
-	read -r -a TajD_crit_vals <<< "$(get_critical_TajD_values $no_seqs)"
+	read -r -a TajD_crit_vals <<< "$(get_critical_TajD_values "$no_seqs")"
     	TajD_l=${TajD_crit_vals[0]}
     	TajD_u=${TajD_crit_vals[1]}
     
     	declare -a FuLi_crit_vals
 	FuLi_crit_vals=()
 	#FuLi_crit_vals=( $(get_critical_FuLi_values "$no_seqs") )
-	read -r -a FuLi_crit_vals <<< $(get_critical_FuLi_values $no_seqs)
+	read -r -a FuLi_crit_vals <<< "$(get_critical_FuLi_values "$no_seqs")"
     	FuLi_l=${FuLi_crit_vals[0]}
     	FuLi_u=${FuLi_crit_vals[1]}
 
@@ -2087,11 +2087,11 @@ then
 	    #"${distrodir}"/remove_uninformative_sites_from_aln.pl < concat_cdnAlns.fna > concat_cdnAlns.fnainf
         
 	    # Generate the snp-matrix in FASTA format
-	    snp-sites -cm -o concat_cdnAlns_SNPs.fasta concat_cdnAlns.fna
+	    "$bindir"/snp-sites -cm -o concat_cdnAlns_SNPs.fasta concat_cdnAlns.fna
 	    check_output concat_cdnAlns_SNPs.fasta "$parent_PID"
 
 	    # Generate the snp-matrix in VCF format
-	    snp-sites -cv -o concat_cdnAlns_SNPs.vcf concat_cdnAlns.fna
+	    "$bindir"/snp-sites -cv -o concat_cdnAlns_SNPs.vcf concat_cdnAlns.fna
 	    check_output concat_cdnAlns_SNPs.vcf "$parent_PID"
 	    
 	    # compute phylogeny
@@ -2193,6 +2193,8 @@ then
 	    	    "$bindir"/iqtree -s concat_cdnAlns_SNPs.fasta -st DNA -mset K2P,HKY,TN,TIM,TVM,GTR -B 1000 -T "$IQT_threads" &> /dev/null
 	    	    check_output concat_cdnAlns_SNPs.fasta.treefile "$parent_PID"
                     best_fit_model=$(awk '/^Best-fit model:/{print $3}' concat_cdnAlns_SNPs.fasta.log)
+		    
+		    msg ">>> Best-fit model selected by BIC for concat_cdnAlns_SNPs.fasta is: $best_fit_model" PROGR GREEN
 		    
 		    longmsg=" > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.listconcat_cdnAlns_SNPs.fasta.treefile &> /dev/null"
                     (( DEBUG > 0 )) && msg "$longmsg" DEBUG NC
@@ -2506,8 +2508,8 @@ then
         # -h doesn't work with globs. Use a for loop
 	[[ "$base" =~ loci ]] && continue
 	base=${base//\"/}
-	for b in $(find .. -maxdepth 1 -name "${base}"\* -printf "%f\n")
-        do
+	#for b in $(find .. -maxdepth 1 -name "${base}"\* -printf "%f\n")
+        while read -r b; do
 	    (( DEBUG > 0 )) && msg " > reading base:$base in top_markers_tab:$top_markers_tab in top_markers_dir:$top_markers_dir; running: ln -s ../${b} ." DEBUG NC
 	    if [ ! -h "$b" ];
 	    then
@@ -2515,7 +2517,7 @@ then
 	    else
 	        continue
 	    fi
-	done   
+	done < <(find .. -maxdepth 1 -name "${base}"\* -printf "%f\n")   
     done < "$top_markers_tab"
 
     (( no_top_markers < 2 )) \
