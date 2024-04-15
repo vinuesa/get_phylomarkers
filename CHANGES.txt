@@ -1,9 +1,43 @@
-9Apr24 * get_phylomarkers_fun_lib v2024-04-09
-         - full shellcheck compliance
-         - added complex protein mixture models for concatenated protein alignments
-       * run_get_phylomarkers_pipeline.sh v2.7.6.4_2024-04-09
-         - full shellcheck compliance
-         - redirect filtered lines to a while read loop as process substitutions <(commands)
+14Apr24  * compiled new static versions of astral and wastral for Linux
+         * compiled dynamically linked snp-sites for Linux, which is now called from run_get_phylomarkers_pipeline.sh v2.8.0.1_2024-04-14 using '$bindir/'
+	   - NOTES: snp-sites should be statically compiled; The Docker image and TravisCI install snp-sites via apt install
+         * run_get_phylomarkers_pipeline.sh v2.8.0.1_2024-04-14
+           - changed default IQT_threads=AUTO to IQT_threads=2 # used only with concatenated supermatrix 2|INTEGER; AUTO is too slow
+           - prepended '$bindir/' to iqtree and snp-sites calls that still missed it. NOTE: snp-sites needs to be statically compiled
+           - SC2044: replaced two for loops over find output for a more robust while read loop reading from <(cmd)
+13Apr24  * install_R_deps.R v2024-04-13; removed packages cluster, dendextend, and factoextra
+         * run_get_phylomarkers_pipeline.sh v2.8.0.0_2024-04-13
+            - significant extension of runmode 2 (-R 2) for population genetics:
+            - the FASTA files of neutral loci are saved in their own directory and concatenated
+            - SNP sites are extracted from the concatenated alignment with snp-sites
+               and save as FASTA and VCF formats
+            - ML trees are estimated from the SNP supermatrix using either IQ-TREE or FastTree
+            - uses read -a ARR <<< "$(get_critical_TajD_values ..." to split command output into ARR
+               instead of using pipes to awk or ARR=$( (cmd) ); this fixes an obscture bug of unset variables
+               that allowed popGen mode (-R 2) to run only if using debugging options -D 1 || -D 2
+	 * New Docker image on Dockerhub       
+         * run_test_suite.sh v2024-04-13
+           - runs under Bash's unnofficial strict mode: set -euo pipefail
+           - adds a second test for -R 2 (popGen) to estimate the popgen tree using FastTree
+	   - removed hcluster test, as it belongs to get_homologues  
+         * test_get_phylomarkers.t v2024-04-13
+           - Now runs 24 tests
+           - added test for -R 2 (popGen), estimating popgen tree using FastTree
+           - both tests for -R 2 (FT & IQT) now grep the line reporting the generation of the SNP matrix
+           - All -R 1 IQT runs are under -I 2 -N 2
+         * .travis.yml v2024-04-13 now installs snp-sites in the 'apt install' call
+12Apr24  * run_get_phylomarkers_pipeline.sh v2.7.6.7_2024-04-11    
+           - Collects results of filtering steps in the filtering_results_h hash,
+              and prints an overview of the pipeline's filtering process before exiting    
+10Apr24  * run_get_phylomarkers_pipeline.sh v2.7.6.6_2024-04-10
+           - prints script invocation arguments
+	   - fixed test for symlink call in top markers dir
+9Apr24   * get_phylomarkers_fun_lib v2024-04-09
+           - full shellcheck compliance
+           - added complex protein mixture models for concatenated protein alignments
+         * run_get_phylomarkers_pipeline.sh v2.7.6.4_2024-04-09
+           - full shellcheck compliance
+           - redirect filtered lines to a while read loop as process substitutions <(commands)
             instead of for loops
 7-8Apr24 * run_get_phylomarkers_pipeline.sh v2.7.6.3_2024-04-08: 
            - improved file reading with while read and Bash's parameter expansions
