@@ -25,7 +25,8 @@ Alternatively, you can try to perform a manual install, as follows:
     - Debian/Ubuntu users cd into get_phylomarkers/ and run <code>./apt-install_R_dependencies.sh</code>, which is the preferred way to manage R packages on these systems
     - Other Linux users cd into get_phylomarkers/ and run <code>./install_R_deps.R</code>, which will install R packages into get_phylomarkers/lib/R
     - For all users, the KDEtrees package needs to be installed with the <code>install_kdetrees_from_github.R</code> script
-    
+
+<!--    
 4. from within the get_phylomarkers distribution directory, as regular user type:
 ```
 rlibs=`for p in $(R -q -e 'print(.libPaths())'); do if [[ "$p" =~ '/' ]]; then echo -n "$p:"; fi; done; echo -n "$wkd"/"$distrodir/lib/R"` && echo "export R_LIBS_SITE=$rlibs" >> $HOME/.bashrc
@@ -34,14 +35,16 @@ rlibs=`for p in $(R -q -e 'print(.libPaths())'); do if [[ "$p" =~ '/' ]]; then e
 cat $HOME/.Rprofile 
 ```
   - or as sudo append ':/PATH/TO/get_phylomarkers/lib/R' to <code>R_LIBS_SITE=${R_LIBS_SITE-'/usr/local/lib/R/site-library:/usr/lib/R/site-library:/usr/lib/R/library'}</code> in /etc/R/Profile for system-wide permanent changes for all users and session types.
-   
-5. To setup the *libnw* library required by *estimate_pangenome_phylogenies.sh* in parsimony mode (-R 3), type the following <code>'sudo cp /PATH/TO/get_phylomarkers/lib/libnw.so /usr/local/lib && sudo echo "export LD_LIBRARY_PATH=/usr/local/lib" && sudo ldconfig'</code>
 
-6. cd into the test_sequences/core_genome directory, or copy that directory into a suitable place (e.g. 'cp -r test_sequences $HOME && cd $HOME/test_sequences/core_genome')
+-->
 
-7. If you want to perform a system-wide install, you will have to become the superuser (e.g. 'sudo su').
+4. To setup the *libnw* library required by *estimate_pangenome_phylogenies.sh* in parsimony mode (-R 3), type the following <code>'sudo cp /PATH/TO/get_phylomarkers/lib/libnw.so /usr/local/lib && sudo echo "export LD_LIBRARY_PATH=/usr/local/lib" && sudo ldconfig'</code>
 
-8. If you are running the GET_PHYLOMERKERS release v2.2.0_2024-04-14, you will need to install [snp-sites](https://github.com/sanger-pathogens/snp-sites) on your system:
+5. cd into the test_sequences/core_genome directory, or copy that directory into a suitable place (e.g. 'cp -r test_sequences $HOME && cd $HOME/test_sequences/core_genome')
+
+6. If you want to perform a system-wide install, you will have to become the superuser (e.g. 'sudo su').
+
+7. If you are running the GET_PHYLOMERKERS release v2.2.0_2024-04-14, you will need to install [snp-sites](https://github.com/sanger-pathogens/snp-sites) on your system:
   - Debian/Ubuntu users can easyly install with <code>apt update && apt install snp-sites</code>
   - Other *NIX unsers should compile as follows:
 ```
@@ -58,14 +61,14 @@ make
 sudo make install   
 ```  
 
-NOTE: from GET_PHYLOMERKERS release v2.2.1, or run_get_phylomarkers.sh v2.8.1.0_2024-04-15 onwards, the static snp-sites-static binary is provided for Linux users, 
-meaning that step 8 can be omitted.
+NOTE: from GET_PHYLOMERKERS release >= v2.2.1, or run_get_phylomarkers.sh => v2.8.1.0_2024-04-15 onwards, the static snp-sites-static binary is provided for Linux users, 
+meaning that the previous step (7) can be omitted.
 
-9. Issue the following command from within /path/to/test_sequences/core_genome to test if the distro is working on your system: <code>/path/to/get_phylomarkers/run_get_phylomarkers_pipeline.sh -R 1 -t DNA</code>, which will run in phylogenomics mode (-R 1), on DNA sequences (-t DNA). 
+8. Issue the following command from within /path/to/test_sequences/core_genome to test if the distro is working on your system: <code>/path/to/get_phylomarkers/run_get_phylomarkers_pipeline.sh -R 1 -t DNA</code>, which will run in phylogenomics mode (-R 1), on DNA sequences (-t DNA). 
  
-10. Check it now on the protein level: 'run_get_phylomarkers_pipeline.sh -R 1 -t PROT'. Note that for this second invocation, you will probably not need to prepend the full path to the script anymore, as symlinks were created to the scripts from your $HOME/bin dir, or if you run the lines above with root privileges, from /usr/local/bin.
+9. Check it now on the protein level: 'run_get_phylomarkers_pipeline.sh -R 1 -t PROT'. Note that for this second invocation, you will probably not need to prepend the full path to the script anymore, as symlinks were created to the scripts from your $HOME/bin dir, or if you run the lines above with root privileges, from /usr/local/bin.
 
-11. Explore the help menu of the master script to see the options available for customizing the runs. It is printed to STDOUT when issuing run_get_phylomarkers_pipeline.sh -h or simply run_get_phylomarkers_pipeline.sh
+10. Explore the help menu of the master script to see the options available for customizing the runs. It is printed to STDOUT when issuing run_get_phylomarkers_pipeline.sh -h or simply run_get_phylomarkers_pipeline.sh
 
 That's it, enjoy!
 
