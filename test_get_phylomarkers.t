@@ -1,4 +1,4 @@
-# version 2024-04-13
+# version 2024-04-16
 use strict;
 use warnings;
 use Test::More tests => 24;
@@ -18,7 +18,7 @@ ok( eval{ `perl ./add_nos2fasta_header.pl 2>&1` } =~ /fasta file/ , 'add_nos2fas
 ok( eval{ `perl ./concat_alignments.pl 2>&1` } =~ /list of alignment/ , 'concat_alignments.pl' );
 
 # test 4
-ok( eval{ `perl ./convert_aln_format_batch_bp.pl` } =~ /Usage:/ , 'convert_aln_format_batch_bp.pl' );
+ok( eval{ `perl ./convert_aln_format_batch_bp.pl` } =~ /Usage:/ , 'convert_aln_format_batch_bp.pl [Bio::AlignIO]' );
 
 # test 5
 ok( eval{ `perl ./pal2nal.pl 2>&1` } =~ /Usage:/ , 'pal2nal.pl' );
@@ -27,7 +27,7 @@ ok( eval{ `perl ./pal2nal.pl 2>&1` } =~ /Usage:/ , 'pal2nal.pl' );
 ok( eval{ `perl ./popGen_summStats.pl` } =~ /usage/ , 'popGen_summStats.pl' );
 
 # test 7
-ok( eval{ `perl ./remove_uninformative_sites_from_aln.pl -h 2>&1` } =~ /Removes/ , 'remove_uninformative_sites_from_aln.pl' );
+ok( eval{ `perl ./remove_uninformative_sites_from_aln.pl -h 2>&1` } =~ /Removes/ , 'remove_uninformative_sites_from_aln.pl [Bio::SeqIO]' );
 
 # test 8
 ok( eval{ `perl ./rename.pl 2>&1` } =~ /Usage/ , 'rename.pl' );
@@ -37,24 +37,24 @@ ok( eval{ `perl ./run_parallel_cmmds.pl` } =~ /usage/ , 'run_parallel_cmmds.pl' 
 
 ### Test R scripts
 # test 10
-ok( eval{ `Rscript ./compute_suppValStas_and_RF-dist.R 2>&1` } =~ /Usage/ , 'compute_suppValStas_and_RF-dist.R' ); 
+ok( eval{ `Rscript ./compute_suppValStas_and_RF-dist.R 2>&1` } =~ /Usage/ , 'compute_suppValStas_and_RF-dist.R [ape,gplots,seqinr,plyr,stringr,ggplot2]' ); 
 
 # test 11
-ok( eval{ `Rscript ./run_kdetrees.R 2>&1` } =~ /Usage/ , 'run_kdetrees.R' );
+ok( eval{ `Rscript ./run_kdetrees.R 2>&1` } =~ /Usage/ , 'run_kdetrees.R [stringr,ape,kdetrees,vioplot]' );
 
 
 ### Test Bash scripts
 # test 12
-ok( eval{ `bash ./estimate_pangenome_phylogenies.sh 2>&1` } =~ /PARS PARALLELIZATION/ , 'estimate_pangenome_phylogenies.sh' ); 
+ok( eval{ `bash ./estimate_pangenome_phylogenies.sh 2>&1` } =~ /PARS PARALLELIZATION/ , 'estimate_pangenome_phylogenies.sh [seqboot,pars,consense,nw_reroot,nw_support]' ); 
 
 # test 13
-ok( eval{ `bash ./run_get_phylomarkers_pipeline.sh 2>&1` } =~ /INVOCATION/, 'run_get_phylomarkers_pipeline.sh' );
+ok( eval{ `bash ./run_parallel_molecClock_test_with_paup.sh 2>&1` } =~ /OUTPUT/, 'run_parallel_molecClock_test_with_paup.sh [Bio::SeqIO,paup]' );
 
 # test 14
-ok( eval{ `bash ./run_parallel_molecClock_test_with_paup.sh 2>&1` } =~ /OUTPUT/, 'run_parallel_molecClock_test_with_paup.sh' );
+ok( eval{ `bash ./run_get_phylomarkers_pipeline.sh 2>&1` } =~ /INVOCATION/, 'run_get_phylomarkers_pipeline.sh [clustalo,FastTree,parallel,Phi,paup,consense,iqtree]' );
 
 # test 15
-ok( eval{ `bash ./run_pexec_cmmds.sh 2>&1` } =~ /example4/, 'run_pexec_cmmds.sh' );
+ok( eval{ `bash ./run_pexec_cmmds.sh 2>&1` } =~ /example4/, 'run_pexec_cmmds.sh [pexec]' );
 
 # test 16
 ok( eval{ `bash ./run_test_suite.sh 2>&1` } =~ /LAUNCHING THE CONTAINER/, 'run_test_suite.sh' );
@@ -87,7 +87,7 @@ ok( eval{ `cd test_sequences/core_genome && ../../run_get_phylomarkers_pipeline.
 
 
 # test 23 estimate a ML pan-genome tree from the pan-genome matrix, using 2 independent IQT runs and UFBoot
-my $testOK = ok( eval{ `cd test_sequences/pan_genome && ../../estimate_pangenome_phylogenies.sh -f pangenome_matrix_t0.fasta -r 2 -S UFBoot -I 2 | grep "done!"` }, 'estimate_pangenome_phylogenies.sh -r 2 -S UFBoot ...' );
+my $testOK = ok( eval{ `cd test_sequences/pan_genome && ../../estimate_pangenome_phylogenies.sh -f pangenome_matrix_t0.fasta -r 2 -S UFBoot -I 2 | grep "done!"` }, 'estimate_pangenome_phylogenies.sh -r 2 -S UFBoot ... [libnw.so]' );
 
 if(!$testOK) {
   print "\n# Note: this test requires setting up libnw.so . Type the following:\n\n"; 
