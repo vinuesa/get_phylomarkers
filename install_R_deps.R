@@ -2,7 +2,7 @@
 
 # check R packages required by get_phylomarkers and install missing ones 
 # Bruno Contreras Moreira, Pablo Vinuesa, Nov2017-Oct2020
-# version: 2022-06-13
+# version: 2024-04-15
 
 # WARNING: some packages require C (gcc) and C++ (g++) compilers to be installed
 # These can be installed with these commands:
@@ -39,7 +39,8 @@ repository = 'https://CRAN.R-project.org' # ; 'http://cran.rstudio.com' # 'https
 # required_packages = c("devtools", "ape", "cluster", "gplots", "vioplot", "plyr", "dplyr", "ggplot2", "stringi", "stringr", "seqinr", "dendextend", "factoextra")
 # 2024-04-13: removed "cluster", "dendextend", "factoextra", which are only required by hcluster_pangenome_matrix.sh, 
 #    which is distributed through the GET_HOMOLOGUES GitHub repo.
-required_packages = c("devtools", "ape", "gplots", "vioplot", "plyr", "dplyr", "ggplot2", "stringi", "stringr", "seqinr")
+# 2024-04-15: replaced devtools for the much lighter remotes.
+required_packages = c("remotes", "ape", "gplots", "vioplot", "plyr", "dplyr", "ggplot2", "stringr", "seqinr")
 
 
 local_lib = "./lib/R"
