@@ -1,5 +1,12 @@
+15Apr24  * compiled a static versions of snp-sites for Linux (bin/linux/snp-sites-static), 
+             which is directly called from run_get_phylomarkers_pipeline.sh v2.8.1._2024-04-15
+	 * run_get_phylomarkers_pipeline.sh v2.8.1._2024-04-15 now calls $bindir/snp-sites-static 
+	 * Updated Dockerfile (v2024-04-15) to avoid installing non-required R packages and snp-sites
+	 * Updated INSTALL.md and README.md
+	 * updated install_R_deps.R and apt-install_R_dependencies.sh v2024-04-15: replaced devtools for the much lighter remotes; removed uncessary R packages
+	 * updated .travis.yml v2024-04-15; does not call apt install snp-sites, as it is now provided as static binary in bin/linux/snp-sites-static
 14Apr24  * compiled new static versions of astral and wastral for Linux
-         * compiled dynamically linked snp-sites for Linux, which is now called from run_get_phylomarkers_pipeline.sh v2.8.0.1_2024-04-14 using '$bindir/'
+         * removed dynamically linked snp-sites for Linux, which is now called from run_get_phylomarkers_pipeline.sh v2.8.0.2_2024-04-14 from the system binary in PATH
 	   - NOTES: snp-sites should be statically compiled or it will fail when called as '$bindir/snp-sites'
 	            The Docker image and TravisCI install snp-sites via apt install
          * run_get_phylomarkers_pipeline.sh 2.8.0.2_2024-04-14
