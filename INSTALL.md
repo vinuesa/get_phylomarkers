@@ -2,10 +2,10 @@
 
 This file lists the software components of the **GET_PHYLOMARKERS** software package and its dependencies, briefly describing how to install them. It also provides instructions on **how to setup your Docker environment** to run local instances (containers) of the [**GET_PHYLOMARKERS Docker image**](https://hub.docker.com/r/vinuesa/get_phylomarkers) or [**GET_HOMOLOGUES + GET_PHYLOMARKERS Docker image**](https://hub.docker.com/r/csicunam/get_homologues/), both available from the [Docker registry](https://hub.docker.com/). We highly recommend running the containerized, ready-to-use version, which will free you from struggling with system-specific installation and configuration issues.  
 
-The pipeline has been developed and extensively tested on Linux (Ubuntu and RedHat distros). It should also run on Mac OS X machines, but it has been less tested in that environment.
+The pipeline has been developed and extensively tested on Linux (Ubuntu and RedHat distros). It should also run on Mac OS X machines, but a recent version of Bash needs to be installed. We are currently working on a Conda package to make local installations easier.
 
-A standard local install pulling from GitHub assumes that recent versions of Bash, Perl and R are installed on a multicore (64bit) machine, ideally a server running Linux.
-**The pipeline is designed to take advantage of modern multicore machines to parallelize all repetitive tasks** that have to be performed on each cluster of homologous sequences, like tagging sequences, generating multiple sequence alignments, deriving codon alignments, runnig the Phi test on them and inferring maximum likelihood phylogenies from each alignment. For large genomic datasets, the pipeline should be run on a multiprocessor/multicore server to speed up these computations.
+A standard local install pulling from GitHub assumes that recent versions of Bash (at least v4.3, but v5.+ is preferred), Perl and R are installed on a multicore (64bit) machine, ideally a server running Linux.
+**The pipeline is designed to take advantage of modern multicore machines to parallelize all repetitive tasks** that have to be performed on each cluster of homologous sequences, like tagging sequences, generating multiple sequence alignments, deriving codon alignments, running the Phi test on them and inferring maximum likelihood phylogenies from each alignment. For large genomic datasets, the pipeline should be run on a multiprocessor/multicore server to speed up these computations.
 
 
 ## Quick install and test notes
@@ -21,8 +21,11 @@ Alternatively, you can try to perform a manual install, as follows:
 
 2. Download the [latest release](https://github.com/vinuesa/get_phylomarkers/releases) or clone the repository into a suitable directory (e.g. $HOME/GitHub/). To clone the repo, issue the command 'git clone https://github.com/vinuesa/get_phylomarkers.git' from within $HOME/GitHub/
 
-3. cd into get_phylomarkers/ and run './install_R_deps.R', which will install R packages into get_phylomarkers/lib/R
-
+3. Installing R packages
+    - Debian/Ubuntu users cd into get_phylomarkers/ and run <code>./apt-install_R_dependencies.sh</code>, which is the preferred way to manage R packages on these systems
+    - Other Linux users cd into get_phylomarkers/ and run <code>./install_R_deps.R</code>, which will install R packages into get_phylomarkers/lib/R
+    - For all users, the KDEtrees package needs to be installed with the <code>install_kdetrees_from_github.R</code> script
+    
 4. from within the get_phylomarkers distribution directory, as regular user type:
 ```
 rlibs=`for p in $(R -q -e 'print(.libPaths())'); do if [[ "$p" =~ '/' ]]; then echo -n "$p:"; fi; done; echo -n "$wkd"/"$distrodir/lib/R"` && echo "export R_LIBS_SITE=$rlibs" >> $HOME/.bashrc
@@ -38,11 +41,31 @@ cat $HOME/.Rprofile
 
 7. If you want to perform a system-wide install, you will have to become the superuser (e.g. 'sudo su').
 
-8. Issue the following command from within /path/to/test_sequences/core_genome to test if the distro is working on your system: '/path/to/get_phylomarkers/run_get_phylomarkers_pipeline.sh -R 1 -t DNA', which will run in phylogenomics mode (-R 1), on DNA sequences (-t DNA). 
- 
-9. Check it now on the protein level: 'run_get_phylomarkers_pipeline.sh -R 1 -t PROT'. Note that for this second invocation, you will probably not need to prepend the full path to the script anymore, as symlinks were created to the scripts from your $HOME/bin dir, or if you run the lines above with root privileges, from /usr/local/bin.
+8. If you are running the GET_PHYLOMERKERS release v2.2.0_2024-04-14, you will need to install [snp-sites](https://github.com/sanger-pathogens/snp-sites) on your system:
+  - Debian/Ubuntu users can easyly install with <code>apt update && apt install snp-sites</code>
+  - Other *NIX unsers should compile as follows:
+```
+# 1. Dowload the latest [snp-sites](https://github.com/sanger-pathogens/snp-sites) release
+wget -c https://github.com/sanger-pathogens/snp-sites/archive/refs/tags/v2.5.1.tar.gz
 
-10. Explore the help menu of the master script to see the options available for customizing the runs. It is printed to STDOUT when issuing run_get_phylomarkers_pipeline.sh -h or simply run_get_phylomarkers_pipeline.sh
+tar -xzf v2.5.1.tar.gz
+cd snp-sites-2.5.1 && rm ../v2.5.1.tar.gz
+
+# 2. configure and compile
+autoreconf -i -f
+./configure
+make
+sudo make install   
+```  
+
+NOTE: from GET_PHYLOMERKERS release v2.2.1, or run_get_phylomarkers.sh v2.8.1.0_2024-04-15 onwards, the static snp-sites-static binary is provided for Linux users, 
+meaning that step 8 can be omitted.
+
+9. Issue the following command from within /path/to/test_sequences/core_genome to test if the distro is working on your system: <code>/path/to/get_phylomarkers/run_get_phylomarkers_pipeline.sh -R 1 -t DNA</code>, which will run in phylogenomics mode (-R 1), on DNA sequences (-t DNA). 
+ 
+10. Check it now on the protein level: 'run_get_phylomarkers_pipeline.sh -R 1 -t PROT'. Note that for this second invocation, you will probably not need to prepend the full path to the script anymore, as symlinks were created to the scripts from your $HOME/bin dir, or if you run the lines above with root privileges, from /usr/local/bin.
+
+11. Explore the help menu of the master script to see the options available for customizing the runs. It is printed to STDOUT when issuing run_get_phylomarkers_pipeline.sh -h or simply run_get_phylomarkers_pipeline.sh
 
 That's it, enjoy!
 
@@ -195,10 +218,11 @@ their own user interface and may be useful to perform specific computations with
 All scripts display usage instructions and describe their aims.
 
 ### Bash scripts
-
 * run_get_phylomarkers_pipeline.sh (the master script to run the pipeline)
 * run_parallel_molecClock_test_with_paup.sh
 * estimate_pangenome_phylogenies.sh
+* run_test-suite.sh
+* apt-install_R_dependencies.sh
 
 ### Perl scripts
 * run_parallel_cmmds.pl
@@ -226,17 +250,20 @@ For alternative installation options see [bioperl.org INSTALL](http://bioperl.or
 ### R scripts
 * compute_suppValStas_and_RF-dist.R
 * run_kdetrees.R consense 
+* install_kdetrees_from_github.R
 
 #### R packages
 The dependencies can be easily installed in local folder lib/R by calling script *./install_R_deps.R* .
 Instead, if you wish these packages to be installed on a system-wide basis, then you should call R with 
 superuser privileges and within it execute the following command: 
 
-install.packages( c("ape", "kdetrees", "stingr", "vioplot", "ggplot2", "gplots", "dplyr", "seqinr"), dep=T)
+install.packages( c("ape", "stingr", "vioplot", "ggplot2", "dplyr", "seqinr"), dep=T)
 
 Please see examples in the source code of *install_R_deps.R* to solve problems that might arise when
 old versions of the, particularly *Rcpp*, are already in the system. Tips are also provided to install
 "ape" in Mac systems.
+
+Note: the KDEtrees package needs to be installed with the <code>install_kdetrees_from_github.R</code> script
 
 ## External dependencies: second party binaries called by GET_PHYLOMARKERS scripts. 
 
@@ -262,6 +289,10 @@ NOTES:
 * pars, seqboot and consense from Joe Felsenstein's [PHYLIP](http://evolution.genetics.washington.edu/phylip.html) package.
 * nw_reroot and nw_support from the [Newick utilities](http://bioinformatics.oxfordjournals.org/cgi/content/abstract/btq243v1) package.
 * you may also need to install **bc**,an arbitrary-precision language for performing math calculations with Bash and other shells
-* [ASTRAL](https://github.com/smirarab/ASTRAL). From version 2.4.1, <code>run_get_phylomarkers_pipeline.sh</code> also estimates a <b>species tree</b> with the aid of the [Accurate Species TRee ALgorithm](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-018-2129-y), using as input the filtered gene trees, i.e., without concatenation.
+* [ASTRAL-III](https://github.com/smirarab/ASTRAL). Starting with release v2.0.0_2022-11-20, <code>run_get_phylomarkers_pipeline.sh</code> also estimates a <b>species tree</b> with the aid of the [Accurate Species TRee ALgorithm](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-018-2129-y), using as input the filtered gene trees, i.e., without concatenation.
+* [ASTRAL-IV](https://github.com/chaoszhang/ASTER). In <code>run_get_phylomarkers_pipeline.sh</code> release v2.1.0_2024-03-3, the java [ASTRAL-III](https://github.com/smirarab/ASTRAL) code was replaced by the newer [ASTRAL-IV](https://github.com/chaoszhang/ASTER) C binary from the [ASTRER](https://github.com/chaoszhang/ASTER) package. 
+* [WEIGHTED-ASTRAL](https://github.com/chaoszhang/ASTER). In <code>run_get_phylomarkers_pipeline.sh</code> release v2.2.0_2024-04-14, the pipeline also calls the [WEIGHTED-ASTRAL](https://github.com/chaoszhang/ASTER) C binary from the [ASTRER](https://github.com/chaoszhang/ASTER) package.
+* [snp-sites](https://github.com/sanger-pathogens/snp-sites) was introduced in <code>run_get_phylomarkers_pipeline.sh</code> release v2.2.0_2024-04-14 to estimate a **population tree from SNPs** extracted from the concatenated supermatrix generated from filtered and neutral gene alignments. A statically linked binary for Linux is distributed with release v2.2.1_2024-04-15
+
 
 3. Source code and manual compilation instructions are also provided in the corresponding \$bindir, in case bundled binaries fail.
