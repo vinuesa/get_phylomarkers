@@ -1,7 +1,9 @@
 ## Dockerfile version 2024-04-15, based on v2022-11-19; 
 # - build images using as context the cloned get_phylomarkers GitHub repository
 #     based on latest ubuntu (jammy) and r-base (4.2.2)
-# - runs 22 tests during the final image's build stage & sets ENV R_LIBS_SITE
+# - runs 24 tests during the final image's build stage & sets ENV R_LIBS_SITE
+# - produces a significantly lighter image, as several unnecessary R packages were removed,
+#     and remotes replaces the much heavier devtools
 
 # Check versions: https://hub.docker.com/_/ubuntu
 FROM ubuntu:latest
@@ -53,6 +55,7 @@ r-cran-vioplot \
 r-cran-plyr \
 r-cran-dplyr \
 r-cran-ggplot2 \
+r-cran-stringi \
 r-cran-stringr \
 r-cran-seqinr \
 && apt clean && apt purge && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
