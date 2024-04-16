@@ -1,8 +1,6 @@
-# last update: 2021-09-14
 # FastTree [ http://microbesonline.org/fasttree/#Install ]
 
 cd FastTree_v2.1.11
-
 wget -c wget -c http://www.microbesonline.org/fasttree/FastTree-2.1.11.c
 
 # compile with double precision to resolve short branches!
