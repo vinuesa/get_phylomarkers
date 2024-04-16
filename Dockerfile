@@ -1,4 +1,4 @@
-## Dockerfile version 2024-04-13, based on v2022-11-19
+## Dockerfile version 2024-04-15, based on v2022-11-19; 
 # - build images using as context the cloned get_phylomarkers GitHub repository
 #     based on latest ubuntu (jammy) and r-base (4.2.2)
 # - runs 22 tests during the final image's build stage & sets ENV R_LIBS_SITE
@@ -11,7 +11,7 @@ FROM rstudio/r-base:4.2.2-jammy
 
 LABEL authors="Pablo Vinuesa <https://www.ccg.unam.mx/~vinuesa/> and Bruno Contreras Moreira <https://www.eead.csic.es/compbio/>"
 LABEL keywods="bioinformatics, genomics, phylogenetics, phylogenomics, species tree, core-genome, pan-genome, maximum likelihood, parsimony, population genetics, molecular clock, Docker image, pipeline"
-LABEL version="20240401"
+LABEL version="20240415"
 LABEL description="Ubuntu 22.04 + Rstudio/r-base 4.2.2 based image of GET_PHYLOMARKERS"
 LABEL summary="This image runs GET_PHYLOMARKERS for advanced and versatile phylogenomic analysis of microbial pan-genomes"
 LABEL home="<https://hub.docker.com/r/vinuesa/get_phylomarkers>"
@@ -35,7 +35,6 @@ libssl-dev \
 make \
 parallel \
 wget \
-snp-sites \
 && apt clean && apt purge && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && cpanm Term::ReadLine
 
 ## mkdir get_phylomarkes in /, copy all contents into it; make it the working directory & install required R packages
@@ -48,20 +47,14 @@ RUN apt install --no-install-recommends -y r-base
 #RUN add-apt-repository ppa:c2d4u.team/c2d4u4.0+
 RUN apt install --no-install-recommends -y \
 r-cran-ape \
-r-cran-phangorn \
-r-cran-devtools \
-r-cran-optparse \
-r-cran-cluster \
+r-cran-remotes \
 r-cran-gplots \
 r-cran-vioplot \
 r-cran-plyr \
 r-cran-dplyr \
 r-cran-ggplot2 \
-r-cran-ggthemes \
-r-cran-stringi \
 r-cran-stringr \
 r-cran-seqinr \
-r-cran-dendextend \
 && apt clean && apt purge && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN git clone https://github.com/vinuesa/get_phylomarkers.git
