@@ -45,7 +45,7 @@ set -u
 set -o pipefail
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.8.1.0_2024-04-15'
+VERSION='2.8.1.1_2024-04-16'
                          		   
 # Set GLOBALS
 # in Strict mode, need to explicitly set undefined variables to an empty string var=''
@@ -2678,8 +2678,7 @@ then
       	    do
       	       lmsg=" > iqtree -s concat_protAlns.faainf -st PROT -m $best_model --abayes -B 1000 -T $IQT_threads --prefix abayes_run${rep} &> /dev/null"
       	       print_start_time && msg "$lmsg" PROGR LBLUE
-
-      	        iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" --abayes -B 1000 -T "$IQT_threads" --prefix abayes_run"${rep}" &> /dev/null
+      	       iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" --abayes -B 1000 -T "$IQT_threads" --prefix abayes_run"${rep}" &> /dev/null
       	    done
 
       	    grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_IQ-TREE_searches.out
@@ -2693,13 +2692,13 @@ then
       	    best_tree_file="${tree_prefix}_${best_search_base_name}_nonRecomb_KdeFilt_${no_top_markers}concat_protAlns_iqtree_${best_model}.spTree"
 	        numbered_nwk="${tree_prefix}_${best_search_base_name}_nonRecomb_KdeFilt_${no_top_markers}concat_protAlns_iqtree_${best_model}_numbered.nwk"
       	    cp "${best_search_base_name}.treefile" "$best_tree_file"
-	        cp "${best_search_base_name}.treefile" "$numbered_nwk"
+	    cp "${best_search_base_name}.treefile" "$numbered_nwk"
 
       	    print_start_time && msg "# Adding labels back to ${best_tree_file} ..." PROGR BLUE
-   	        (( DEBUG > 0 )) && msg " > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${best_tree_file} &> /dev/null" DEBUG NC
-   	        "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list "$best_tree_file" &> /dev/null
+   	    (( DEBUG > 0 )) && msg " > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${best_tree_file} &> /dev/null" DEBUG NC
+   	    "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list "$best_tree_file" &> /dev/null
 	   
-	        sp_tree=$(ls ./*ed.spTree)
+	    sp_tree=$(ls ./*ed.spTree)
 
       	    check_output "$sp_tree" "$parent_PID"
       	    cp "$sp_tree" "$numbered_nwk" "$top_markers_dir"
@@ -2808,6 +2807,13 @@ for k in "${filtering_results_kyes_a[@]}"
 do
     msg "$k: ${filtering_results_h[$k]}" PROGR YELLOW
 done
+
+# write pipeline_filtering_overview.tsv to file 
+for k in "${filtering_results_kyes_a[@]}"
+do
+    echo -e "$k\t${filtering_results_h[$k]}"
+done > pipeline_filtering_overview.tsv
+check_output pipeline_filtering_overview.tsv "$parent_PID"
 
 
 # compute the elapsed time since the script was fired
