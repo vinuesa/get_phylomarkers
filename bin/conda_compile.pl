@@ -49,17 +49,17 @@ if ($? == 0 && $move_binaries == 1) {
 }
 chdir($Bin);
 
-# ASTER (2)
-chdir("$Bin/ASTERcommit1840895");
-if($Config{osname} =~ /linux/) {
-	$cmd ="make astral wastral"
-}
-
-system("$cmd");
-if ($? == 0 && $move_binaries == 1) {
-	system("mv wastral $targetdir");
-	system("mv astral4 $targetdir/astral");
-}
-chdir($Bin);
+## ASTER (2)
+#chdir("$Bin/ASTERcommit1840895");
+#if($Config{osname} =~ /linux/) {
+#	$cmd ="make astral wastral"
+#}
+#
+#system("$cmd");
+#if ($? == 0 && $move_binaries == 1) {
+#	system("mv wastral $targetdir");
+#	system("mv astral4 $targetdir/astral");
+#}
+#chdir($Bin);
 
 
