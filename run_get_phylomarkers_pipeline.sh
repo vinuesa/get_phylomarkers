@@ -45,7 +45,7 @@ set -u
 set -o pipefail
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.8.1.1_2024-04-16'
+VERSION='2.8.1.2_2024-04-16'
                          		   
 # Set GLOBALS
 # in Strict mode, need to explicitly set undefined variables to an empty string var=''
@@ -63,6 +63,11 @@ declare -A filtering_results_h
 filtering_results_h=()
 declare -a filtering_results_kyes_a
 filtering_results_kyes_a=()
+
+declare -A output_files_h
+output_files_h=()
+declare -a output_files_a
+output_files_a=()
 
 min_bash_vers=4.3 # required for:
                   # 1.  printf '%(%F)T' '-1' in print_start_time; and 
@@ -1219,6 +1224,8 @@ filtering_results_kyes_a+=('n_alns_passing_SRHtests')
 #     Mark dir as phipack_dir
 mkdir PhiPack || { msg "ERROR: cannot mkdir PhiPack ..." ERROR RED && exit 1 ; }
 cd PhiPack || { msg "ERROR: cannot cd into PhiPack ..." ERROR RED && exit 1 ; }
+wkdir=$(pwd)
+
 ln -s ../*fasta .
 
 # 3.1.2 check that we have codon alignments before proceeding
@@ -1268,6 +1275,9 @@ do
 done > Phi_results_"${TIMESTAMP_SHORT}".tsv
 
 check_output Phi_results_"${TIMESTAMP_SHORT}".tsv "$parent_PID"
+
+output_files_a+=(Phi_recombination_test)
+output_files_h[Phi_recombination_test]=$(echo -e "$wkdir\tPhi_results_${TIMESTAMP_SHORT}.tsv")
 
 no_non_recomb_alns_perm_test=$(awk '$2 > 5e-02 && $3 > 5e-02' Phi_results_"${TIMESTAMP_SHORT}".tsv | wc -l)
 total_no_cdn_alns=$(find . -name '*_cdnAln.fasta' | wc -l)
@@ -1422,6 +1432,9 @@ then
     # remove trees with < 5 external branches (leaves)
     (( DEBUG > 0 )) && msg " >  removing trees with < $min_no_ext_branches external branches (leaves)" DEBUG NC
      
+    output_files_a+=(n_branches_per_tree)
+    output_files_h[n_branches_per_tree]=$(echo -e "$non_recomb_cdn_alns_dir\tno_tree_branches.list")
+      
     # collect the fasta file names producing "no real trees" with < 4 external branches in the no_tree_counter array
     declare -a no_tree_counter_a
     no_tree_counter_a=()
@@ -1476,7 +1489,10 @@ then
         check_output all_gene_trees.tre "$parent_PID"
         [ ! -s all_gene_trees.tre ] && exit 3
     fi
-
+    
+    output_files_a+=(all_source_gene_trees)
+    output_files_h[all_source_gene_trees]=$(echo -e "$non_recomb_cdn_alns_dir\tall_gene_trees.tre")
+    
     # 4.2 run_kdetrees.R at desired stringency
     print_start_time && msg "# running kde test ..." PROGR BLUE
     (( DEBUG > 0 )) && msg " > ${distrodir}/run_kdetrees.R ${gene_tree_ext} all_gene_trees.tre $kde_stringency &> /dev/null" DEBUG NC
@@ -1553,10 +1569,15 @@ then
     #    print_start_time && msg "# ERROR There are $no_kde_ok gene trees producing non-significant kde-test results! Increase the actual -k $kde_stringency value. Will stop here!" ERROR RED
     #    exit 5
     fi
+   
 
-#----------------------------------#
-# >>> BLOCK 4.2: PHYLOGENETICS <<< #
-#----------------------------------#
+    output_files_a+=(kdetrees_tests_on_all_gene_trees)
+    output_files_h[kdetrees_tests_on_all_gene_trees]=$(echo -e "$non_recomb_cdn_alns_dir\tkde_dfr_file_all_gene_trees.tre.tab")
+    
+    
+#----------------------------------------#
+# >>> BLOCK 4.2: PHYLOGENETICS - DNA <<< #
+#----------------------------------------#
     if (( runmode == 1 ))
     then
         # >>> 5.1 compute average bipartition support values for each gene tree
@@ -1582,7 +1603,10 @@ then
 
         awk -v min_supp_val="$min_supp_val" '$2 >= min_supp_val' sorted_aggregated_support_values4loci.tab > "sorted_aggregated_support_values4loci_ge${min_supp_val_perc}perc.tab"
         check_output "sorted_aggregated_support_values4loci_ge${min_supp_val_perc}perc.tab" "$parent_PID"
-
+        
+	output_files_a+=(sorted_aggregated_support_values_top_DNA_markers)
+	output_files_h[sorted_aggregated_support_values_top_DNA_markers]=$(echo -e "kde_ok\tsorted_aggregated_support_values4loci_ge${min_supp_val_perc}perc.tab")
+	
         no_top_markers=$(perl -lne 'END{print $.}' "sorted_aggregated_support_values4loci_ge${min_supp_val_perc}perc.tab")
         top_markers_dir="top_${no_top_markers}_markers_ge${min_supp_val_perc}perc"
 	top_markers_tab=$(find . -maxdepth 1 -type f -name "sorted_aggregated_support_values4loci_ge${min_supp_val_perc}perc.tab" -printf '%f\n')
@@ -1627,19 +1651,25 @@ then
         (( DEBUG > 0 )) && msg " > concat_alns fasta $parent_PID &> /dev/null" DEBUG NC
         
 	concat_alns fasta "$parent_PID" &> /dev/null
-        
+	check_output concat_cdnAlns.fna "$parent_PID"
+	output_files_a+=(concat_cdnAlns_fna)
+	output_files_h[concat_cdnAlns_fna]=$(echo -e "$top_markers_dir\tconcat_cdnAlns.fna")
+
         # >>> 5.4 remove uninformative sites from the concatenated alignment to speed up computation
         print_start_time && msg "# removing uninformative sites from concatenated alignment ..." PROGR BLUE
         (( DEBUG > 0 )) && msg " > ${distrodir}/remove_uninformative_sites_from_aln.pl < concat_cdnAlns.fna > concat_cdnAlns.fnainf" DEBUG NC
         #$distrodir/remove_uninformative_sites_from_aln.pl < concat_cdnAlns.fna > concat_cdnAlns.fnainf
 	"${distrodir}"/remove_uninformative_sites_from_aln.pl < concat_cdnAlns.fna > concat_cdnAlns.fnainf
         check_output concat_cdnAlns.fnainf "$parent_PID"
+	
+	output_files_a+=(concat_cdnAlns_fnainf)
+	output_files_h[concat_cdnAlns_fnainf]=$(echo -e "$top_markers_dir\tconcat_cdnAlns.fnainf")
 
 	[ ! -s concat_cdnAlns.fnainf ] && print_start_time && msg " >>> ERROR: The expected file concat_cdnAlns.fnainf was not produced! will exit now!" ERROR RED && exit 3
 
-        #:::::::::::::::::::::::::::::::#
-        # >>> FastTree species tree <<< #
-        #:::::::::::::::::::::::::::::::#
+        #:::::::::::::::::::::::::::::::::::::#
+        # >>> FastTree species tree - DNA <<< #
+        #:::::::::::::::::::::::::::::::::::::#
 
 	if [[ "$search_algorithm" == "F" ]]	
         then
@@ -1657,12 +1687,26 @@ then
             # compute ASTRAL species tree on the alltrees.nwk file
             if [[ -s alltrees.nwk ]]
             then
+	        output_files_a+=(concatenated_top_markers_DNA_gene_trees)
+	        output_files_h[concatenated_top_markers_DNA_gene_trees]=$(echo -e "$top_markers_dir\talltrees.nwk")
                 print_start_time && msg "# computing ASTRAL species tree from ${no_top_markers} top marker gene trees ..." PROGR BLUE
                 (( DEBUG > 0 )) && msg " > run_ASTRAL alltrees.nwk $no_top_markers $tree_labels_dir $n_cores" DEBUG NC
                 run_ASTRAL alltrees.nwk "${no_top_markers}" "$tree_labels_dir" "$n_cores"
             else
                 msg " >>> WARNING: file alltrees.nwk was not found; cannot run ASTRAL ..." WARNING LRED
             fi
+
+            output_files_a+=(ASTRAL4_species_tree)
+            output_files_h[ASTRAL4_species_tree]=$(echo -e "$top_markers_dir\tastral4_top${no_top_markers}geneTrees_ed.sptree")
+
+            output_files_a+=(wASTRAL_species_tree)
+            output_files_h[wASTRAL_species_tree]=$(echo -e "$top_markers_dir\twastral_top${no_top_markers}geneTrees_ed.sptree")
+
+            output_files_a+=(wASTRAL_concord_stats)
+            output_files_h[wASTRAL_concord_stats]=$(echo -e "$top_markers_dir\twastral_concord.cf.stat")
+
+            output_files_a+=(IQTree_constrained_by_wASTRALspTree)
+            output_files_h[IQTree_constrained_by_wASTRALspTree]=$(echo -e "$top_markers_dir\tIQTree_constrained_by_wASTRALspTree_ed.treefile")
     	    
 	    msg "" PROGR NC
 	    msg " >>>>>>>>>>>>>>> FastTree run on supermatrix to estimate the species tree <<<<<<<<<<<<<<< " PROGR YELLOW
@@ -1700,6 +1744,8 @@ then
             fi
 
             check_output "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph "$parent_PID"
+	    output_files_a+=(Fast_tree_supermatix_tree)
+	    output_files_h[Fast_tree_supermatix_tree]=$(echo -e "$top_markers_dir\t${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph")
 
 	    if [[ -s "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log" ]] && [[ -s "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph" ]]
 	    then
@@ -1723,6 +1769,8 @@ then
 	        # for compute_suppValStats_and_RF-dist.R
                 mv "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG_ed.ph "${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}cdnAlns_FTGTRG_ed.sptree"
                 check_output "${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}cdnAlns_FTGTRG_ed.sptree" "$parent_PID"
+		output_files_a+=(Fast_tree_supermatix_tree_with_labels)
+	        output_files_h[Fast_tree_supermatix_tree_with_labels]=$(echo -e "$top_markers_dir\t${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}cdnAlns_FTGTRG_ed.sptree")
                 msg " >>> found in dir $top_markers_dir ..." PROGR GREEN
             else
                 msg " >>> WARNING: ${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}cdnAlns_FTGTRG_ed.sptree could not be produced" WARNING LRED
@@ -1737,9 +1785,9 @@ then
 	    [[ -s top100_median_support_values4loci.tab ]] && (( no_top_markers < 101 )) && rm top100_median_support_values4loci.tab
         fi # [ "$search_algorithm" == "F" ]
 
-        #::::::::::::::::::::::::::::::#
-        # >>> IQ-TREE species tree <<< #
-        #::::::::::::::::::::::::::::::#
+        #::::::::::::::::::::::::::::::::::::#
+        # >>> IQ-TREE species tree - DNA <<< #
+        #::::::::::::::::::::::::::::::::::::#
         if [[ "$search_algorithm" == "I" ]]
         then
             # ============== #
@@ -1757,12 +1805,26 @@ then
             # compute ASTRAL-IV and wASTRAL species trees on the alltrees.nwk file
             if [ -s alltrees.nwk ]
             then
-                print_start_time && msg "# computing ASTRAL species tree from ${no_top_markers} top marker gene trees ..." PROGR BLUE
+	         output_files_a+=(concatenated_top_markers_DNA_gene_trees)
+	         output_files_h[concatenated_top_markers_DNA_gene_trees]=$(echo -e "$top_markers_dir\talltrees.nwk")
+                 print_start_time && msg "# computing ASTRAL species tree from ${no_top_markers} top marker gene trees ..." PROGR BLUE
                 (( DEBUG > 0 )) && msg "  > run_ASTRAL alltrees.nwk $no_top_markers $tree_labels_dir $n_cores" DEBUG NC
                 run_ASTRAL alltrees.nwk "${no_top_markers}" "$tree_labels_dir" "$n_cores"
             else
                 msg " >>> WARNING: file alltrees.nwk was not found; cannot run ASTRAL ..." WARNING LRED
             fi 
+
+            output_files_a+=(ASTRAL4_species_tree)
+            output_files_h[ASTRAL4_species_tree]=$(echo -e "$top_markers_dir\tastral4_top${no_top_markers}geneTrees_ed.sptree")
+
+            output_files_a+=(wASTRAL_species_tree)
+            output_files_h[wASTRAL_species_tree]=$(echo -e "$top_markers_dir\twastral_top${no_top_markers}geneTrees_ed.sptree")
+
+            output_files_a+=(wASTRAL_concord_stats)
+            output_files_h[wASTRAL_concord_stats]=$(echo -e "$top_markers_dir\twastral_concord.cf.stat")
+
+            output_files_a+=(IQTree_constrained_by_wASTRALspTree)
+            output_files_h[IQTree_constrained_by_wASTRALspTree]=$(echo -e "$top_markers_dir\tIQTree_constrained_by_wASTRALspTree_ed.treefile")
 
 	    # 5.5 run IQ-tree in addition to FastTree, if requested
             msg "" PROGR NC
@@ -1774,6 +1836,8 @@ then
             "$bindir"/iqtree -s concat_cdnAlns.fnainf -st DNA -mset "$IQT_models" -m MF -T "$IQT_threads" -n 0 &> /dev/null
 
 	    check_output concat_cdnAlns.fnainf.log "$parent_PID"
+	    output_files_a+=(IQ-Tree_supermatix_logfile)
+	    output_files_h[IQ-Tree_supermatix_logfile]=$(echo -e "$top_markers_dir\tconcat_cdnAlns.fnainf.log")
 
 	    best_model=$(grep '^Best-fit model' concat_cdnAlns.fnainf.log | cut -d' ' -f 3)
 	    msg " >>> Best-fit model: ${best_model} ..." PROGR GREEN
@@ -1797,19 +1861,27 @@ then
 	    	grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_IQ-TREE_searches.out
 
 	    	check_output sorted_IQ-TREE_searches.out "$parent_PID"
+
+	        output_files_a+=(sorted_IQ-TREE_searches)
+	        output_files_h[sorted_IQ-TREE_searches]=$(echo -e "$top_markers_dir\tsorted_IQ-TREE_searches.out")
+
 	    	best_search=$(head -1 sorted_IQ-TREE_searches.out)
 	    	best_search_base_name=$(head -1 sorted_IQ-TREE_searches.out | cut -d\. -f 1)
 
 	    	msg "# >>> Best IQ-TREE run was: $best_search ..." PROGR GREEN
 	    	best_tree_file="${tree_prefix}_${best_search_base_name}_nonRecomb_KdeFilt_iqtree_${best_model}.treefile"
-	    	
+	        best_tree_file_ed="${tree_prefix}_${best_search_base_name}_nonRecomb_KdeFilt_iqtree_${best_model}_ed.sptree"
+
 	    	# Note: this function works within iqtree_abayes/ and takes care of:
 	    	# 1. labeling the species tree and moving it to top_markers_dir 
 	    	# 2. making a cleanup in iqtree_abayes/
 	    	# 3. moves to top_markers_dir to compute RF-dist of gene-trees to species-tree
 	    	# 4. removes the double extension name *.fasta.treefile and changes treefile for ph to make it paup-compatible for clock-test
             	process_IQT_species_trees_for_molClock "$best_search_base_name" "$best_tree_file" "$top_markers_dir" "$no_top_markers"
-	    else
+              
+		output_files_a+=(IQTree_concat_cdnAln_spTree)
+                output_files_h[IQTree_concat_cdnAln_spTree]=$(echo -e "$top_markers_dir\t$best_tree_file_ed")
+ 	    else
 	    	print_start_time && msg "# running IQ-tree on the concatenated alignment with best model ${best_model} --abayes -B 1000. This will take a while ..." PROGR BLUE
 
 	    	"$bindir"/iqtree -s concat_cdnAlns.fnainf -st DNA -m "$best_model" --abayes -B 1000 -T "$IQT_threads" --prefix iqtree_abayes &> /dev/null
@@ -1817,12 +1889,20 @@ then
 	    	grep '^BEST SCORE' ./*log | sed 's#./##' | sort -nrk5 > sorted_IQ-TREE_searches.out
 
 	    	check_output sorted_IQ-TREE_searches.out "$parent_PID"
+
+	        output_files_a+=(sorted_IQ-TREE_searches)
+	        output_files_h[sorted_IQ-TREE_searches]=$(echo -e "$top_markers_dir\tsorted_IQ-TREE_searches.out")
+
 	    	best_search=$(head -1 sorted_IQ-TREE_searches.out)
 	    	best_search_base_name=$(head -1 sorted_IQ-TREE_searches.out | cut -d\. -f 1)
 
 	    	msg "# >>> Best IQ-TREE run was: $best_search ..." PROGR GREEN
 	    	best_tree_file="${tree_prefix}_nonRecomb_KdeFilt_iqtree_${best_model}.treefile"
+		best_tree_file_ed="${tree_prefix}_nonRecomb_KdeFilt_iqtree_${best_model}_ed.sptree"
             	process_IQT_species_trees_for_molClock iqtree_abayes "$best_tree_file" "$top_markers_dir" "$no_top_markers"
+		
+		output_files_a+=(IQTree_concat_cdnAln_spTree)
+                output_files_h[IQTree_concat_cdnAln_spTree]=$(echo -e "$top_markers_dir\t$best_tree_file_ed")
 	    fi
         fi # if [ "$search_algorithm" == "I" ]
 
@@ -1880,6 +1960,8 @@ then
         	paste gene_trees2_concat_tree_RF_distances.tab "${mol_clock_tab}"sorted > phylogenetic_attributes_of_top"${no_top_markers}"_gene_trees.tab
 
 		check_output phylogenetic_attributes_of_top"${no_top_markers}"_gene_trees.tab "$parent_PID"
+	        output_files_a+=(mol_clock_top_gene_trees_table)
+	        output_files_h[mol_clock_top_gene_trees_table]=$(echo -e "$top_markers_dir\tphylogenetic_attributes_of_top${no_top_markers}_gene_trees.tab")
 
 		msg " >>> Top markers and associated stats are found in: $top_markers_dir ..." PROGR GREEN
             else
@@ -2021,6 +2103,8 @@ then
     	"$distrodir"/popGen_summStats.pl -R 2 -n nex -f fasta -F fasta -H -r 100 -t "$TajD_l" -T "$TajD_u" -s "$FuLi_l" -S "$FuLi_u" &> popGen_summStats_hs100.log
     
     	check_output polymorphism_descript_stats.tab "$parent_PID"
+	output_files_a+=(polymorphism_descript_stats)
+	output_files_h[polymorphism_descript_stats]=$(echo -e "$popGen_dir\tpolymorphism_descript_stats.tab")
 	
 	# save the neutral loci into array (SC2207)
 	declare -a neutral_loci
@@ -2078,6 +2162,8 @@ then
 	    concat_alns fasta "$parent_PID" &> /dev/null
 	    
 	    check_output concat_cdnAlns.fna "$parent_PID"
+	    output_files_a+=(concat_cdnAlns_neutral_markers)
+	    output_files_h[concat_cdnAlns_neutral_markers]=$(echo -e "neutral_loci_${#neutral_loci[@]}\tconcat_cdnAlns.fna")
 	            
             # >>> 5.4 Compute SNPs from the concatenated alignment using snp-sites https://github.com/sanger-pathogens/snp-sites
 	    # NOTE: available on CONDA and installable from apt repo for Debian/Ubuntu 
@@ -2090,13 +2176,19 @@ then
 	    "$bindir"/snp-sites-static -cm -o concat_cdnAlns_SNPs.fasta concat_cdnAlns.fna # activate only for statically-linked binary
 	    #snp-sites -cm -o concat_cdnAlns_SNPs.fasta concat_cdnAlns.fna                 # for system-wide install, e.g. with apt install snp-sites
 	    check_output concat_cdnAlns_SNPs.fasta "$parent_PID"
+	    output_files_a+=(concat_cdnAlns_SNPs_fasta)
+	    output_files_h[concat_cdnAlns_SNPs_fasta]=$(echo -e "neutral_loci_${#neutral_loci[@]}\tconcat_cdnAlns_SNPs.fasta")
 
 	    # Generate the snp-matrix in VCF format
 	    "$bindir"/snp-sites-static -cv -o concat_cdnAlns_SNPs.vcf concat_cdnAlns.fna # activate only for statically-linked binary
 	    #snp-sites -cv -o concat_cdnAlns_SNPs.vcf concat_cdnAlns.fna                 # for system-wide install, e.g. with apt install snp-sites
 	    check_output concat_cdnAlns_SNPs.vcf "$parent_PID"
+	    output_files_a+=(concat_cdnAlns_SNPs_vcf)
+	    output_files_h[concat_cdnAlns_SNPs_vcf]=$(echo -e "neutral_loci_${#neutral_loci[@]}\tconcat_cdnAlns_SNPs.vcf")
 	    
-	    # compute phylogeny
+            #:::::::::::::::::::::::::::::::::#
+            # >>> FT-TREE Population tree <<< #
+            #:::::::::::::::::::::::::::::::::#
             if [[ "$search_algorithm" == "F" ]]	
             then
 	        msg "" PROGR NC
@@ -2136,6 +2228,7 @@ then
 
                 check_output "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph "$parent_PID"
 
+
 	        if [[ -s "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log" ]] && [[ -s "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph" ]]
 	        then
 	    	    #lnL=$(grep ML_Lengths2 "${tree_prefix}_nonRecomb_KdeFilt_cdnAlns_FTGTRG.log" | grep TreeLogLk | sed 's/TreeLogLk[[:space:]]ML_Lengths2[[:space:]]//')
@@ -2157,14 +2250,16 @@ then
                 then
                     mv "${tree_prefix}"_nonRecomb_KdeFilt_cdnAlns_FTGTRG_ed.ph "${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}cdnAlns_FTGTRG_ed.poptree"
                     check_output "${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}cdnAlns_FTGTRG_ed.poptree" "$parent_PID"
+	            output_files_a+=(FT_concat_cdnAln_SNPs_popTree)
+	            output_files_h[FT_concat_cdnAln_SNPs_popTree]=$(echo -e "neutral_loci_${#neutral_loci[@]}\t${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}cdnAlns_FTGTRG_ed.poptree")
                 else
                     msg " >>> WARNING: ${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}cdnAlns_FTGTRG_ed.poptree could not be produced" WARNING LRED
                 fi
             fi # [ "$search_algorithm" == "F" ]
 
-        #::::::::::::::::::::::::::::::#
-        # >>> IQ-TREE species tree <<< #
-        #::::::::::::::::::::::::::::::#
+            #:::::::::::::::::::::::::::::::::#
+            # >>> IQ-TREE Population tree <<< #
+            #:::::::::::::::::::::::::::::::::#
             if [[ "$search_algorithm" == "I" ]]
             then
 	        if [[ "$search_thoroughness" == "high" ]]
@@ -2179,7 +2274,7 @@ then
 	    	    check_output concat_cdnAlns_SNPs.fasta.treefile "$parent_PID"
                     best_fit_model=$(awk '/^Best-fit model:/{print $3}' concat_cdnAlns_SNPs.fasta.log)
 		    
-		    longmsg=" > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.listconcat_cdnAlns_SNPs.fasta.treefile &> /dev/null"
+		    longmsg=" > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list concat_cdnAlns_SNPs.fasta.treefile &> /dev/null"
                     (( DEBUG > 0 )) && msg "$longmsg" DEBUG NC
                     "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list concat_cdnAlns_SNPs.fasta.treefile &> /dev/null
 
@@ -2187,6 +2282,8 @@ then
 		    then 
 		       mv concat_cdnAlns_SNPs_ed.fasta concat_cdnAlns_SNPs_population_tree.ph
 		       check_output concat_cdnAlns_SNPs_population_tree.ph "$parent_PID"
+	               output_files_a+=(IQT_concat_cdnAln_SNPs_popTree)
+	               output_files_h[IQT_concat_cdnAln_SNPs_popTree]=$(echo -e "neutral_loci_${#neutral_loci[@]}\tconcat_cdnAlns_SNPs_population_tree.ph")
 		    else
 		       msg "# WARGNING: could not produce the edited file concat_cdnAlns_SNPs_population_tree.ph" WARNING LRED
 		    fi 
@@ -2198,7 +2295,7 @@ then
 		    
 		    msg ">>> Best-fit model selected by BIC for concat_cdnAlns_SNPs.fasta is: $best_fit_model" PROGR GREEN
 		    
-		    longmsg=" > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.listconcat_cdnAlns_SNPs.fasta.treefile &> /dev/null"
+		    longmsg=" > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list concat_cdnAlns_SNPs.fasta.treefile &> /dev/null"
                     (( DEBUG > 0 )) && msg "$longmsg" DEBUG NC
                     "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list concat_cdnAlns_SNPs.fasta.treefile &> /dev/null
 		   
@@ -2206,6 +2303,8 @@ then
 		    then 
 		       mv concat_cdnAlns_SNPs_ed.fasta concat_cdnAlns_SNPs_population_tree.ph
 		       check_output concat_cdnAlns_SNPs_population_tree.ph "$parent_PID"
+	               output_files_a+=(IQT_concat_cdnAln_SNPs_popTree)
+	               output_files_h[IQT_concat_cdnAln_SNPs_popTree]=$(echo -e "neutral_loci_${#neutral_loci[@]}\tconcat_cdnAlns_SNPs_population_tree.ph")
 		    else
 		       msg "# WARGNING: could not produce the edited file concat_cdnAlns_SNPs_population_tree.ph" WARNING LRED
 		    fi 
@@ -2310,7 +2409,7 @@ then
 
 	filtering_results_h[n_starting_gene_trees]="$no_gene_trees"
         filtering_results_kyes_a+=('n_starting_gene_trees')
-        (( DEBUG > 0 )) && for k in "${filtering_results_kyes_a[@]}"; do echo "$k: ${filtering_results_h[$k]}"; done
+        #(( DEBUG > 0 )) && for k in "${filtering_results_kyes_a[@]}"; do echo "$k: ${filtering_results_h[$k]}"; done
     fi # if/else [[ "$search_algorithm" == "F" ]]
 
     #remove trees with < 5 branches
@@ -2354,7 +2453,7 @@ then
 
     filtering_results_h[n_non_trivial_gene_trees]=$((no_gene_trees - "${#no_tree_counter2[@]}"))
     filtering_results_kyes_a+=('n_non_trivial_gene_trees')
-    (( DEBUG > 0 )) && for k in "${filtering_results_kyes_a[@]}"; do echo "$k: ${filtering_results_h[$k]}"; done
+    #(( DEBUG > 0 )) && for k in "${filtering_results_kyes_a[@]}"; do echo "$k: ${filtering_results_h[$k]}"; done
 
 
     msg "" PROGR NC
@@ -2463,9 +2562,9 @@ then
     (( DEBUG > 0 )) && for k in "${filtering_results_kyes_a[@]}"; do echo "$k: ${filtering_results_h[$k]}"; done
 
 
-    #----------------------------------#
-    # >>> BLOCK 5.2: PHYLOGENETICS <<< #
-    #----------------------------------#
+    #---------------------------------------#
+    # >>> BLOCK 5.2: PROT PHYLOGENETICS <<< #
+    #---------------------------------------#
     wkdir=$(pwd)
 
     msg "" PROGR NC
@@ -2491,6 +2590,9 @@ then
     no_top_markers=$(perl -lne 'END{print $.}' "sorted_aggregated_support_values4loci_ge${min_supp_val_perc}perc.tab")
     top_markers_dir="top_${no_top_markers}_markers_ge${min_supp_val_perc}perc"
     top_markers_tab=$(ls "sorted_aggregated_support_values4loci_ge${min_supp_val_perc}perc.tab")
+
+    output_files_a+=(sorted_aggregated_support_values_for_top_markers)
+    output_files_h[sorted_aggregated_support_values_for_top_markers]=$(echo -e "$top_markers_dir\t$top_markers_tab")
 
     filtering_results_h[n_gene_trees_with_low_median_support]=$((no_kde_ok - no_top_markers))
     filtering_results_kyes_a+=('n_gene_trees_with_low_median_support')
@@ -2534,23 +2636,31 @@ then
     print_start_time && msg "# concatenating $no_top_markers top markers into supermatrix ..." PROGR BLUE
     (( DEBUG > 0 )) && msg " > concat_alns faaln $parent_PID &> /dev/null" DEBUG NC
     concat_alns faaln "$parent_PID" &> /dev/null
+    
+    output_files_a+=(prot_concat_aln_faa)
+    output_files_h[prot_concat_aln_faa]=$(echo -e "$top_markers_dir\tconcat_protAlns.faa")
 
     # >>> 5.4 remove uninformative sites from the concatenated alignment to speed up computation
     print_start_time && msg "# removing uninformative sites from concatenated alignment ..." PROGR BLUE
     (( DEBUG > 0 )) && msg " > ${distrodir}/remove_uninformative_sites_from_aln.pl < concat_protAlns.faa > concat_protAlns.faainf" DEBUG NC
     "${distrodir}"/remove_uninformative_sites_from_aln.pl < concat_protAlns.faa > concat_protAlns.faainf
     check_output concat_protAlns.faainf "$parent_PID"
+    output_files_a+=(prot_concat_aln_faainf)
+    output_files_h[prot_concat_aln_faainf]=$(echo -e "$top_markers_dir\tconcat_protAlns.faainf")
 
     [ ! -s concat_protAlns.faainf ] && print_start_time && msg " >>> ERROR: The expected file concat_protAlns.faainf was not produced! will exit now!" ERROR RED && exit 3
 
 
-    #:::::::::::::::::::::::::::::::#
-    # >>> FastTree species tree <<< #
-    #:::::::::::::::::::::::::::::::#
+    #::::::::::::::::::::::::::::::::::::::::::#
+    # >>> FastTree concatProt species tree <<< #
+    #::::::::::::::::::::::::::::::::::::::::::#
     if [ "$search_algorithm" == "F" ]
     then
         print_start_time && msg "# running compute_MJRC_tree ph $search_algorithm ..." PROGR BLUE
 	compute_MJRC_tree ph "$search_algorithm" 
+
+        output_files_a+=(concat_prot_gene_trees_FT_nwk)
+        output_files_h[concat_prot_gene_trees_FT_nwk]=$(echo -e "$top_markers_dir\talltrees.nwk")
 
 	# >>> ASTRAL <<< #
 	msg "" PROGR NC
@@ -2567,7 +2677,18 @@ then
            msg " >>> WARNING: file alltrees.nwk was not found; cannot run ASTRAL ..." WARNING LRED
         fi
 
+        output_files_a+=(ASTRAL4_species_tree)
+        output_files_h[ASTRAL4_species_tree]=$(echo -e "$top_markers_dir\tastral4_top${no_top_markers}geneTrees_ed.sptree")
 
+        output_files_a+=(wASTRAL_species_tree)
+        output_files_h[wASTRAL_species_tree]=$(echo -e "$top_markers_dir\twastral_top${no_top_markers}geneTrees_ed.sptree")
+
+        output_files_a+=(wASTRAL_species_tree)
+        output_files_h[wASTRAL_species_tree]=$(echo -e "$top_markers_dir\twastral_top${no_top_markers}geneTrees_ed.sptree")
+
+        output_files_a+=(IQTree_constrained_by_wASTRALspTree)
+        output_files_h[IQTree_constrained_by_wASTRALspTree]=$(echo -e "$top_markers_dir\tIQTree_constrained_by_wASTRALspTree_ed.treefile")
+		
         msg "" PROGR NC
         msg " >>>>>>>>>>>>>>> FastTree run on $no_top_markers concatenated $mol_type alignments to estimate the species tree <<<<<<<<<<<<<<< " PROGR YELLOW
         msg "" PROGR NC
@@ -2621,6 +2742,8 @@ then
         mv "${tree_prefix}_nonRecomb_KdeFilt_protAlns_FTlgG.ph" "${tree_prefix}_${no_top_markers}nonRecomb_KdeFilt_protAlns_FTlgG_numbered.tre"
 
         check_output "${tree_prefix}_${no_top_markers}nonRecomb_KdeFilt_protAlns_FTlgG.spTree" "$parent_PID"
+        output_files_a+=(concat_protAln_FT_species_tree)
+        output_files_h[concat_protAln_FT_species_tree]=$(echo -e "$top_markers_dir\t${tree_prefix}_${no_top_markers}nonRecomb_KdeFilt_protAlns_FTlgG.spTree")
 
         msg " >>> found in dir $top_markers_dir ..." PROGR GREEN
 
@@ -2628,14 +2751,17 @@ then
         { "${distrodir}"/compute_suppValStas_and_RF-dist.R "$top_markers_dir" 2 faaln ph 1 &> /dev/null && return 0 ; }
     fi # [ "$search_algorithm" == "F" ]
 
-    #::::::::::::::::::::::::::::::#
-    # >>> IQ-TREE species tree <<< #
-    #::::::::::::::::::::::::::::::#
+    #:::::::::::::::::::::::::::::::::::::::::#
+    # >>> IQ-TREE concatProt species tree <<< #
+    #:::::::::::::::::::::::::::::::::::::::::#
 
     if [ "$search_algorithm" == "I" ]
     then
         print_start_time && msg "# running compute_MJRC_tree treefile $search_algorithm ..." PROGR BLUE
         compute_MJRC_tree treefile "$search_algorithm" 
+
+        output_files_a+=(concat_prot_gene_trees_IQT_nwk)
+        output_files_h[concat_prot_gene_trees_IQT_nwk]=$(echo -e "$top_markers_dir\talltrees.nwk")
 	
 	msg "" PROGR NC
         msg " >>>>>>>>>>>>>>> Computing ASTRAL species tree on ${no_top_markers} top marker gene trees <<<<<<<<<<<<<<< " PROGR YELLOW
@@ -2651,8 +2777,20 @@ then
            msg " >>> WARNING: file alltrees.nwk was not found; cannot run ASTRAL ..." WARNING LRED
         fi
 
+        output_files_a+=(ASTRAL4_species_tree)
+        output_files_h[ASTRAL4_species_tree]=$(echo -e "$top_markers_dir\tastral4_top${no_top_markers}geneTrees_ed.sptree")
 
-        # 5.5 run IQ-tree in addition to FastTree, if requested
+        output_files_a+=(wASTRAL_species_tree)
+        output_files_h[wASTRAL_species_tree]=$(echo -e "$top_markers_dir\twastral_top${no_top_markers}geneTrees_ed.sptree")
+
+        output_files_a+=(concat_prot_aln_model_selection_on_wastral_usertree_IQT_logfile)
+        output_files_h[concat_prot_aln_model_selection_on_wastral_usertree_IQT_logfile]=$(echo -e "$top_markers_dir\twastral_usertree_concat_model_selection.log")
+
+        output_files_a+=(IQTree_constrained_by_wASTRALspTree)
+        output_files_h[IQTree_constrained_by_wASTRALspTree]=$(echo -e "$top_markers_dir\tIQTree_constrained_by_wASTRALspTree_ed.treefile")
+	
+	
+        # 5.5 run IQ-tree in addition to ASTRAL, if requested
         msg "" PROGR NC
         msg " >>>>>>>>>>>>>>> IQ-TREE + ModelFinder run on $no_top_markers concatenated $mol_type alignments to estimate the species tree <<<<<<<<<<<<<<< " PROGR YELLOW
         msg "" PROGR NC
@@ -2660,6 +2798,9 @@ then
         print_start_time && msg "# running ModelFinder on the $no_top_markers concatenated $mol_type alignments with $IQT_models. This will take a while ..." PROGR BLUE       
         iqtree -s concat_protAlns.faainf -st PROT -mset "$IQT_models" -m MF -T "$IQT_threads" -n 0 &> /dev/null       
         check_output concat_protAlns.faainf.log "$parent_PID"
+
+        output_files_a+=(concat_protAlns_IQT_faainf_logfile)
+        output_files_h[concat_protAlns_IQT_faainf_logfile]=$(echo -e "$top_markers_dir\tconcat_protAlns.faainf.log")
 
         best_model=$(grep '^Best-fit model' concat_protAlns.faainf.log | cut -d' ' -f 3)
         msg " >>> Best-fit model: ${best_model} ..." PROGR GREEN
@@ -2690,7 +2831,7 @@ then
       	    msg "# >>> Best IQ-TREE run was: $best_search ..." PROGR GREEN
 
       	    best_tree_file="${tree_prefix}_${best_search_base_name}_nonRecomb_KdeFilt_${no_top_markers}concat_protAlns_iqtree_${best_model}.spTree"
-	        numbered_nwk="${tree_prefix}_${best_search_base_name}_nonRecomb_KdeFilt_${no_top_markers}concat_protAlns_iqtree_${best_model}_numbered.nwk"
+	    numbered_nwk="${tree_prefix}_${best_search_base_name}_nonRecomb_KdeFilt_${no_top_markers}concat_protAlns_iqtree_${best_model}_numbered.nwk"
       	    cp "${best_search_base_name}.treefile" "$best_tree_file"
 	    cp "${best_search_base_name}.treefile" "$numbered_nwk"
 
@@ -2699,8 +2840,10 @@ then
    	    "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list "$best_tree_file" &> /dev/null
 	   
 	    sp_tree=$(ls ./*ed.spTree)
-
       	    check_output "$sp_tree" "$parent_PID"
+            output_files_a+=(concat_protAlns_IQT_spTree)
+            output_files_h[concat_protAlns_IQT_spTree]=$(echo -e "$top_markers_dir\t$sp_tree")
+
       	    cp "$sp_tree" "$numbered_nwk" "$top_markers_dir"
       	    cd "$top_markers_dir" || { msg "ERROR: cannot cd into $top_markers_dir" ERROR RED && exit 1 ; }
       	    rm -rf iqtree_abayes concat_protAlns.faainf.treefile concat_protAlns.faainf.uniqueseq.phy ./*ckp.gz
@@ -2711,23 +2854,26 @@ then
     	    iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" --abayes -B 1000 -T "$IQT_threads" --prefix iqtree_abayes &> /dev/null
 
     	    best_tree_file="${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}concat_protAlns_iqtree_${best_model}.spTree"
-	        numbered_nwk="${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}concat_protAlns_iqtree_${best_model}_numbered.nwk"
+	    numbered_nwk="${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}concat_protAlns_iqtree_${best_model}_numbered.nwk"
     	    cp iqtree_abayes.treefile "${best_tree_file}"
-	        cp iqtree_abayes.treefile "$numbered_nwk"
+	    cp iqtree_abayes.treefile "$numbered_nwk"
 
     	    print_start_time && msg "# Adding labels back to ${best_tree_file} ..." PROGR BLUE "$logdir" "$dir_suffix"
-   	        (( DEBUG > 0 )) && msg " > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${best_tree_file} &> /dev/null" DEBUG NC "$logdir" "$dir_suffix"
-   	        "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list "${best_tree_file}" &> /dev/null
+   	    (( DEBUG > 0 )) && msg " > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${best_tree_file} &> /dev/null" DEBUG NC "$logdir" "$dir_suffix"
+   	    "${distrodir}"/add_labels2tree.pl "${tree_labels_dir}"/tree_labels.list "${best_tree_file}" &> /dev/null
 	  
-	        sp_tree=$(ls ./*ed.spTree)
+	    sp_tree=$(ls ./*ed.spTree)
 
     	    check_output "$sp_tree" "$parent_PID"
+            output_files_a+=(concat_protAlns_IQT_spTree)
+            output_files_h[concat_protAlns_IQT_spTree]=$(echo -e "$top_markers_dir\t$sp_tree")
+
     	    cp "$sp_tree" "$numbered_nwk" "$top_markers_dir"
     	    cd "$top_markers_dir" || { msg "ERROR: cannot cd into $top_markers_dir" ERROR RED && exit 1 ; }
     	    rm -rf iqtree_abayes concat_protAlns.faainf.treefile concat_protAlns.faainf.uniqueseq.phy ./*ckp.gz
 	  
-	        print_start_time && msg "# computing the mean support values and RF-distances of each gene tree to the concatenated tree ..." PROGR BLUE
-	        (( DEBUG > 0 )) && msg " > compute_suppValStas_and_RF-dist.R $top_markers_dir 2 fasta treefile 1 &> /dev/null" DEBUG NC
+	    print_start_time && msg "# computing the mean support values and RF-distances of each gene tree to the concatenated tree ..." PROGR BLUE
+	    (( DEBUG > 0 )) && msg " > compute_suppValStas_and_RF-dist.R $top_markers_dir 2 fasta treefile 1 &> /dev/null" DEBUG NC
             "$distrodir"/compute_suppValStas_and_RF-dist.R "$top_markers_dir" 2 fasta ph 1 &> /dev/null
         fi # if/else [ "$search_thoroughness" == "high" ]
     fi # if [ "$search_algorithm" == "I" ]
@@ -2789,9 +2935,9 @@ then
 fi # [ "$mol_type" == "PROT" ]
 
 
- #-------------------------------------------#
- # >>> BLOCK 6: PIPELINE ENDING MESSAGES <<< #
- #-------------------------------------------#
+#-------------------------------------------#
+# >>> BLOCK 6: PIPELINE ENDING MESSAGES <<< #
+#-------------------------------------------#
 if (( PRINT_KDE_ERR_MESSAGE == 1 ))
 then 
     msg "# WARNING REMAINDER: run_kdetrees.R could not write kde_dfr_file_all_gene_trees.tre.tab; check that kdetrees and ape packages are propperly installed ..." WARNING LRED
@@ -2799,9 +2945,7 @@ then
     msg "# This issue can be easily avoided by running the containerized version available from https://hub.docker.com/r/vinuesa/get_phylomarkers!" PROGR GREEN
 fi
 
-
 # print the pipeline's filtering overview
-
 print_start_time && msg "# Overview of the pipeline's filtering process:" PROGR LBLUE
 for k in "${filtering_results_kyes_a[@]}"
 do
@@ -2814,6 +2958,19 @@ do
     echo -e "$k\t${filtering_results_h[$k]}"
 done > pipeline_filtering_overview.tsv
 check_output pipeline_filtering_overview.tsv "$parent_PID"
+
+print_start_time && msg "# Overview of the pipeline's key output files (without directories):" PROGR LBLUE
+for k in  "${output_files_a[@]}"
+do
+   msg "${k}: ${output_files_h[$k]}" PROGR YELLOW
+done | awk '{print $1, $3}' # skip path for tidyer screen output
+
+# write pipeline_filtering_overview.tsv to file 
+for k in  "${output_files_a[@]}"
+do
+   echo -e "$k\t${output_files_h[$k]}"
+done > pipeline_output_files_overview.tsv
+check_output pipeline_output_files_overview.tsv "$parent_PID"
 
 
 # compute the elapsed time since the script was fired
