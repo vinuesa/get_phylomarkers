@@ -1,4 +1,4 @@
-#: VERSION: 2024-04-13
+#: VERSION: 2024-04-16
 #: LIBRARY: get_phylomarkers_fun_lib
 #     * functions called by run_get_phylomarkers_pipeline.sh
 #     * part of the GET_PHYLOMARKERS software package
@@ -520,14 +520,13 @@ function run_ASTRAL()
    then
        concat_aln=concat_cdnAlns.fnainf
        lmsg=" # computing best-fitting model for $concat_aln using fixed user-tree wASTRAL species tree"
-       msg "$lmsg" PRGR LBLUE
-       iqtree -s "$concat_aln" -m MF+ASC+F+G+R*ASC*F*G*R -g "wastral_top${num_markers}geneTrees.sptree" \
-       --prefix wastral_usertree_concat_model_selection -nt "$num_threads" -mset "$dna_mset" -cmax "$cmax" --fast --quiet
+       print_start_time && msg "$lmsg" PRGR LBLUE
+       "$bindir"/iqtree -s "$concat_aln" -m MF+ASC+F+G+R*ASC*F*G*R -g "wastral_top${num_markers}geneTrees.sptree" \
+       --prefix wastral_usertree_concat_model_selection -nt "$num_threads" -mset "$dna_mset" -cmax "$cmax" --fast &> /dev/null
    
-       best_wastral_constrained_IQT_concat_model=''
-       best_wastral_constrained_IQT_concat_model=$(awk '/chosen according to BIC/{print $3}' wastral_usertree_concat_model_selection.log)
-   
-       if [[ -n "$best_wastral_constrained_IQT_concat_model" ]]
+       best_wastral_constrained_IQT_concat_model=$(awk '/Best-fit model according to BIC:/{print $6}' wastral_usertree_concat_model_selection.iqtree)
+                                                                                                       
+       if [ -n "$best_wastral_constrained_IQT_concat_model" ]
        then
             msg " >>> best fit model for $concat_aln using fixed user-tree wASTRAL species tree: $best_wastral_constrained_IQT_concat_model" PROG GREEN
        else
@@ -537,16 +536,15 @@ function run_ASTRAL()
    else
        concat_aln=concat_protAlns.faainf
        lmsg=" # computing best-fitting model for $concat_aln using fixed user-tree wASTRAL species tree"
-       msg "$lmsg" PRGR LBLUE
+       print_start_time && msg "$lmsg" PRGR LBLUE
        
        # NOTE: mixture models + ASC not yet implemented in iqtree v2.3.1 (Mar 25, 2024) 
-       iqtree -s "$concat_aln" -m MF+F+G+R -g "wastral_top${num_markers}geneTrees.sptree" \
-       --prefix wastral_usertree_concat_model_selection -nt "$num_threads" -mset "$prot_mset" -cmax 10 --fast --quiet
+       "$bindir"/iqtree -s "$concat_aln" -m MF+F+G+R -g "wastral_top${num_markers}geneTrees.sptree" \
+       --prefix wastral_usertree_concat_model_selection -nt "$num_threads" -mset "$prot_mset" -cmax 10 --fast &> /dev/null
    
-       best_wastral_constrained_IQT_concat_model=''
-       best_wastral_constrained_IQT_concat_model=$(awk '/chosen according to BIC/{print $3}' wastral_usertree_concat_model_selection.log)
+       best_wastral_constrained_IQT_concat_model=$(awk '/Best-fit model according to BIC:/{print $6}' wastral_usertree_concat_model_selection.iqtree)
    
-       if [[ -n "$best_wastral_constrained_IQT_concat_model" ]]
+       if [ -n "$best_wastral_constrained_IQT_concat_model" ]
        then
             msg " >>> best fit model for $concat_aln using fixed user-tree wASTRAL species tree: $best_wastral_constrained_IQT_concat_model" PROG GREEN
        else
@@ -556,15 +554,16 @@ function run_ASTRAL()
    fi
    
    # 4. compute_ASTRALspTree_branch_lenghts using best_wastral-constrained_IQT_concat_model and DNA|PROT \$concat_aln
+   msg "# running  compute_ASTRALspTree_branch_lenghts $concat_aln $best_wastral_constrained_IQT_concat_model wastral_top${no_top_markers}geneTrees.sptree $num_threads ..." PROGR LBLUE
    compute_ASTRALspTree_branch_lenghts "$concat_aln" "$best_wastral_constrained_IQT_concat_model" wastral_top"${no_top_markers}"geneTrees.sptree "$num_threads"
    
    # 5.1 compute the gene concordance factor (gCF) for each branch of the ASTRAL-IV species tree 
    # as the fraction of decisive gene trees concordant with this branch
    # NOTE: the IQTree_constrained_by_ASTRALspTree_concord.cf.tree produced by IQT may not be visualizable with FigTree!!!
-   msg "# computing  the gene concordance factor (gCF) for each branch of the ASTRALIV species tree ..." PROGR LBLUE
+   print_start_time && msg "# computing  the gene concordance factor (gCF) for each branch of the ASTRALIV species tree ..." PROGR LBLUE
    long_msg=" > iqtree -t astral4_top${num_markers}geneTrees.sptree --gcf alltrees.nwk --prefix astral4_concord &> /dev/null"
    (( DEBUG > 0 )) && msg "$long_msg" DEBUG NC
-   iqtree -t astral4_top"${num_markers}"geneTrees.sptree --gcf alltrees.nwk --prefix astral4_concord &> /dev/null
+   "$bindir"/iqtree -t astral4_top"${num_markers}"geneTrees.sptree --gcf alltrees.nwk --prefix astral4_concord &> /dev/null
    check_output astral4_concord.cf.tree "$parent_PID"
 
    # 5.2 add labels to astral4_concord.cf.tree
@@ -578,10 +577,10 @@ function run_ASTRAL()
    fi
 
    # 5.3 compute the gene concordance factor (gCF) for each branch of the wASTRAL species tree 
-   msg "# computing  the gene concordance factor (gCF) for each branch of the wASTRAL species tree ..." PROGR LBLUE
+   print_start_time && msg "# computing  the gene concordance factor (gCF) for each branch of the wASTRAL species tree ..." PROGR LBLUE
    long_msg=" > iqtree -t wastral_top${num_markers}geneTrees.sptree --gcf alltrees.nwk --prefix wastral_concord &> /dev/null"
    (( DEBUG > 0 )) && msg "$long_msg" DEBUG NC
-   iqtree -t wastral_top"${num_markers}"geneTrees.sptree --gcf alltrees.nwk --prefix wastral_concord &> /dev/null
+   "$bindir"/iqtree -t wastral_top"${num_markers}"geneTrees.sptree --gcf alltrees.nwk --prefix wastral_concord &> /dev/null
    check_output wastral_concord.cf.tree "$parent_PID"
 
    # 5.4 add labels to wastral_concord.cf.tree
@@ -655,10 +654,10 @@ function compute_ASTRALspTree_branch_lenghts()
    [[ "$threads" == 'AUTO' ]] && threads=10 # see note above on but in IQ-Tree 2.2.0 <<< !!!!
    
    # compute ML branch lenghts of wASTRAL species tree with IQT using the best model found for concat_aln
-   msg "# computing ML branch lenghts of wASTRAL species tree with IQT using the best model found for concat_aln ..." PROGR LBLUE
+   print_start_time && msg "# computing ML branch lenghts of wASTRAL species tree with IQT using the best model $model found for concat_aln ..." PROGR LBLUE
    long_msg=" > iqtree -s $concat_aln -m $model -g $astral_spTree --prefix $prefix -T $threads &> /dev/null"
    (( DEBUG > 0 )) && msg "$long_msg" DEBUG NC
-   iqtree -s "$concat_aln" -m "$model" -g "$astral_spTree" --prefix "$prefix" -T "$threads" &> /dev/null
+   "$bindir"/iqtree -s "$concat_aln" -m "$model" -g "$astral_spTree" --prefix "$prefix" -T "$threads" &> /dev/null
    
    # the IQT implementaion in v2.2.0 seems to be buggy, as for the same data
    #  the previous call is sometimes not successful (particularly in the Travis environment)
