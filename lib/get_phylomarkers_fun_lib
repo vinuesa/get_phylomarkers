@@ -1,4 +1,4 @@
-#: VERSION: 2024-04-16
+#: VERSION: 2024-04-17
 #: LIBRARY: get_phylomarkers_fun_lib
 #     * functions called by run_get_phylomarkers_pipeline.sh
 #     * part of the GET_PHYLOMARKERS software package
@@ -1029,3 +1029,67 @@ parse_SRH_tests() {
 
    return 0
 }
+#-----------------------------------------------------------------------------------------
+
+function rm_top_dir_prefix_from_wkdir
+{
+    # this function receives 2 parameters:
+    # 1: the top directory get_phylomarkers_run_A... (top_dir)
+    # 2: the current working directory (wkdir)
+    # OUTPUT removes the top_dir prefix from the wkdir full path and returns it as a string
+
+   (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
+   (( DEBUG > 0 )) && caller 0
+    
+    local top_dir wkdir ed_dir
+    
+    top_dir=$1
+    wkdir=$2
+    ed_dir=''
+    
+    ed_dir="${wkdir//$top_dir/}"
+    ed_dir="${ed_dir/\//}"
+
+
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]} ..." DEBUG NC
+   echo "$ed_dir"
+}
+#-----------------------------------------------------------------------------------------
+
+function read_svg_figs_into_hash
+{
+    # this function receives 1 parameter:
+    # 1: the ed_dir processed by rm_top_dir_prefix_from_wkdir
+    # builds the figs_h hash holding svg figure names read in by a while -r f; do ... done < <(find . ...) loop
+    #  in parallel, the igs_a array is filled with the hash keys, to print the in order read into the hash 
+    #    as run_get_phylomarkers_pipeline traverses the directory structure it generates
+
+   (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
+   (( DEBUG > 0 )) && caller 0
+
+   # figs_a array and figs_h hash are global in main script and passed to this function as: read_svg_figs_into_hash "$ed_dir" figs_a figs_h
+   # https://stackoverflow.com/questions/4069188/how-to-pass-an-associative-array-as-argument-to-a-function-in-bash
+  
+   local f d
+   d="$1"
+   
+   # declare local **reference variables** (hence `-n`) named `*_ref`
+   # which is a reference to the value stored in the passed parameters ($2, $3)
+   # passed in
+
+   declare -n figs_a_ref="$2" 
+   declare -n figs_h_ref="$3"
+
+   while read -r f; do 
+       if [ -s "$f" ]
+       then
+   	   check_output "$f" "$parent_PID"
+           figs_a_ref+=("${f%.*}")
+   	   figs_h_ref["${f%.*}"]=$(echo -e "$d\t$f")
+       fi      
+   done < <(find . -maxdepth 1 -name \*.svg -printf '%f\n')
+
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]} ..." DEBUG NC
+   return 0  # required, or dies here
+}
+#-----------------------------------------------------------------------------------------
