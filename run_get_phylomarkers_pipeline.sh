@@ -45,7 +45,7 @@ set -u
 set -o pipefail
 
 progname=${0##*/} # run_get_phylomarkers_pipeline.sh
-VERSION='2.8.2.0_2024-04-19'
+VERSION='2.8.3.0_2024-04-19'
                          		   
 # Set GLOBALS
 # in Strict mode, need to explicitly set undefined variables to an empty string var=''
@@ -77,6 +77,8 @@ declare -a aln_lmappings_a=()
 
 declare -A alns_passing_lmap_and_suppval_h=()
 declare -a alns_passing_lmap_and_suppval_a=()
+
+declare -A alnIDs2names=()
 
 
 min_bash_vers=4.4 # required for:
@@ -977,6 +979,11 @@ msg "" PROGR NC
 msg " >>>>>>>>>>>>>> running input data sanity checks <<<<<<<<<<<<<< " PROGR YELLOW
 msg "" PROGR NC
 
+# populate the alnIDs2names_h hash 
+#  2332_hypothetical_protein_xzf.fna; key:2332 => val:2332_hypothetical_protein_xzf
+while read -r a; do
+    alnIDs2names["${a%%_*}"]="${a%.*}"
+done < <(find . -maxdepth 1 -name "*.fna")
 
 # make sure we have *.faa and *.fna file pairs to work on
 if ! nfna=$(find . -maxdepth 1 -name "*.fna" | wc -l)
@@ -1156,7 +1163,7 @@ do
 	    mv "$f" problematic_alignments
 	    mv "${locus_base}"* problematic_alignments
     else
-        continue
+	continue
     fi
 done
 
@@ -1646,11 +1653,11 @@ then
         top_markers_dir="top_${no_top_markers}_markers_ge${min_supp_val_perc}perc"
 	top_markers_tab=$(find . -maxdepth 1 -type f -name "sorted_aggregated_support_values4loci_ge${min_supp_val_perc}perc.tab" -printf '%f\n')
 
-        filtering_results_h[n_gene_trees_with_low_median_support]=$((no_kde_ok - no_top_markers))
         filtering_results_kyes_a+=('n_gene_trees_with_low_median_support')
+        filtering_results_h[n_gene_trees_with_low_median_support]=$((no_kde_ok - no_top_markers))
 
-        filtering_results_h[n_top_markers]="$no_top_markers"
-        filtering_results_kyes_a+=('n_top_markers')	
+        filtering_results_kyes_a+=('top_markers_median_supp_val')	
+        filtering_results_h[top_markers_median_supp_val]="$no_top_markers"
         (( DEBUG > 1 )) && for k in "${filtering_results_kyes_a[@]}"; do echo "$k: ${filtering_results_h[$k]}"; done	
 
        
@@ -1660,8 +1667,8 @@ then
         then
 	    print_start_time && msg "# computing likelihood mappings to asses tree-likeness and phylogenetic signal ..." PROGR BLUE
             
-	    # Popullate the aln_lmappings_a array and aln_lmappings_h hash
-	    #  the aln_models_a array and aln_models_h were popullated from *stats.tsv, after running compute_IQT_gene_tree_stats
+	    # Run IQ-TREE -lmap and populate the aln_lmappings_a array and aln_lmappings_h hash
+	    #  the aln_models_a array and aln_models_h were populated from *stats.tsv, after running compute_IQT_gene_tree_stats
 	    for a in "${aln_models_a[@]}"; do
                 if [ -s "$a" ]; then
 	            ((DEBUG > 1)) && echo "iqtree -s $a -m ${aln_models_h[$a]} -te ${a}.treefile -lmap $lmap_sampling -T $n_cores --prefix lmapping_test_${a%.*} --quiet"
@@ -1745,9 +1752,6 @@ then
 	    
 	    msg " >>> $no_top_markers alignments passed both the lmapping and median bipartition support tests at >= ${min_supp_val_perc}% out of $n_lmapping_tests ..." PROGR GREEN
 
-            filtering_results_kyes_a+=('n_alns_failing_lmapping_and_bipart_support_tests')	
-            filtering_results_h[n_alns_failing_lmapping_and_bipart_support_tests]=$(( "$n_alns_failing_lmapping_tests" - "$no_top_markers" ))
-
             filtering_results_kyes_a+=('n_alns_passing_lmapping_and_bipart_support_tests')	
             filtering_results_h[n_alns_passing_lmapping_and_bipart_support_tests]="$no_top_markers"
 	fi # [ "$search_algorithm" == "I" ]
@@ -1792,7 +1796,9 @@ then
             done
 	fi
 
-        (( no_top_markers < 3 )) && print_start_time && msg " >>> Warning: There are less than 3 top markers. Relax your filtering thresholds. will exit now!" ERROR LRED && exit 3
+        # set a trap in case the script exits here
+	trap print_citation ABRT EXIT HUP INT QUIT TERM
+	(( no_top_markers < 2 )) && print_start_time && msg " >>> Warning: There are less than 2 top markers. Relax your filtering thresholds. will exit now!" ERROR LRED && exit 3
 
         msg "" PROGR NC
         msg " >>>>>>>>>>>>>>> generate supermatrix from concatenated, top-ranking alignments <<<<<<<<<<<<<<< " PROGR YELLOW
@@ -1820,6 +1826,8 @@ then
 	
 	read_svg_figs_into_hash "$ed_dir" figs_a figs_h
 
+        # set a trap in case the script exits here
+	trap print_citation ABRT EXIT HUP INT QUIT TERM
 	[ ! -s concat_cdnAlns.fnainf ] && print_start_time && msg " >>> ERROR: The expected file concat_cdnAlns.fnainf was not produced! will exit now!" ERROR RED && exit 3
 
         #:::::::::::::::::::::::::::::::::::::#
@@ -2138,9 +2146,9 @@ then
 
         fi # if [ $eval_clock -gt 0 ]
 
-        #---------------------#
-        # >>> 5.4 cleanup <<< #
-        #---------------------#
+        #-------------------------
+        # >>> 5.4 cleanup DNA <<< 
+        #-------------------------
 	if [[ "$search_algorithm" == "F" ]]
 	then
 	    if (( eval_clock == 1 ))
@@ -2163,7 +2171,7 @@ then
 
             cd "$non_recomb_cdn_alns_dir" || msg "ERROR: cannot cd into $non_recomb_cdn_alns_dir ..." ERROR RED
 	    (( DEBUG > 0 )) && echo "... working in: $non_recomb_cdn_alns_dir"      
-	    rm Rplots.pdf ./sorted*perc.tab ./all_*trees.tre top100_median_support_values4loci.tab 
+	    rm Rplots.pdf ./all_*trees.tre top100_median_support_values4loci.tab ./sorted*perc.tab
 	    (( PRINT_KDE_ERR_MESSAGE == 0 )) && rm kde_outlier_files_all_gene_trees.tre.out kde_stats_all_gene_trees.tre.out
 	    (( DEBUG == 0 )) && tar -czf non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln.fasta
 	    [ -s non_recombinant_kdeOK_codon_alignments.tgz ] && rm ./*_cdnAln.fasta
@@ -2554,6 +2562,9 @@ then
     
     	# 4.1.1 check that FT computed the expected gene trees
         no_gene_trees=$(find . -name "*.ph" | wc -l)
+
+        # set a trap in case the script exits here
+	trap print_citation ABRT EXIT HUP INT QUIT TERM
         (( no_gene_trees < 1 )) && print_start_time && msg " >>> ERROR: There are no gene tree to work on in non_recomb_cdn_alns/. will exit now!" ERROR RED && exit 3
     
     	# 4.1.2 generate computation-time and lnL stats
@@ -2575,7 +2586,10 @@ then
     	
     	# 4.1.1 check that IQT computed the expected gene trees
     	no_gene_trees=$(find . -name '*.treefile' | wc -l)
-          (( no_gene_trees < 1 )) && print_start_time && msg " >>> ERROR: There are no gene tree to work on in non_recomb_cdn_alns/. will exit now!" ERROR RED && exit 3
+        
+	# set a trap in case the script exits here
+	trap print_citation ABRT EXIT HUP INT QUIT TERM
+        (( no_gene_trees < 1 )) && print_start_time && msg " >>> ERROR: There are no gene tree to work on in non_recomb_cdn_alns/. will exit now!" ERROR RED && exit 3
     
     	# 4.1.2 generate computation-time, lnL and best-model stats
     	compute_IQT_gene_tree_stats "$mol_type" "$search_thoroughness"
@@ -2586,6 +2600,23 @@ then
 	filtering_results_h[n_starting_gene_trees]="$no_gene_trees"
         filtering_results_kyes_a+=('n_starting_gene_trees')
         #(( DEBUG > 0 )) && for k in "${filtering_results_kyes_a[@]}"; do echo "$k: ${filtering_results_h[$k]}"; done
+	
+	# 4.1.3 Populate the aln_models_h hash and aln_models_a array from *stats.tsv generated by compute_IQT_gene_tree_stats
+	gene_tree_stats_file=$(find . -name \*stats.tsv -printf '%f\n')
+	
+        ed_dir=$(rm_top_dir_prefix_from_wkdir "$top_dir" "$non_recomb_FAA_alns_dir")
+        output_files_a+=(gene_tree_stats_file)
+        output_files_h[gene_tree_stats_file]=$(echo -e "$ed_dir\t$gene_tree_stats_file")
+
+	print_start_time && msg "# populating the aln_models_h hash from $gene_tree_stats_file ..." PROGR BLUE
+
+        while read -r aln _  _ _ model _; do
+            aln="${aln/.\//}"
+            aln="${aln%.log}" 
+            aln_models_a+=("${aln/.\//}")
+            aln_models_h["${aln/.\//}"]="$model"
+        done < <(awk 'NR > 1' "$gene_tree_stats_file");
+	
     fi # if/else [[ "$search_algorithm" == "F" ]]
 
     #remove trees with < 5 branches
@@ -2781,34 +2812,148 @@ then
     filtering_results_h[n_gene_trees_with_low_median_support]=$((no_kde_ok - no_top_markers))
     filtering_results_kyes_a+=('n_gene_trees_with_low_median_support')
 
-    filtering_results_h[n_top_markers]="$no_top_markers"
-    filtering_results_kyes_a+=('n_top_markers')     
-    #(( DEBUG > 0 )) && for k in "${filtering_results_kyes_a[@]}"; do echo "$k: ${filtering_results_h[$k]}"; done    
+    filtering_results_h[n_top_markers_median_support]="$no_top_markers"
+    filtering_results_kyes_a+=('n_top_markers_median_support')     
+    #(( DEBUG > 1 )) && for k in "${filtering_results_kyes_a[@]}"; do echo "$k: ${filtering_results_h[$k]}"; done    
+
+
+    # Run likelihood mapping, only if algorithm == I (IQ-TREE)
+    #	 to asses tree-likeness and phylogenetic signal
+    if [ "$search_algorithm" == "I" ]
+    then
+    	print_start_time && msg "# computing likelihood mappings to asses tree-likeness and phylogenetic signal ..." PROGR BLUE
+    	
+    	# Run IQ-TREE -lmap and populate the aln_lmappings_a array and aln_lmappings_h hash
+    	#  the aln_models_a array and aln_models_h were populated from *stats.tsv, after running compute_IQT_gene_tree_stats
+    	for a in "${aln_models_a[@]}"; do
+    	    if [ -s "$a" ]; then
+    		((DEBUG > 1)) && echo "iqtree -s $a -m ${aln_models_h[$a]} -te ${a}.treefile -lmap $lmap_sampling -T $n_cores --prefix lmapping_test_${a%.*} --quiet"
+    		iqtree -s "$a" -m "${aln_models_h[$a]}" -te "${a}".treefile -lmap "$lmap_sampling" -T "$n_cores" --prefix lmapping_test_"${a%.*}" --quiet
+    
+    		# parse AU test results from iqtree files
+    		aln_lmappings_a+=("$a")
+    		aln_lmappings_h["$a"]=$(grep 'Number of fully resolved' lmapping_test_"${a%.*}".iqtree | sed 's/Number of fully.*=//; s/%)//')
+    	    else
+    		continue
+    	    fi
+    	done 
+
+    	print_start_time && msg "# parsing likelihood mapping results, and writing summary table ..." PROGR BLUE
+    	# Print the likelihood mapping results of each gene tree to a tsv file
+    	for a in "${aln_lmappings_a[@]}"; do
+    	    echo -e "$a\t${aln_lmappings_h[$a]}"
+    	done > geneTree_lmapping_tests.tsv
+
+    	check_output geneTree_lmapping_tests.tsv "$parent_PID"
+    	ed_dir=$(rm_top_dir_prefix_from_wkdir "$top_dir" "$wkdir")
+    	output_files_a+=(geneTree_lmapping_tests)
+    	output_files_h[geneTree_lmapping_tests]=$(echo -e "$ed_dir\tgeneTree_lmapping_tests.tsv")
+
+    	# cleanup the lmappint_test_files
+    	[ -s geneTree_lmapping_tests.tsv ] && rm lmapping_test_* 
+    	
+    	# filter  lmapping results >= \$min_support_val_perc
+    	print_start_time && msg "# parsing likelihood mapping results table to identify trees with >= $min_supp_val_perc fully resolved quartets ..." PROGR BLUE
+    	awk -v min="$min_supp_val_perc" 'BEGIN{FS=OFS="\t"}$2 >= min' geneTree_lmapping_tests.tsv > \
+    	  geneTrees_passing_lmapping_tests_ge_"${min_supp_val_perc}".tsv
+    	
+    	check_output geneTrees_passing_lmapping_tests_ge_"${min_supp_val_perc}".tsv "$parent_PID"
+    	ed_dir=$(rm_top_dir_prefix_from_wkdir "$top_dir" "$wkdir")
+    	output_files_a+=(geneTree_passing_lmapping_tests)
+    	output_files_h[geneTree_passing_lmapping_tests]=$(echo -e "$ed_dir\tgeneTrees_passing_lmapping_tests_ge_${min_supp_val_perc}.tsv")
+    	
+    	n_lmapping_tests=$(wc -l < geneTree_lmapping_tests.tsv)
+    	n_alns_passing_lmapping_tests=$(wc -l < geneTrees_passing_lmapping_tests_ge_"${min_supp_val_perc}".tsv)
+    	n_alns_failing_lmapping_tests=$((n_lmapping_tests - n_alns_passing_lmapping_tests))
+    	
+    	msg " >>> $n_alns_passing_lmapping_tests alignments passed the likelihood mapping test at >= ${min_supp_val_perc}% out of $n_lmapping_tests ... " PROGR GREEN
+
+    	filtering_results_kyes_a+=('n_alns_failing_lmapping_tests') 
+    	filtering_results_h[n_alns_failing_lmapping_tests]="$n_alns_failing_lmapping_tests"
+
+    	filtering_results_kyes_a+=('n_alns_passing_lmapping_tests') 
+    	filtering_results_h[n_alns_passing_lmapping_tests]="$n_alns_passing_lmapping_tests"
+
+
+    	# Filter alignments passing both the likelihood mapping (lmap) AND
+    	#   the min. median bipartition support tests >= min_supp_val_perc
+    	# 1. filter by lmap
+    	while read -r id; do 
+    	    [ -z "$id" ] && continue
+    	    [[ "$id" =~ [^0-9]+ ]] && continue
+    	    ((DEBUG > 1)) && msg "# filter by lmap: running: alns_passing_lmap_and_suppval_h[$id]++" DEBUG NC
+    	    alns_passing_lmap_and_suppval_h["$id"]=1
+    	done < <(cut -d_ -f1 geneTrees_passing_lmapping_tests_ge_"${min_supp_val_perc}".tsv)
+    
+    	# 2. filter by min_supp_val
+    	while read -r id; do 
+    	    [ -z "$id" ] && continue
+    	    id=${id//\"/}
+    	    [[ "$id" =~ [^0-9]+ ]] && continue
+    	    ((DEBUG > 1)) && msg "# filter by min_supp_val: running: alns_passing_lmap_and_suppval_h[$id]++" DEBUG NC
+    	    ((alns_passing_lmap_and_suppval_h["$id"]++)) || alns_passing_lmap_and_suppval_h["$id"]=1  # requires this test if id is unbound
+    	done < <(cut -f1 "$top_markers_tab") # sorted_aggregated_support_values4loci_ge${min_supp_val_perc}perc.tab
+    	
+    	if ((DEBUG > 1)); then
+    	    for a in "${!alns_passing_lmap_and_suppval_h[@]}"; do
+    		printf "%s\t%d\n" "$a" "${alns_passing_lmap_and_suppval_h[$a]}"
+    	    done
+    	fi
+    	# 3. fill the array of alignments passing both phylogenetic signal content tests (i.e. "${alns_passing_lmap_and_suppval_h[$a]}" == 2)
+    	# alns_passing_lmap_and_suppval_a+=($(for a in "${!alns_passing_lmap_and_suppval_h[@]}"; do (("${alns_passing_lmap_and_suppval_h[$a]}" == 2 )) && echo "${a}"; done))
+    	mapfile -t alns_passing_lmap_and_suppval_a < <(for a in "${!alns_passing_lmap_and_suppval_h[@]}"; do (("${alns_passing_lmap_and_suppval_h[$a]}" == 2 )) && echo "${a}"; done)
+    	# 4. Reset the top_markers_dir and no_top_markers when runnig both phylogenetic signal filters under -A I (IQ-TREE)
+    	top_markers_dir=top_"${#alns_passing_lmap_and_suppval_a[@]}"_markers_ge"${min_supp_val_perc}"perc
+    	no_top_markers="${#alns_passing_lmap_and_suppval_a[@]}"
+    	
+    	msg " >>> $no_top_markers alignments passed both the lmapping and median bipartition support tests at >= ${min_supp_val_perc}% out of $n_lmapping_tests ..." PROGR GREEN
+
+    	filtering_results_kyes_a+=('n_alns_passing_lmapping_and_bipart_support_tests')      
+    	filtering_results_h[n_alns_passing_lmapping_and_bipart_support_tests]="$no_top_markers"
+    fi # [ "$search_algorithm" == "I" ]
 
 
     # >>> 5.2 move top-ranking markers to $top_markers_dir
     print_start_time && msg "# making dir $top_markers_dir and moving $no_top_markers top markers into it ..." PROGR LBLUE
     { mkdir "$top_markers_dir" && cd "$top_markers_dir" ; } || { msg "ERROR: cannot cd into $top_markers_dir" ERROR RED && exit 1 ; }
     top_markers_dir=$(pwd)
-    ln -s ../"$top_markers_tab" .
-    #for base in $(awk '{print $1}' "$top_markers_tab" |grep -v loci|sed 's/"//g'); do ln -s ../"${base}"* .; done
-    # https://www.shellcheck.net/wiki/SC2013
-    while read -r base _; do
-        # -h doesn't work with globs. Use a for loop
-	[[ "$base" =~ loci ]] && continue
-	base=${base//\"/}
-	#for b in $(find .. -maxdepth 1 -name "${base}"\* -printf "%f\n")
-        while read -r b; do
-	    (( DEBUG > 0 )) && msg " > reading base:$base in top_markers_tab:$top_markers_tab in top_markers_dir:$top_markers_dir; running: ln -s ../${b} ." DEBUG NC
-	    if [ ! -h "$b" ];
-	    then
-	        ln -s ../"${b}" .
-	    else
-	        continue
-	    fi
-	done < <(find .. -maxdepth 1 -name "${base}"\* -printf "%f\n")   
-    done < "$top_markers_tab"
+    if [ "$search_algorithm" == "F" ] # FastTree
+    then
+    	ln -s ../"$top_markers_tab" .
+    	while read -r id _; do 
+    	     [[ "$id" =~ loci ]] && continue
+    	     id=${id//\"/}
+    	 
+    	     # -h doesn't work with globs. Use a for loop
+    	     #for i in $(find .. -maxdepth 1 -name "${id}"\* -printf "%f\n")
+    	     while read -r i; do
+    		 (( DEBUG > 0 )) && msg " > reading top_markers_tab:$top_markers_tab in top_markers_dir:$top_markers_dir; running: ln -s ../${i} ." DEBUG NC
+    		 if [ ! -h "$i" ]
+    		 then
+    		     ln -s ../"$i" .
+    		 else
+    		     continue
+    		 fi
+    	     done < <(find .. -maxdepth 1 -name "${id}"\* -printf "%f\n")
+    	done < "$top_markers_tab"
+    else # IQ-Tree
+    	for id in "${alns_passing_lmap_and_suppval_a[@]}"
+    	do 
+    	    while read -r i
+    	    do
+    		(( DEBUG > 0 )) && msg " > reading top_markers_tab:$top_markers_tab in top_markers_dir:$top_markers_dir; running: ln -s ../${i} ." DEBUG NC
+    		if [ ! -h "$i" ]
+    		then
+    		    ln -s ../"$i" .
+    		else
+    		    continue
+    		fi
+    	    done < <(find .. -maxdepth 1 -name "${id}"\* -printf "%f\n")
+    	done
+    fi
 
+    # set a trap in case the script exits here
+    trap print_citation ABRT EXIT HUP INT QUIT TERM
     (( no_top_markers < 2 )) \
     && print_start_time \
     && msg " >>> Warning: There are less than 2 top markers. Relax your filtering thresholds. will exit now!" ERROR LRED && exit 3
@@ -3078,7 +3223,7 @@ then
     # >>> 5.9 CLEANUP <<< #
     if [ "$search_algorithm" == "F" ]
     then
-        (( DEBUG == 0 )) && rm list2concat Rplots.pdf sorted*perc.tab ./*.ph ./*faaln ./*log top*tab
+        (( DEBUG == 0 )) && rm list2concat Rplots.pdf ./*.ph ./*faaln ./*log top*tab sorted*perc.tab 
         tar -czf concatenated_alignment_files.tgz concat_protAlns.faa concat_protAlns.faainf
         [ -s concatenated_alignment_files.tgz ] && rm concat_protAlns.faa concat_protAlns.faainf 
         (( DEBUG == 0 )) && rm ../sorted*perc.tab sorted_aggregated_*tab
@@ -3100,7 +3245,7 @@ then
         tar -czf protein_alignments.tgz ./*.faaln
         [ -s protein_alignments.tgz ] && rm ./*.faaln
     else
-        (( DEBUG == 0 )) && rm list2concat sorted*perc.tab
+        (( DEBUG == 0 )) && rm list2concat #sorted*perc.tab
         rm ./*faaln ./*faaln.treefile ./*faaln.log 
 
         tar -czf concatenated_alignment_files.tgz concat_protAlns.faa concat_protAlns.faainf
@@ -3190,40 +3335,5 @@ msg " >>> Total runtime of $progname:" PROGR LBLUE
 printf '%dh:%dm:%ds\n' "$((secs/3600))" "$((secs%3600/60))" "$((secs%60))" | tee -a "${logdir}"/get_phylomarkers_run_"${dir_suffix}"_"${TIMESTAMP_SHORT}".log
 echo
 
-cat <<REF
-
-* CITATION:
-
-If you find the code useful for your academic work, please use the following citation:
-
-Pablo Vinuesa, Luz-Edith Ochoa-Sanchez and Bruno Contreras-Moreira (2018).
-GET_PHYLOMARKERS, a software package to select optimal orthologous clusters for phylogenomics 
-and inferring pan-genome phylogenies, used for a critical geno-taxonomic revision of the 
-genus Stenotrophomonas. Front. Microbiol. 9:771 | doi: 10.3389/fmicb.2018.00771 
-
-Published in the Research Topic on "Microbial Taxonomy, Phylogeny and Biodiversity"
-http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity
-
-Code available at https://github.com/vinuesa/get_phylomarkers
-Docker images at:
-  https://hub.docker.com/r/vinuesa/get_phylomarkers
-  https://hub.docker.com/r/csicunam/get_homologues (get_homologues + get_phylomarkers)
-
-* NOTES:
-   If you encounter problems or bugs while running the pipeline
-   please report them through the issues page at
-   https://github.com/vinuesa/get_phylomarkers/issues
-
-   Alternatively, see our contact details at:
-   https://www.ccg.unam.mx/~vinuesa/
-   https://www.eead.csic.es/home/staffinfo?Id=71
-
-   Please run the script with the -D 1 or -D 2 options added at the end
-   of the command line, and send us the output, to better diagnose
-   the problem.
-
-   Thanks!
-
-REF
-
-
+# citation printed by trap
+# print_citation 
