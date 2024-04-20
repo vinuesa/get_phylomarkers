@@ -1093,3 +1093,44 @@ function read_svg_figs_into_hash
    return 0  # required, or dies here
 }
 #-----------------------------------------------------------------------------------------
+
+function print_citation {
+cat <<REF
+
+* CITATION:
+
+If you find the code useful for your academic work, please use the following citation:
+
+Pablo Vinuesa, Luz-Edith Ochoa-Sanchez and Bruno Contreras-Moreira (2018).
+GET_PHYLOMARKERS, a software package to select optimal orthologous clusters for phylogenomics 
+and inferring pan-genome phylogenies, used for a critical geno-taxonomic revision of the 
+genus Stenotrophomonas. Front. Microbiol. 9:771 | doi: 10.3389/fmicb.2018.00771 
+
+Published in the Research Topic on "Microbial Taxonomy, Phylogeny and Biodiversity"
+http://journal.frontiersin.org/researchtopic/5493/microbial-taxonomy-phylogeny-and-biodiversity
+
+Code available at https://github.com/vinuesa/get_phylomarkers
+Docker images at:
+  https://hub.docker.com/r/vinuesa/get_phylomarkers
+  https://hub.docker.com/r/csicunam/get_homologues (get_homologues + get_phylomarkers)
+
+* NOTES:
+   If you encounter problems or bugs while running the pipeline
+   please report them through the issues page at
+   https://github.com/vinuesa/get_phylomarkers/issues
+
+   Alternatively, see our contact details at:
+   https://www.ccg.unam.mx/~vinuesa/
+   https://www.eead.csic.es/home/staffinfo?Id=71
+
+   Please run the script with the -D 1 or -D 2 options added at the end
+   of the command line, and send us the output, to better diagnose
+   the problem.
+
+   Thanks!
+
+REF
+
+exit 0
+
+}
