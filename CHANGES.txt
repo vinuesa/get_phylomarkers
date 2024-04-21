@@ -1,3 +1,26 @@
+20apr24  * run_get_phylomarkers_pipeline.sh v2.8.4.0_2024-04-20
+          - refactored all cleanup code into functions called by trap 'cleanup_trap "DIR" END' ABRT EXIT HUP INT QUIT TERM
+          - removed obsolete commented lines to tidy code layout
+	  - SC revised compliance
+         * lib/get_phylomarkers_fun_lib v2024-04-20
+          - refactored all cleanp code from run_get_phylomarkers_pipeline 2.8.4.0_2024-04-20
+             into multiple, block-specific cleanup functions for better modularization and easier maintenance:
+            function cleanup_DNA_top_markers_dir
+            function cleanup_DNA_recomb_dirs
+            function cleanup_DNA_top_dir
+            function cleanup_PopGen_run
+            function cleanup_PROT_top_markers_dir
+            function cleanup_PROT_recomb_dirs
+            function cleanup_PROT_top_dir
+          -  The cleanup functions are called by strategically-located trap calls to function cleanup_trap,
+              which also call print_citation before exiting the main script
+19apr24  *  run_get_phylomarkers_pipeline.sh 2.8.3.0_2024-04-19
+           - added likelihood mapping test of tree-likeness and phylogentic signal for -A I (IQ-TREE) and -t DNA|PROT
+	   - top markers for -A I -t DNA|PROT need to pass both the lmapping and min median support values
+           - added trap print_citation calls at strategic points in the main script where exit is called when insufficient markers are left 
+	     after filtering to continue, i.e., at exit points that are not related to errors
+	 * lib/get_phylomarkers_fun_lib v2024-04-19
+            - added print_citation, called by trap calls at strategic points in the main script, i.e., at exit points that are not related to errors
 18Apr24    * created GitHub release v2.2.1_2024-04-18 https://github.com/vinuesa/get_phylomarkers/releases/tag/2.2.1
            * created DockerHub image v20240418 
 16-17Apr24 * run_get_phylomarkers_pipeline.sh v2.8.1.4_2024-04-17
