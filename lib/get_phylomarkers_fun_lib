@@ -1,7 +1,7 @@
-#: VERSION: 2024-04-17
+#: VERSION: 2024-04-20
 #: LIBRARY: get_phylomarkers_fun_lib
 #     * functions called by run_get_phylomarkers_pipeline.sh
-#     * part of the GET_PHYLOMARKERS software package
+#     * part of the GET_PHYLOMARKERS software package https://github.com/vinuesa/get_phylomarkers
 #
 #: AUTHORS: Pablo Vinuesa, Center for Genomic Sciences, UNAM, Mexico
 #           http://www.ccg.unam.mx/~vinuesa/ @pvinmex
@@ -17,7 +17,7 @@
 #
 #: AVAILABILITY: freely available from GitHub @ https://github.com/vinuesa/get_phylomarkers
 #                freely available from DockerHub @ https://hub.docker.com/r/vinuesa/get_phylomarkers
-#                                           and  @ https://hub.docker.com/r/csicunam/get_homologues
+#                                            and @ https://hub.docker.com/r/csicunam/get_homologues
 #
 #: CITATION:
 #  Pablo Vinuesa*, Luz Edith Ochoa-S�nchez and Bruno Contreras-Moreira (2018). 
@@ -26,6 +26,8 @@
 #  Front. Microbiol. 9:771 | doi: 10.3389/fmicb.2018.00771. | PubMed PMID: 29765358 
 #  Software code freely available on GitHub: https://github.com/vinuesa/get_phylomarkers
 
+
+# DEVFLAGS: <FIXME>; <SOLVED>; <TODO>; <DONE>
 
 #---------------------------------------------------------------------------------#
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>> FUNCTION DEFINITIONS <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<#
@@ -1050,7 +1052,6 @@ function rm_top_dir_prefix_from_wkdir
     ed_dir="${wkdir//$top_dir/}"
     ed_dir="${ed_dir/\//}"
 
-
    (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]} ..." DEBUG NC
    echo "$ed_dir"
 }
@@ -1131,6 +1132,345 @@ Docker images at:
 
 REF
 
-exit 0
+return 0 
 
+}
+
+#-----------------------------------------------------------------------------------------
+function cleanup_DNA_top_markers_dir {
+   (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
+   (( DEBUG > 0 )) && caller 0
+    if [[ "$search_algorithm" == "F" ]]
+    then
+       if (( eval_clock == 1 ))
+       then
+	   tar -czf molClock_PAUP_files.tgz ./*_paup.block ./*.nex  ./*_clockTest.log \
+	   ./*tre ./*clock.scores ./*critical_X2_val.R \
+	   "$mol_clock_tab" "${mol_clock_tab}"sorted mol_clock_*_ClockTest.*
+    	   (( DEBUG == 0 )) \
+	   && [ -s molClock_PAUP_files.tgz ] \
+	   && rm ./*_paup.block ./*.nex  ./*_clockTest.log ./*tre ./*clock.scores ./*critical_X2_val.R
+    	   (( DEBUG == 0 )) && rm list2concat Rplots.pdf header.tmp list2grep.tmp concat_nonRecomb_KdeFilt_cdnAlns_FTGTRG.ph
+       fi
+       
+       tar -czf concatenated_alignment_files.tgz concat_cdnAlns.fna concat_cdnAlns.fnainf
+       [[ -s concatenated_alignment_files.tgz ]] && rm concat_cdnAlns.fna concat_cdnAlns.fnainf
+       (( DEBUG == 0 )) \
+       && rm gene_trees2_concat_tree_RF_distances.tab ./*cdnAln_FTGTR.ph ./*cdnAln.fasta ./*cdnAln.log ./sorted_aggregated_*tab
+       concat_logfile=$(find . -name 'concat*log')
+       [[ -s "$concat_logfile" ]] && gzip "$concat_logfile"
+    else # DNA - IQT
+       if (( eval_clock == 1 ))
+       then
+	   tar -czf IQT_molClock_PAUP_files.tgz ./*_paup.block ./*.nex  \
+	   ./*_clockTest.log ./*tre ./*clock.scores ./*critical_X2_val.R "$mol_clock_tab" \
+	    "${mol_clock_tab}"sorted ./mol_clock_*_ClockTest.ta*
+    	   [ -s IQT_molClock_PAUP_files.tgz ] \
+	      && rm ./*_paup.block ./*.nex ./*_clockTest.log ./*tre ./*clock.scores ./*critical_X2_val.R ./mol_clock_*_ClockTest.ta*
+	   (( DEBUG == 0 )) && rm header.tmp list2grep.tmp
+       fi
+
+       tar -czf concatenated_alignment_files.tgz concat_cdnAlns.fna concat_cdnAlns.fnainf
+       [ -s concatenated_alignment_files.tgz ] && rm concat_cdnAlns.fna concat_cdnAlns.fnainf
+       (( DEBUG == 0 )) && rm gene_trees2_concat_tree_RF_distances.tab ./*cdnAln.fasta ./*.log #sorted_aggregated_support_values4loci_*.tab 
+       (( DEBUG == 0 )) && rm ./*ckp.gz ./*model.gz 
+       (( DEBUG == 0 )) && if ls ./*uniqueseq.phy &> /dev/null; then rm ./*uniqueseq.phy; fi
+       (( DEBUG == 0 )) && rm list2concat Rplots.pdf ./*cdnAln.ph 
+    fi 
+
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]} ..." DEBUG NC   
+   return 0
+}
+#-----------------------------------------------------------------------------------------
+
+function cleanup_DNA_recomb_dirs {
+
+   (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
+   (( DEBUG > 0 )) && caller 0
+
+    if [[ "$search_algorithm" == "F" ]]
+    then
+       rm Rplots.pdf ./all_*trees.tre top100_median_support_values4loci.tab ./sorted*perc.tab
+       (( PRINT_KDE_ERR_MESSAGE == 0 )) && rm kde_outlier_files_all_gene_trees.tre.out kde_stats_all_gene_trees.tre.out
+       (( DEBUG == 0 )) && tar -czf non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln.fasta
+       [ -s non_recombinant_kdeOK_codon_alignments.tgz ] && rm ./*_cdnAln.fasta
+       tar -czf gene_trees_from_non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln*.ph
+       (( DEBUG == 0 )) && [[ -s gene_trees_from_non_recombinant_kdeOK_codon_alignments.tgz ]] && rm ./*_cdnAln*.ph
+       tar -czf FastTree_logfiles.tgz ./*.log 
+       (( DEBUG == 0 )) && [[ -s FastTree_logfiles.tgz ]] && rm ./*.log
+    else # DNA - IQT
+       (( DEBUG == 0 )) && rm sorted_aggregated_*tab all_*trees.tre top100_median_support_values4loci.tab
+       (( DEBUG == 0 )) && [[ -s Rplots.pdf ]] && rm Rplots.pdf 
+       (( DEBUG == 0 )) && (( PRINT_KDE_ERR_MESSAGE == 0 )) && rm kde_*out 
+       tar -czf non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln.fasta
+       (( DEBUG == 0 )) && [[ -s non_recombinant_kdeOK_codon_alignments.tgz ]] && rm ./*_cdnAln.fasta
+       tar -czf IQT_gene_trees_from_non_recombinant_kdeOK_codon_alignments.tgz ./*_cdnAln*.treefile
+       (( DEBUG == 0 )) && [[ -s IQT_gene_trees_from_non_recombinant_kdeOK_codon_alignments.tgz ]] && rm ./*_cdnAln*.treefile
+       tar -czf IQT_gene_tree_logfiles.tgz ./*fasta.log
+       (( DEBUG == 0 )) && [[ -s IQT_gene_tree_logfiles.tgz ]] && rm ./*fasta.log
+    fi # 
+
+    if [ -d kde_ok ]; then
+       tar -czf kde_ok_gene_trees.tgz kde_ok
+       (( DEBUG == 0 )) && [ -s kde_ok_gene_trees.tgz ] && rm -rf kde_ok
+    fi
+
+    if [ -d kde_outliers ]; then
+       tar -czf kde_outlier_gene_trees.tgz kde_outliers
+       (( DEBUG == 0 )) && [ -s kde_outlier_gene_trees.tgz ] && rm -rf kde_outliers
+    fi
+
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]} ..." DEBUG NC
+   return 0
+}
+#-----------------------------------------------------------------------------------------
+
+function cleanup_DNA_top_dir {
+   (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
+   (( DEBUG > 0 )) && caller 0
+   tar -czf codon_alignments.tgz ./*_cdnAln.fasta
+   (( DEBUG == 0 )) && [[ -s codon_alignments.tgz ]] && rm ./*_cdnAln.fasta clustalo.log
+   tar -czf protein_alignments.tgz ./*.faaln
+   (( DEBUG == 0 )) && [[ -s protein_alignments.tgz ]] && rm ./*.faaln
+
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]} ..." DEBUG NC
+   return 0
+}
+#-----------------------------------------------------------------------------------------
+
+function cleanup_PopGen_run {
+   # <TODO>: need to update to enter and cleanup the non_recomb_cdn_alns/PopGen/neutral_loci_X directory
+   # trap 'cleanup_trap "$neutral_loci_dir" END' ABRT EXIT HUP INT QUIT TERM
+   (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
+   (( DEBUG > 0 )) && caller 0
+    
+   # start working in popGen/\$neutral_loci_dir
+   
+   ls ./*_clean.fasta | "$bindir"/parallel --gnu gzip {}
+   mkdir src_FASTA || { msg "ERROR: could not mkdir src_FASTA" ERROR RED ; }
+   mv ./*_clean.fasta.gz src_FASTA
+   
+   mv pipeline_*overview.tsv "$top_dir"
+   
+   if [[ "$search_algorithm" == "F" ]]; then
+       gzip  concat_cdnAlns.fna concat_cdnAlns_SNPs.vcf concat_cdnAlns_SNPs.fasta
+   else
+       gzip ./*fasta.bionj ./*fasta.contree ./*fasta.mldist ./*.splits.nex ./*niqueseq.phy concat_cdnAlns.fna concat_cdnAlns_SNPs.fasta.log concat_cdnAlns_SNPs.vcf concat_cdnAlns_SNPs.fasta
+   fi
+   
+   # cd into non_neutral loci
+   cd ../non_neutral_loci || { msg "ERROR: could not cd into ../non_neutral_loci ..." ERROR RED ; }
+   for f in *.fasta; do
+       (( DEBUG == 0 )) && { [ ! -e "$f" ] && rm "$f" ; }
+   done
+   
+   (( DEBUG == 0 )) && ls *.* | "$bindir"/parallel --gnu gzip {}
+ 
+   ### CALL THE OTHER CLEANUP FUNCTIONS <TODO>
+   
+   # cd into non_recombinant_cdn_alns & compress FastTree gene tree output files
+   cd ../../../non_recomb_cdn_alns/ || { msg "ERROR: could not cd into ../../../non_recomb_cdn_alns" ERROR RED ; }
+  
+   if [[ "$search_algorithm" == "F" ]]; then
+       (( DEBUG == 0 )) && ls *.log | "$bindir"/parallel --gnu gzip {}
+       (( DEBUG == 0 )) && ls *.ph | "$bindir"/parallel --gnu gzip {}
+       mkdir src_gene_trees || { msg "ERROR: could not mkdir src_gene_trees ..." ERROR RED ; }
+       mv ./*.log ./*.ph src_gene_trees
+   else
+       (( DEBUG == 0 )) && ls *.log | "$bindir"/parallel --gnu gzip {}
+       (( DEBUG == 0 )) && ls *.treefile | "$bindir"/parallel --gnu gzip {}
+       
+       mkdir src_gene_trees || { msg "ERROR: could not mkdir src_gene_trees ..." ERROR RED ; }
+       mv ./*.log.gz ./*.treefile.gz src_gene_trees
+   fi 
+
+   (( DEBUG == 0 )) && ls *.fasta | "$bindir"/parallel --gnu gzip {}
+   mkdir src_cdn_alignments || { msg "ERROR: could not mkdir src_cdn_alignments ..." ERROR RED ; }
+   mv ./*.fasta.gz src_cdn_alignments
+ 
+   if [ -d kde_ok ]; then
+      tar -czf kde_ok_gene_trees.tgz kde_ok
+      (( DEBUG == 0 )) && [ -s kde_ok_gene_trees.tgz ] && rm -rf kde_ok
+   fi
+
+   if [ -d kde_outliers ]; then
+      tar -czf kde_outlier_gene_trees.tgz kde_outliers
+      (( DEBUG == 0 )) && [ -s kde_outlier_gene_trees.tgz ] && rm -rf kde_outliers
+   fi
+  
+   (( DEBUG == 0 )) && [ -s Rplots.pdf ] && rm Rplots.pdf
+   
+   cd "$top_dir" || { msg "ERROR: cannot cd into $top_dir ..." ERROR RED; exit 1 ; }
+   (( DEBUG > 0 )) && echo "... working in: $top_dir"	  
+   tar -czf codon_alignments.tgz ./*_cdnAln.fasta
+   [[ -s codon_alignments.tgz ]] && rm ./*_cdnAln.fasta clustalo.log
+   tar -czf protein_alignments.tgz ./*.faaln
+   [[ -s protein_alignments.tgz ]] && rm ./*.faaln
+
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]} ..." DEBUG NC
+   return 0
+}
+#-----------------------------------------------------------------------------------------
+
+function cleanup_PROT_top_markers_dir {
+   (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
+   (( DEBUG > 0 )) && caller 0
+
+    if [ "$search_algorithm" == "F" ]
+    then
+        (( DEBUG == 0 )) && rm list2concat Rplots.pdf ./*.ph ./*faaln ./*log top*tab sorted*perc.tab 
+        tar -czf concatenated_alignment_files.tgz concat_protAlns.faa concat_protAlns.faainf
+        [ -s concatenated_alignment_files.tgz ] && rm concat_protAlns.faa concat_protAlns.faainf 
+        (( DEBUG == 0 )) && rm ../sorted*perc.tab sorted_aggregated_*tab
+    else
+        (( DEBUG == 0 )) && rm list2concat #sorted*perc.tab
+        rm ./*faaln ./*faaln.treefile ./*faaln.log 
+
+        tar -czf concatenated_alignment_files.tgz concat_protAlns.faa concat_protAlns.faainf
+        [ -s concatenated_alignment_files.tgz ] && rm concat_protAlns.faa concat_protAlns.faainf
+        #(( DEBUG == 0 )) && [ -s ../sorted*perc.tab ] && rm ../sorted*perc.tab
+	if (( DEBUG == 0 )); then
+	    if find .. -type f -name 'sorted*perc.tab' -print0 &> /dev/null; then  
+	       find .. -type f -name 'sorted*perc.tab' -print0 | xargs -I{} -0 rm {}
+	    fi 
+	fi
+	
+	(( DEBUG == 0 )) && [ -s ../Rplots.pdf ] &&  rm  ../Rplots.pdf 
+    fi
+
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]} ..." DEBUG NC
+    return 0
+}
+#-----------------------------------------------------------------------------------------
+
+function cleanup_PROT_recomb_dirs {
+   (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
+   (( DEBUG > 0 )) && caller 0
+
+    if [ "$search_algorithm" == "F" ]
+    then
+        tar -czf non_recomb_kdeOK_FAA_alignments.tgz ./*_cluo.faaln
+        [ -s non_recomb_kdeOK_FAA_alignments.tgz ] && rm ./*_cluo.faaln
+        tar -czf non_recomb_kdeOK_prot_trees.tgz ./*_cluo_*.ph ./*.log
+        [ -s non_recomb_kdeOK_prot_trees.tgz ] && rm ./*_cluo_*.ph ./*.log top100*
+	[ -s non_recomb_kdeOK_prot_trees.tgz ] && (( PRINT_KDE_ERR_MESSAGE == 0 )) && rm kde*out
+	[ -s Rplots.pdf ] && rm Rplots.pdf
+	[ -s no_tree_branches.list ] && rm no_tree_branches.list
+    else
+        tar -czf non_recomb_kdeOK_FAA_alignments.tgz ./*_cluo.faaln
+        [ -s non_recomb_kdeOK_FAA_alignments.tgz ] && rm ./*_cluo.faaln
+        tar -czf non_recomb_kdeOK_prot_trees.tgz ./*faaln.treefile ./*.faaln.log all_gene_trees.tre
+        [ -s non_recomb_kdeOK_prot_trees.tgz ] && rm ./*faaln.treefile all_gene_trees.tre ./*.faaln.log top100_median_support_values4loci.tab no_tree_branches.list
+	[ -s non_recomb_kdeOK_prot_trees.tgz ] && (( PRINT_KDE_ERR_MESSAGE == 0 )) && rm kde*.out
+    fi
+
+    if [ -d kde_ok ]; then
+       tar -czf kde_ok_gene_trees.tgz kde_ok
+       (( DEBUG == 0 )) && [ -s kde_ok_gene_trees.tgz ] && rm -rf kde_ok
+    fi
+
+    if [ -d kde_outliers ]; then
+       tar -czf kde_outlier_gene_trees.tgz kde_outliers
+       (( DEBUG == 0 )) && [ -s kde_outlier_gene_trees.tgz ] && rm -rf kde_outliers
+    fi
+    
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]} ..." DEBUG NC
+    return 0
+}
+#-----------------------------------------------------------------------------------------
+
+function cleanup_PROT_top_dir {
+   (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
+   (( DEBUG > 0 )) && caller 0
+
+    if [ "$search_algorithm" == "F" ]
+    then
+        tar -czf codon_alignments.tgz ./*_cdnAln.fasta
+        [ -s codon_alignments.tgz ] && rm ./*_cdnAln.fasta clustalo.log
+        tar -czf protein_alignments.tgz ./*.faaln
+        [ -s protein_alignments.tgz ] && rm ./*.faaln
+    else
+        tar -czf codon_alignments.tgz ./*_cdnAln.fasta
+        [ -s codon_alignments.tgz ] && rm ./*_cdnAln.fasta clustalo.log
+        tar -czf protein_alignments.tgz ./*.faaln
+        [ -s protein_alignments.tgz ] && rm ./*.faaln
+    fi 
+
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]} ..." DEBUG NC
+    return 0
+}
+#-----------------------------------------------------------------------------------------
+
+function cleanup_trap {
+   # This function is triggered by strategically-placed traps in the main script
+   #   to cleanup after itself is the script is interrupted, or encounters and exit signal
+   #   triggered not by an error, but a warning, for example, when there are 
+   #   too few alignments to concatenate. 
+   # The function calls block-specific cleanup functions
+   # It also calls print_citation before exiting
+   #
+   # flags: PHYLO_GENETREES, PHYLO_SIGNAL, PHYLO_SUPERMATRIX, END
+   #   These indicate where in the pipeline's flow (blocks) 
+   #   the main script triggered the trap call
+   #
+   (( DEBUG > 0 )) && msg " => working in ${FUNCNAME[0]}  ..." DEBUG NC
+   (( DEBUG > 0 )) && caller 0
+   local wkdir flag
+   
+   wkdir="$1"
+   flag="$2"
+   
+   if (( runmode == 1 )) && [ "$mol_type" == 'DNA' ]; then
+      cd "$wkdir" || msg "ERROR: could not cd into dir $wkdir" ERROR RED
+      if [ "$flag" == 'END' ]; then
+         cleanup_DNA_top_markers_dir
+         cd "$non_recomb_cdn_alns_dir" || msg "ERROR: cannot cd into $non_recomb_cdn_alns_dir ..." ERROR RED
+	 cleanup_DNA_recomb_dirs
+	 cd "$top_dir" || msg "ERROR: cannot cd into $top_dir ..." ERROR RED
+         cleanup_DNA_top_dir
+      elif [ "$flag" == 'PHYLO_SUPERMATRIX' ]; then
+         cd "$non_recomb_cdn_alns_dir" || msg "ERROR: cannot cd into $non_recomb_cdn_alns_dir ..." ERROR RED
+	 cleanup_DNA_recomb_dirs
+	 cd "$top_dir" || msg "ERROR: cannot cd into $top_dir ..." ERROR RED
+         cleanup_DNA_top_dir
+      elif [ "$flag" == 'PHYLO_SIGNAL' ]; then
+	 cleanup_DNA_recomb_dirs
+	 cd "$top_dir" || msg "ERROR: cannot cd into $top_dir ..." ERROR RED
+         cleanup_DNA_top_dir
+      fi
+   fi
+
+   if (( runmode == 1 )) && [ "$mol_type" == 'PROT' ]; then
+      cd "$wkdir" || msg "ERROR: could not cd into dir $wkdir" ERROR RED
+
+      if [ "$flag" == 'END' ]; then
+         cleanup_PROT_top_markers_dir
+         cd "$non_recomb_FAA_alns_dir" || msg "ERROR: cannot cd into $non_recomb_FAA_alns_dir ..." ERROR RED
+	 cleanup_PROT_recomb_dirs
+	 cd "$top_dir" || msg "ERROR: cannot cd into $top_dir ..." ERROR RED
+         cleanup_PROT_top_dir
+      elif [ "$flag" == 'PHYLO_SUPERMATRIX' ]; then
+         cd "$non_recomb_FAA_alns_dir" || msg "ERROR: cannot cd into $non_recomb_FAA_alns_dir ..." ERROR RED
+	 cleanup_PROT_recomb_dirs
+	 cd "$top_dir" || msg "ERROR: cannot cd into $top_dir ..." ERROR RED
+         cleanup_PROT_top_dir
+      elif [ "$flag" == 'PHYLO_SIGNAL' ]; then
+	 cleanup_PROT_recomb_dirs
+	 cd "$top_dir" || msg "ERROR: cannot cd into $top_dir ..." ERROR RED
+         cleanup_PROT_top_dir
+      fi
+   fi
+   
+   
+   if (( runmode == 2 )); then
+      # <TODO>: need to update to enter and cleanup the non_recomb_cdn_alns/PopGen/neutral_loci_X directory
+       cleanup_PopGen_run  # <TODO>: refactor and update considering new snp-sistes code
+   fi
+
+
+   # end with citation
+   print_citation
+
+   (( DEBUG > 0 )) && msg " <= exiting ${FUNCNAME[0]} ..." DEBUG NC
+   return 0
 }
