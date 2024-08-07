@@ -40,7 +40,7 @@ repository = 'https://CRAN.R-project.org' # ; 'http://cran.rstudio.com' # 'https
 # 2024-04-13: removed "cluster", "dendextend", "factoextra", which are only required by hcluster_pangenome_matrix.sh, 
 #    which is distributed through the GET_HOMOLOGUES GitHub repo.
 # 2024-04-15: replaced devtools for the much lighter remotes.
-required_packages = c("remotes", "ape", "gplots", "vioplot", "plyr", "dplyr", "ggplot2", "stringi" "stringr", "seqinr")
+required_packages = c("remotes", "ape", "gplots", "vioplot", "plyr", "dplyr", "ggplot2", "stringi", "stringr", "seqinr")
 
 
 local_lib = "./lib/R"
@@ -68,7 +68,7 @@ for (package in required_packages) {
 # PV 2022-06-12s; GitHub repo 'http://github.com/grady/kdetrees'
 # install.packages("kdetrees_0.1.5.tar.gz", lib='/usr/lib/R/site-library', repos = NULL, type="source")
 
-library("devtools")
+library("remotes")
 install_github("grady/kdetrees", dependencies = TRUE)
 
 sessionInfo()
