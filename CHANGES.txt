@@ -1,3 +1,10 @@
+07aug24  * No major changes; updated install_R_deps.R, run_kdetrees.R, run_parallel_cmmds.pl, run_parallel_molecClock_test_with_paup.sh,
+           estimate_pangenome_phylogenies.sh, run_get_phylomarkers_pipeline.sh so that 'make test' completes in Ubuntu 20.04, silencing
+           parallel citation messages, but note that this software won't be possible without it:
+
+           O. Tange (2011): GNU Parallel - The Command-Line Power Tool,
+           ;login: The USENIX Magazine, February 2011:42-47.
+
 20apr24  * run_get_phylomarkers_pipeline.sh v2.8.4.0_2024-04-20
           - refactored all cleanup code into functions called by trap 'cleanup_trap "DIR" END' ABRT EXIT HUP INT QUIT TERM
           - removed obsolete commented lines to tidy code layout
