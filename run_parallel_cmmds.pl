@@ -56,10 +56,10 @@ $command =~ s/\%([\.\-\_\w]+)/=s\/$1\/\/=/g;
 # added --gnu flag for compatibility
 if($ARGV[2] && $ARGV[2] > 0){ 
 	my $n_of_cores = $ARGV[2];
-	$command = "ls -1 *$ext | $parallelEXE --gnu -j $n_of_cores \"$command\"";
+	$command = "ls -1 *$ext | $parallelEXE --gnu --willcite -j $n_of_cores \"$command\"";
 }
 else{
-	$command = "ls -1 *$ext | $parallelEXE --gnu \"$command\"";
+	$command = "ls -1 *$ext | $parallelEXE --gnu --willcite \"$command\"";
 }
 
 warn "# $command" if($VERBOSE);
