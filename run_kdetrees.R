@@ -285,90 +285,93 @@ sink()
 checkFileCreated(kde_outlier_files)
 
 if (total_outlier_trees == 0){
-    q(save = "no", status = 0)
+
+	q(save = "no", status = 0)
+
+	#kde_dfr_file_*.tab file not written   
+
 }else {
 
+	# construct a dataframe
+	flag.vec.topo <- src.tree.idx %in% topo.outlier.tree.idx
+	flag.vec.topo <- ifelse(flag.vec.topo, flag.vec.topo <- c("outlier"), flag.vec.topo <- c("ok")) 
 
-# construct a dataframe
-flag.vec.topo <- src.tree.idx %in% topo.outlier.tree.idx
-flag.vec.topo <- ifelse(flag.vec.topo, flag.vec.topo <- c("outlier"), flag.vec.topo <- c("ok")) 
+	flag.vec.bl <- src.tree.idx %in% bl.outlier.tree.idx
+	flag.vec.bl <- ifelse(flag.vec.bl, flag.vec.bl <- c("outlier"), flag.vec.bl <- c("ok")) 
 
-flag.vec.bl <- src.tree.idx %in% bl.outlier.tree.idx
-flag.vec.bl <- ifelse(flag.vec.bl, flag.vec.bl <- c("outlier"), flag.vec.bl <- c("ok")) 
+	#flag.vec.topo.comb <- src.tree.idx %in% topo.outlier.tree.idx
+	#flag.vec.bl.comb <- src.tree.idx %in% bl.outlier.tree.idx
+	#combined.flag.vec.bl.topo <- unique(union(flag.vec.topo.comb, flag.vec.bl.comb))
+	#combined.flag.vec.bl.topo <- ifelse(combined.flag.vec.bl.topo, combined.flag.vec.bl.topo <- c("outlier"), combined.flag.vec.bl.topo <- c("ok")) 
+	
+	kde.densities.vec.topo <- kdeobj.diss.topo$density
+	kde.densities.vec.bl <- kdeobj.diss.bl$density
+	
+	#kde.trees.dfr <- data.frame(file=files, kde_topo_dens=kde.densities.vec.topo, kde_topo_test=flag.vec.topo, kde_bl_dens=kde.densities.vec.bl, kde_bl_test=flag.vec.bl, kde_bl_topo_test=combined.flag.vec.bl.topo)
+	kde.trees.dfr <- data.frame(file=files, kde_topo_dens=kde.densities.vec.topo, kde_topo_test=flag.vec.topo, kde_bl_dens=kde.densities.vec.bl, kde_bl_test=flag.vec.bl)
+	
+	# Genarate a new variable kde_bl_topo_test, that combines the outilers found by both kde_topo_test & kde_bl_test 
+	kde.trees.dfr <- within(kde.trees.dfr, {
+	  kde_bl_topo_test[kde_topo_test == "ok" & kde_bl_test == "ok"] <- "ok"
+	  kde_bl_topo_test[kde_topo_test == "outlier"] <- "outlier"
+	  kde_bl_topo_test[kde_bl_test == "outlier"] <- "outlier"
+	})
 
-#flag.vec.topo.comb <- src.tree.idx %in% topo.outlier.tree.idx
-#flag.vec.bl.comb <- src.tree.idx %in% bl.outlier.tree.idx
-#combined.flag.vec.bl.topo <- unique(union(flag.vec.topo.comb, flag.vec.bl.comb))
-#combined.flag.vec.bl.topo <- ifelse(combined.flag.vec.bl.topo, combined.flag.vec.bl.topo <- c("outlier"), combined.flag.vec.bl.topo <- c("ok")) 
-
-kde.densities.vec.topo <- kdeobj.diss.topo$density
-kde.densities.vec.bl <- kdeobj.diss.bl$density
-
-#kde.trees.dfr <- data.frame(file=files, kde_topo_dens=kde.densities.vec.topo, kde_topo_test=flag.vec.topo, kde_bl_dens=kde.densities.vec.bl, kde_bl_test=flag.vec.bl, kde_bl_topo_test=combined.flag.vec.bl.topo)
-kde.trees.dfr <- data.frame(file=files, kde_topo_dens=kde.densities.vec.topo, kde_topo_test=flag.vec.topo, kde_bl_dens=kde.densities.vec.bl, kde_bl_test=flag.vec.bl)
-
-# Genarate a new variable kde_bl_topo_test, that combines the outilers found by both kde_topo_test & kde_bl_test 
-kde.trees.dfr <- within(kde.trees.dfr, {
-  kde_bl_topo_test[kde_topo_test == "ok" & kde_bl_test == "ok"] <- "ok"
-  kde_bl_topo_test[kde_topo_test == "outlier"] <- "outlier"
-  kde_bl_topo_test[kde_bl_test == "outlier"] <- "outlier"
-})
-
-# write kde.trees.dfr to file:
-kde_dfr_file <- paste("kde_dfr_file_", input_trees_file, ".tab", sep = "")
-write.table(kde.trees.dfr, file=kde_dfr_file, row.names = FALSE, sep = "\t", quote = FALSE)
-checkFileCreated(kde_dfr_file)
-
-# make histograms to summarize distributions of tree KDEs
-# 1. get colors
-# http://stackoverflow.com/questions/21858394/partially-color-histogram-in-r
-# Here's the method I mentioned in comments:
-# Make some test data (you should do this in your question!)
-# test = runif(10000,-2,0)
-# get R to compute the histogram but not plot it:
-# h = hist(test, breaks=100,plot=FALSE)
-# Your histogram is divided into three parts:
-# ccat = cut(h$breaks, c(-Inf, -0.6, -0.4, Inf))
-# plot with this palette, implicit conversion of factor to number indexes the palette:
-# plot(h, col=c("white","green","red")[ccat])
-
-topo.cutoff <- max(kde.trees.dfr$kde_topo_dens[kde.trees.dfr$kde_topo_test == "outlier"])
-h.topo <- hist(kde.trees.dfr$kde_topo_dens, breaks = 50, plot=FALSE) # probability = TRUE, <== does not like it!?
-ccat.topo <- cut(h.topo$breaks, c(-Inf, topo.cutoff, Inf) )
-
-bl.cutoff <- max(kde.trees.dfr$kde_bl_dens[kde.trees.dfr$kde_bl_test == "outlier"])
-h.bl <- hist(kde.trees.dfr$kde_bl_dens, breaks = 50, plot=FALSE) # probability = TRUE, <== does not like it!?
-ccat.bl <- cut(h.bl$breaks, c(-Inf, bl.cutoff, Inf) )
-
-hist_plot_file <- paste("kde_hist_plot_file_", input_trees_file, ".svg", sep = "")
-svg(file=hist_plot_file)
-layout(matrix( c(1,2), 2, 1, byrow = TRUE) )
-plot(h.topo, main="kde topo", col=c("black", "blue")[ccat.topo])
-rug(jitter(kde.trees.dfr$kde_topo_dens))
-#lines(density(kde.trees.dfr$kde_topo_dens), lwd=2)
-plot(h.bl, main="kde bl", col=c("black", "blue")[ccat.bl])
-rug(jitter(kde.trees.dfr$kde_bl_dens))
-#lines(density(kde.trees.dfr$kde_bl_dens), lwd=2)
-dev.off()
-
-checkFileCreated(hist_plot_file)
-
-# make violin plots to summarize distributions of tree KDEs
-violin_plot_file <- paste("violin_plot_file_", input_trees_file, ".svg", sep = "")
-svg(file=violin_plot_file)
-layout(matrix( c(1,2), 2, 1, byrow = TRUE) )
-vioplot( kde.trees.dfr$kde_bl_dens, col="gold", names = c("kde for tree distributions with branch lengths") ) 
-vioplot( kde.trees.dfr$kde_topo_dens, col="gold", names = c("kde for topology distributions") ) 
-dev.off()
-
-checkFileCreated(violin_plot_file)
-
-# Try doing a consensus;
-# Error in FUN(X[[i]], ...) : one tree has a different number of tips
-# consensus(good.trees, p = 0.5)
-
-
-# exit without saving workspace
-# https://stackoverflow.com/questions/52871579/stop-r-script-with-exit-status-0
-q(save = "no", status = 0)
+	# write kde.trees.dfr to file:
+	kde_dfr_file <- paste("kde_dfr_file_", input_trees_file, ".tab", sep = "")
+	write.table(kde.trees.dfr, file=kde_dfr_file, row.names = FALSE, sep = "\t", quote = FALSE)
+	checkFileCreated(kde_dfr_file)
+	
+	# make histograms to summarize distributions of tree KDEs
+	# 1. get colors
+	# http://stackoverflow.com/questions/21858394/partially-color-histogram-in-r
+	# Here's the method I mentioned in comments:
+	# Make some test data (you should do this in your question!)
+	# test = runif(10000,-2,0)
+	# get R to compute the histogram but not plot it:
+	# h = hist(test, breaks=100,plot=FALSE)
+	# Your histogram is divided into three parts:
+	# ccat = cut(h$breaks, c(-Inf, -0.6, -0.4, Inf))
+	# plot with this palette, implicit conversion of factor to number indexes the palette:
+	# plot(h, col=c("white","green","red")[ccat])
+	
+	topo.cutoff <- max(kde.trees.dfr$kde_topo_dens[kde.trees.dfr$kde_topo_test == "outlier"])
+	h.topo <- hist(kde.trees.dfr$kde_topo_dens, breaks = 50, plot=FALSE) # probability = TRUE, <== does not like it!?
+	ccat.topo <- cut(h.topo$breaks, c(-Inf, topo.cutoff, Inf) )
+	
+	bl.cutoff <- max(kde.trees.dfr$kde_bl_dens[kde.trees.dfr$kde_bl_test == "outlier"])
+	h.bl <- hist(kde.trees.dfr$kde_bl_dens, breaks = 50, plot=FALSE) # probability = TRUE, <== does not like it!?
+	ccat.bl <- cut(h.bl$breaks, c(-Inf, bl.cutoff, Inf) )
+	
+	hist_plot_file <- paste("kde_hist_plot_file_", input_trees_file, ".svg", sep = "")
+	svg(file=hist_plot_file)
+	layout(matrix( c(1,2), 2, 1, byrow = TRUE) )
+	plot(h.topo, main="kde topo", col=c("black", "blue")[ccat.topo])
+	rug(jitter(kde.trees.dfr$kde_topo_dens))
+	#lines(density(kde.trees.dfr$kde_topo_dens), lwd=2)
+	plot(h.bl, main="kde bl", col=c("black", "blue")[ccat.bl])
+	rug(jitter(kde.trees.dfr$kde_bl_dens))
+	#lines(density(kde.trees.dfr$kde_bl_dens), lwd=2)
+	dev.off()
+	
+	checkFileCreated(hist_plot_file)
+	
+	# make violin plots to summarize distributions of tree KDEs
+	violin_plot_file <- paste("violin_plot_file_", input_trees_file, ".svg", sep = "")
+	svg(file=violin_plot_file)
+	layout(matrix( c(1,2), 2, 1, byrow = TRUE) )
+	vioplot( kde.trees.dfr$kde_bl_dens, col="gold", names = c("kde for tree distributions with branch lengths") ) 
+	vioplot( kde.trees.dfr$kde_topo_dens, col="gold", names = c("kde for topology distributions") ) 
+	dev.off()
+	
+	checkFileCreated(violin_plot_file)
+	
+	# Try doing a consensus;
+	# Error in FUN(X[[i]], ...) : one tree has a different number of tips
+	# consensus(good.trees, p = 0.5)
+	
+	
+	# exit without saving workspace
+	# https://stackoverflow.com/questions/52871579/stop-r-script-with-exit-status-0
+	q(save = "no", status = 0)
 }
