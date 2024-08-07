@@ -1246,7 +1246,7 @@ function cleanup_PopGen_run {
     
    # start working in popGen/\$neutral_loci_dir
    
-   ls ./*_clean.fasta | "$bindir"/parallel --gnu gzip {}
+   ls ./*_clean.fasta | "$bindir"/parallel --gnu --willcite gzip {}
    mkdir src_FASTA || { msg "ERROR: could not mkdir src_FASTA" ERROR RED ; }
    mv ./*_clean.fasta.gz src_FASTA
    
@@ -1264,7 +1264,7 @@ function cleanup_PopGen_run {
        (( DEBUG == 0 )) && { [ ! -e "$f" ] && rm "$f" ; }
    done
    
-   (( DEBUG == 0 )) && ls *.* | "$bindir"/parallel --gnu gzip {}
+   (( DEBUG == 0 )) && ls *.* | "$bindir"/parallel --gnu --willcite gzip {}
  
    ### CALL THE OTHER CLEANUP FUNCTIONS <TODO>
    
@@ -1272,19 +1272,19 @@ function cleanup_PopGen_run {
    cd ../../../non_recomb_cdn_alns/ || { msg "ERROR: could not cd into ../../../non_recomb_cdn_alns" ERROR RED ; }
   
    if [[ "$search_algorithm" == "F" ]]; then
-       (( DEBUG == 0 )) && ls *.log | "$bindir"/parallel --gnu gzip {}
-       (( DEBUG == 0 )) && ls *.ph | "$bindir"/parallel --gnu gzip {}
+       (( DEBUG == 0 )) && ls *.log | "$bindir"/parallel --gnu --willcite gzip {}
+       (( DEBUG == 0 )) && ls *.ph | "$bindir"/parallel --gnu --willcite gzip {}
        mkdir src_gene_trees || { msg "ERROR: could not mkdir src_gene_trees ..." ERROR RED ; }
        mv ./*.log.gz ./*.ph.gz src_gene_trees
    else
-       (( DEBUG == 0 )) && ls *.log | "$bindir"/parallel --gnu gzip {}
-       (( DEBUG == 0 )) && ls *.treefile | "$bindir"/parallel --gnu gzip {}
+       (( DEBUG == 0 )) && ls *.log | "$bindir"/parallel --gnu --willcite gzip {}
+       (( DEBUG == 0 )) && ls *.treefile | "$bindir"/parallel --gnu --willcite gzip {}
        
        mkdir src_gene_trees || { msg "ERROR: could not mkdir src_gene_trees ..." ERROR RED ; }
        mv ./*.log.gz ./*.treefile.gz src_gene_trees
    fi 
 
-   (( DEBUG == 0 )) && ls *.fasta | "$bindir"/parallel --gnu gzip {}
+   (( DEBUG == 0 )) && ls *.fasta | "$bindir"/parallel --gnu --willcite gzip {}
    mkdir src_cdn_alignments || { msg "ERROR: could not mkdir src_cdn_alignments ..." ERROR RED ; }
    mv ./*.fasta.gz src_cdn_alignments
  
