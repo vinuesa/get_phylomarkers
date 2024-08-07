@@ -1549,14 +1549,19 @@ then
     (( DEBUG > 0 )) && msg " > ${distrodir}/run_kdetrees.R ${gene_tree_ext} all_gene_trees.tre $kde_stringency &> /dev/null" DEBUG NC
     "${distrodir}"/run_kdetrees.R "${gene_tree_ext}" all_gene_trees.tre "$kde_stringency" &> /dev/null && { echo "run_kdetrees.R returns $?" ; } ### <FIXME>; instead of || \ next line
      #{ msg "WARNING could not run ${distrodir}/run_kdetrees.R ${gene_tree_ext} all_gene_trees.tre $kde_stringency &> /dev/null" WARNING LRED ; }
-    
-    # Print a warning if kdetrees could not be run, but do now exit
-    if [ ! -s kde_dfr_file_all_gene_trees.tre.tab ]
+   
+    # Print a warning if kdetrees could not be run, but do not exit
+    if [ ! -s kde_stats_all_gene_trees.tre.out ]
     then
         PRINT_KDE_ERR_MESSAGE=1
-        msg "# WARNING: could not write kde_dfr_file_all_gene_trees.tre.tab; check that kdetrees and ape are propperly installed ..." WARNING LRED
+        msg "# WARNING: could not write kde_stats_all_gene_trees.tre.out; check that kdetrees and ape are propperly installed ..." WARNING LRED
         msg "# WARNING:      will arbitrarily set no_kde_outliers to 0, i.e. NO kde filtering applied to this run!" WARNING LRED
         msg "# This issue can be easily avoided by running the containerized version available from https://hub.docker.com/r/vinuesa/get_phylomarkers!" PROGR GREEN
+    fi
+	
+    # Check how many outliers were detected by kdetrees
+    if [ ! -s kde_dfr_file_all_gene_trees.tre.tab ]
+    then
         no_kde_outliers=0
         no_kde_ok=$(wc -l all_gene_trees.tre | awk '{print $1}')
     else
@@ -2587,13 +2592,19 @@ then
     #[ ! -s kde_dfr_file_all_gene_trees.tre.tab ] && install_Rlibs_msg kde_dfr_file_all_gene_trees.tre.tab kdetrees,ape
     #check_output kde_dfr_file_all_gene_trees.tre.tab "$parent_PID"
 
-    if [[ ! -s kde_dfr_file_all_gene_trees.tre.tab ]]
+    # Print a warning if kdetrees could not be run, but do not exit
+    if [[ ! -s kde_stats_all_gene_trees.tre.out ]]
     then
         PRINT_KDE_ERR_MESSAGE=1
         msg "# WARNING: could not write kde_dfr_file_all_gene_trees.tre.tab; check that kdetrees and ape are propperly installed ..." WARNING LRED
         msg "# WARNING:      will arbitrarily set no_kde_outliers to 0, i.e. NO kde filtering applied to this run!" WARNING LRED
         msg "# This issue can be easily avoided by running the containerized version available from https://hub.docker.com/r/vinuesa/get_phylomarkers!" PROGR GREEN
-        no_kde_outliers=0 
+    fi
+
+    # Check how many outliers were detected by kdetrees
+    if [ ! -s kde_dfr_file_all_gene_trees.tre.tab ]
+    then
+        no_kde_outliers=0
         no_kde_ok=$(wc -l < all_gene_trees.tre)
     else
         # 5.3 mv outliers to kde_outliers
