@@ -288,7 +288,7 @@ if (total_outlier_trees == 0){
 
 	q(save = "no", status = 0)
 
-	#kde_dfr_file_*.tab file not written   
+	#kde_dfr_file_*.tab file not written -> checked in main script   
 
 }else {
 
