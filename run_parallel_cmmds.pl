@@ -15,6 +15,7 @@ else{ $parallelEXE .= "linux/parallel" }
 
 if(! -s $parallelEXE){
   $parallelEXE = `which parallel`;
+  chomp $parallelEXE;
   if($parallelEXE eq ''){ 
     print "# ERROR: parallel not in place!\n";
     print "# ... you will need to install \"parallel\" first or include it in \$PATH\n";
