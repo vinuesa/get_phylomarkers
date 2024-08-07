@@ -1275,7 +1275,7 @@ function cleanup_PopGen_run {
        (( DEBUG == 0 )) && ls *.log | "$bindir"/parallel --gnu gzip {}
        (( DEBUG == 0 )) && ls *.ph | "$bindir"/parallel --gnu gzip {}
        mkdir src_gene_trees || { msg "ERROR: could not mkdir src_gene_trees ..." ERROR RED ; }
-       mv ./*.log ./*.ph src_gene_trees
+       mv ./*.log.gz ./*.ph.gz src_gene_trees
    else
        (( DEBUG == 0 )) && ls *.log | "$bindir"/parallel --gnu gzip {}
        (( DEBUG == 0 )) && ls *.treefile | "$bindir"/parallel --gnu gzip {}
