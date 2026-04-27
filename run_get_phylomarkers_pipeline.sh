@@ -3070,9 +3070,12 @@ then
       	    msg "# >>> Best IQ-TREE run was: $best_search ..." PROGR GREEN
 
       	    best_tree_file="${tree_prefix}_${best_search_base_name}_nonRecomb_KdeFilt_${no_top_markers}concat_protAlns_iqtree_${best_model}.spTree"
-	    numbered_nwk="${tree_prefix}_${best_search_base_name}_nonRecomb_KdeFilt_${no_top_markers}concat_protAlns_iqtree_${best_model}_numbered.nwk"
+	        numbered_nwk="${tree_prefix}_${best_search_base_name}_nonRecomb_KdeFilt_${no_top_markers}concat_protAlns_iqtree_${best_model}_numbered.nwk"
       	    cp "${best_search_base_name}.treefile" "$best_tree_file"
-	    cp "${best_search_base_name}.treefile" "$numbered_nwk"
+	        cp "${best_search_base_name}.treefile" "$numbered_nwk"
+		
+	        best_mldist_file="${tree_prefix}_${best_search_base_name}_nonRecomb_KdeFilt_${no_top_markers}concat_protAlns_iqtree_${best_model}.mldist"               
+            cp "${best_search_base_name}.mldist" "$best_mldist_file"
 
       	    print_start_time && msg "# Adding labels back to ${best_tree_file} ..." PROGR BLUE
    	    (( DEBUG > 0 )) && msg " > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${best_tree_file} &> /dev/null" DEBUG NC
@@ -3083,7 +3086,7 @@ then
             output_files_a+=(concat_protAlns_IQT_spTree)
             output_files_h[concat_protAlns_IQT_spTree]=$(echo -e "$ed_dir\t$sp_tree")
 
-      	    cp "$sp_tree" "$numbered_nwk" "$top_markers_dir"
+      	    cp "$sp_tree" "$numbered_nwk" "$best_mldist_file" "$top_markers_dir"
       	    cd "$top_markers_dir" || { msg "ERROR: cannot cd into $top_markers_dir" ERROR RED && exit 1 ; }
       	    rm -rf iqtree_abayes concat_protAlns.faainf.treefile concat_protAlns.faainf.uniqueseq.phy ./*ckp.gz
 
@@ -3095,9 +3098,12 @@ then
     	    iqtree -s concat_protAlns.faainf -st PROT -m "$best_model" --abayes -B 1000 -T "$IQT_threads" --prefix iqtree_abayes &> /dev/null
 
     	    best_tree_file="${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}concat_protAlns_iqtree_${best_model}.spTree"
-	    numbered_nwk="${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}concat_protAlns_iqtree_${best_model}_numbered.nwk"
+	        numbered_nwk="${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}concat_protAlns_iqtree_${best_model}_numbered.nwk"
+	        best_mldist_file="${tree_prefix}_nonRecomb_KdeFilt_${no_top_markers}concat_protAlns_iqtree_${best_model}.mldist"
+
     	    cp iqtree_abayes.treefile "${best_tree_file}"
-	    cp iqtree_abayes.treefile "$numbered_nwk"
+	        cp iqtree_abayes.treefile "$numbered_nwk"
+   	        cp iqtree_abayes.treefile "${best_mldist_file}"
 
     	    print_start_time && msg "# Adding labels back to ${best_tree_file} ..." PROGR BLUE "$logdir" "$dir_suffix"
    	    (( DEBUG > 0 )) && msg " > ${distrodir}/add_labels2tree.pl ${tree_labels_dir}/tree_labels.list ${best_tree_file} &> /dev/null" DEBUG NC "$logdir" "$dir_suffix"
@@ -3109,7 +3115,7 @@ then
             output_files_a+=(concat_protAlns_IQT_spTree)
             output_files_h[concat_protAlns_IQT_spTree]=$(echo -e "$ed_dir\t$sp_tree")
 
-    	    cp "$sp_tree" "$numbered_nwk" "$top_markers_dir"
+    	    cp "$sp_tree" "$numbered_nwk" "$best_mldist_file" "$top_markers_dir"
     	    cd "$top_markers_dir" || { msg "ERROR: cannot cd into $top_markers_dir" ERROR RED && exit 1 ; }
     	    rm -rf iqtree_abayes concat_protAlns.faainf.treefile concat_protAlns.faainf.uniqueseq.phy ./*ckp.gz
 	  
