@@ -57,7 +57,7 @@ sub main{
     }
 
     # Start checking if the site is informative or not
-    next if($removeAmbiguities && $refNt eq 'N'); # if it's informative, but the ref base isn't good, then skip
+    next if($removeAmbiguities && $refNt =~ /[NRYKMSWBHDV]/); # if it's informative, but the ref base isn't good, then skip
     next if($removeGaps && $refNt eq '-');        # if it's informative, but the ref base isn't good, then skip
 
     # See if the rest of this column shows that it is informative.
@@ -74,7 +74,7 @@ sub main{
       }
 
       # Check to make sure it doesn't have an N anywhere
-      next POSITION if($removeAmbiguities && $nt eq 'N');
+      next POSITION if($removeAmbiguities && $nt =~ /[NRYKMSWBHDV]/);
       # Check to make sure there is no gap at all
       next POSITION if($removeGaps && $nt eq '-');
     } 
